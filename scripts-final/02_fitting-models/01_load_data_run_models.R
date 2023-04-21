@@ -16,12 +16,12 @@ if(sum(libs %in% (.packages())) != length(libs)){
 # load in biomass data for biomass predictions in spatial cross validation
   
 rls_biomass_SCV <- readRDS("data/Cyril_data/rls_biomass_SCV.rds")
-rls_biomass_SCV <- mclapply(1:length(rls_biomass_SCV), function(i){
-  cv <- rls_biomass_SCV[[i]]
-  cv$fitting <- cv$fitting[,c(1:38)]
-  cv$validation <- cv$validation[,c(1:38)]
-  cv
-},mc.cores = 1)
+# rls_biomass_SCV <- mclapply(1:length(rls_biomass_SCV), function(i){
+#   cv <- rls_biomass_SCV[[i]]
+#   cv$fitting <- cv$fitting[,c(1:38)]
+#   cv$validation <- cv$validation[,c(1:38)]
+#   cv
+# },mc.cores = 1)
   
 # load in covariates
   
@@ -45,7 +45,7 @@ spatial_covariates <- spatial_covariates[,c(1,23,24,2:22)]
 
 # set up base-directory for file saves
 
-base_dir <- 'results/rls_basic_all_R2/SCV'
+base_dir <- 'results/predictions_all_species'
 
 # run biomass models
 
@@ -80,7 +80,7 @@ covariates_cont <- covariates
 
 # add coordonates (ONLY for spatial model : spaMM and SpatialRF)
 
-RLS_sitesInfos <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
 spatial_covariates_cont <- inner_join(covariates_cont, RLS_sitesInfos, by = "SurveyID")
 spatial_covariates_cont <- spatial_covariates_cont %>% 
   dplyr::rename(X = "SiteLongitude", Y = "SiteLatitude") %>% 
