@@ -1,6 +1,6 @@
 # run glm 
 
-source('scripts-final/00_functions/model-functions/SCV/glm_function_SCV.R')
+source('scripts-final/00_functions/model-functions/glm_function_SCV.R')
 
 print('glm biomass prediction')
 glm_function(biomass = rls_biomass_SCV,

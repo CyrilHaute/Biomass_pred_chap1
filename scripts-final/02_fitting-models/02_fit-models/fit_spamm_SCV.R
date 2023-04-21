@@ -1,6 +1,6 @@
 # run spamm (GLMM)
 
-source('scripts-final/00_functions/model-functions/SCV/spamm_function_SCV.R')
+source('scripts-final/00_functions/model-functions/spamm_function_SCV.R')
 
 print('spamm biomass prediction')
 spamm_function(biomass = rls_biomass_SCV,

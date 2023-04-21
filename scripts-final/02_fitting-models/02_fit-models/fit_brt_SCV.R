@@ -1,6 +1,6 @@
 # run boosted regression trees
 
-source('scripts-final/00_functions/model-functions/SCV/brt_function_SCV.R')
+source('scripts-final/00_functions/model-functions/brt_function_SCV.R')
 
 print('brt biomass prediction')
 brt_function(biomass = rls_biomass_SCV,
