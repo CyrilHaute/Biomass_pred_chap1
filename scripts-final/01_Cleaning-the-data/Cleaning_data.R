@@ -1,5 +1,5 @@
 libs <- c('tidyverse', 'parallel', 'pbmcapply', 'corrplot')
-lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.2')
+lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.1')
 
 # check all packages are loaded
 if(sum(libs %in% (.packages())) != length(libs)){
