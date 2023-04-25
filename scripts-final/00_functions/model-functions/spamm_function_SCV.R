@@ -8,8 +8,7 @@
 spamm_function <- function(biomass = biomass, 
                            covariates = spatial_covariates,
                            species_name = species_name,
-                           base_dir   = 'results/rls',
-                           prediction_path = 'predictions'){
+                           base_dir   = 'results/rls'){
 
   require(spaMM)
   require(pbmcapply)
@@ -134,7 +133,7 @@ spamm_function <- function(biomass = biomass,
       names(predictions) <- c("verification_predict", "validation_predict", "MPA")
       predictions
 
-  }, mc.cores = detectCores() - 3)
+  }, mc.cores = detectCores() - 5)
 }, mc.cores = 1)
   
   validation_prediction <- mclapply(1:length(predictions[[1]]), function(i){ # for each species, make mean, median and sd of fitting prediction across cross validation
@@ -224,18 +223,15 @@ spamm_function <- function(biomass = biomass,
 
   # create prediction object to save
   
-  path <- "results/rls_basic_all_R2/SCV/"
-  
   extracted_predictions <- setNames(split(extracted_predictions, seq(nrow(extracted_predictions))), extracted_predictions$species_name)
   
   model_dir <- "spamm"
-  
-  prediction_final_path <- paste0(base_dir, '/', prediction_path)
-  dir.create(prediction_final_path, recursive = T)
+
+  dir.create(base_dir, recursive = T)
   names.list <- species_name
   names(extracted_predictions) <- names.list
   lapply(names(extracted_predictions), function(df)
-    saveRDS(extracted_predictions[[df]], file = paste0(prediction_final_path, '/', model_dir, '_', df, '.rds')))
+    saveRDS(extracted_predictions[[df]], file = paste0(base_dir, '/', model_dir, '_', df, '.rds')))
   
   rm(list=ls())
   gc()

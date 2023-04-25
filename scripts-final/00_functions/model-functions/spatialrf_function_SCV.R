@@ -8,8 +8,7 @@ prediction_path = 'predictions_abunocc'
 spatialrf_function <- function(biomass = biomass, 
                                covariates = covariates,
                                species_name = species_name,
-                               base_dir   = 'results/rls',
-                               prediction_path = 'predictions'){
+                               base_dir   = 'results/rls'){
   
   require(SpatialML)
   require(pbmcapply)
@@ -27,7 +26,7 @@ i=1
     covNames_new <- names(covariates) # randomForests take matrix which can be subset with this object 
     covNames_new <- covNames_new[-which(covNames_new %in% c('SurveyID', 'Y', 'X'))]
     fmla <<- as.formula(paste("Biomass ~ ", paste(covNames_new, collapse= "+")))
-
+j=2
     species_j <- mclapply(2:length(raw_biomass$fitting), function(j){
       
       biomass <- raw_biomass$fitting[,c(1,j)] # select the jth species from the fitting set
@@ -42,7 +41,7 @@ i=1
       biomass_only_val <- validation[which(validation[,2] > 0),]
       
       # keep only absences from species life area 
-      rls_sitesInfos <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+      rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
       biomass <- inner_join(biomass, rls_sitesInfos, by = "SurveyID")
       biomass <- biomass[,-c(26:33,35:37)]
       zone_geo <- biomass[which(biomass[,2] > 0),]
@@ -90,7 +89,7 @@ i=1
       names(predictions) <- c("verification_predict", "validation_predict")
       predictions
         
-    }, mc.cores = detectCores() - 1)
+    }, mc.cores = detectCores() - 5)
   }, mc.cores = 1)
 
   validation_prediction <- mclapply(1:length(predictions[[1]]), function(i){ # for each species, make mean, median and sd of fitting prediction across cross validation
@@ -172,18 +171,15 @@ i=1
 
   # create prediction object to save
 
-  path <- "results/rls_basic_all_R2/SCV/"
-
   extracted_predictions <- setNames(split(extracted_predictions, seq(nrow(extracted_predictions))), extracted_predictions$species_name)
 
   model_dir <- "sprf"
   
-  prediction_final_path <- paste0(base_dir, '/', prediction_path)
-  dir.create(prediction_final_path, recursive = T)
+  dir.create(base_dir, recursive = T)
   names.list <- species_name
   names(extracted_predictions) <- names.list
   lapply(names(extracted_predictions), function(df)
-    saveRDS(extracted_predictions[[df]], file = paste0(prediction_final_path, '/', model_dir, '_', df, '.rds')))
+    saveRDS(extracted_predictions[[df]], file = paste0(base_dir, '/', model_dir, '_', df, '.rds')))
 
   rm(list=ls())
   gc()

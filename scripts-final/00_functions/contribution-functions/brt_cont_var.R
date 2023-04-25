@@ -1,18 +1,17 @@
 # Function for fitting boosted regression tree abundance models
 
-# biomass = rls_biomass_cont
-# covariates = covariates
-# species_name = names(rls_biomass_cont)[-1]
-# base_dir_cont   = base_dir_cont
-# contribution_path = 'contributions_biomass'
-# n.cores=1
+biomass = rls_biomass_cont
+covariates = covariates
+species_name = names(rls_biomass_cont)[-1]
+base_dir_cont   = base_dir_cont
+contribution_path = 'contributions_biomass'
+n.cores=1
 
 brt_function_cont <- function(biomass = biomass, 
                               covariates = covariates, 
-                              species_name = NA, 
+                              species_name = species_name, 
                               n.cores=1,
-                              base_dir_cont        = 'results/rls',
-                              contribution_path = 'contributions'){
+                              base_dir_cont = base_dir_cont){
   
   require(gbm)
   require(DALEX)
@@ -34,7 +33,7 @@ brt_function_cont <- function(biomass = biomass,
     # create formula
     covs     <- paste(covNames_org, collapse = '+')
     brt_formula <- as.formula(paste(response, covs))
-
+i=3
     contribution <- pbmclapply(2:length(raw_biomass), function(i){
       
       biomass <- raw_biomass[,c(1,i)] # select the ith species
@@ -42,7 +41,7 @@ brt_function_cont <- function(biomass = biomass,
       biomass[,2] <- log10(biomass[,2]+1) # log10(x+1) transorm biomass
       
       # keep only absences from species life area 
-      rls_sitesInfos <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+      rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
       biomass <- inner_join(biomass, rls_sitesInfos, by = "SurveyID")
       biomass <- biomass[,-c(24:31,33:35)]
       zone_geo <- biomass[which(biomass[,2] > 0),]
@@ -68,6 +67,8 @@ brt_function_cont <- function(biomass = biomass,
       biomass_final <- rbind(biomass_only, absence)
       namesp <- colnames(biomass_final[2])
       names(biomass_final)[names(biomass_final) == namesp] <- "Biomass"
+      
+      # Fit the model
         
       model_fit <- tryCatch(gbm(formula = brt_formula,
                                 data = biomass_final, 
@@ -129,23 +130,29 @@ brt_function_cont <- function(biomass = biomass,
         }
         
         }
-      
+
+      # Use the package DALEX to assess covariates relative importance
+      # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
       explainer_gbm <- DALEX::explain(model = model_fit, 
                                       data = biomass_final[covNames_org], 
-                                      y = biomass_final[,2])
+                                      y = biomass_final[,2],
+                                      label = "gbm")
         
-      vip.25_gbm <- model_parts(explainer = explainer_gbm, 
-                                loss_function = loss_root_mean_square,
-                                B = 25,
-                                type = "difference")
+      # Compute a 25-permutation-based value of the RMSE for all explanatory variables
+      vip.25_gbm <- DALEX::model_parts(explainer = explainer_gbm, 
+                                       loss_function = loss_root_mean_square, # Here we used the RMSE as our loss function
+                                       B = 25, # Number of permutation
+                                       type = "difference")
         
+      # From the model_parts function you get 25 RMSE values for each covariates. 
+      # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
       vip.25_gbm <- vip.25_gbm %>% 
-        group_by(variable) %>% 
+        dplyr::group_by(variable) %>% 
         dplyr::summarise(Dropout_loss = mean(dropout_loss),
                          sd_dropout_loss = sd(dropout_loss))
         
       vip.25_gbm <- vip.25_gbm %>% 
-        filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_"))
+        dplyr::filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_"))
 
       }, mc.cores = detectCores() - 1)
 
@@ -153,22 +160,19 @@ brt_function_cont <- function(biomass = biomass,
                                       fitted_model = 'GBM', 
                                       # estimate contribution
                                       contributions = lapply(contribution, '[[', 2),
-                                      # estimate median contribution
+                                      # standard-deviation contribution between permutations
                                       sd_contributions = lapply(contribution, '[[', 3))
     
-    # save prediction output in the same file structure
-    
-    path = (here::here("results", "rls", "predictions"))
+    # save contribution output in same file structure
     
     extracted_contributions <- setNames(split(extracted_contributions, seq(nrow(extracted_contributions))), extracted_contributions$species_name)
     
     model_dir <- "brt"
-    contribution_final_path <- paste0(base_dir_cont, '/', contribution_path)
-    dir.create(contribution_final_path, recursive = T)
+    dir.create(base_dir_cont, recursive = T)
     names.list <- species_name
     names(extracted_contributions) <- names.list
     lapply(names(extracted_contributions), function(df)
-      saveRDS(extracted_contributions[[df]], file = paste0(contribution_final_path, '/', model_dir, '_', df, '.rds')))
+      saveRDS(extracted_contributions[[df]], file = paste0(base_dir_cont, '/', model_dir, '_', df, '.rds')))
     
   }, 
   error = function(e) NA)

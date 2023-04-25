@@ -1,16 +1,14 @@
-# biomass = rls_biomass_cont
-# covariates = spatial_covariates_cont
-# species_name = names(rls_biomass_cont)[-1]
-# base_dir_cont   = base_dir_cont
-# model_path      = 'model_abunocc'
-# contribution_path = 'contributions_biomass'
+# function to fit spatial random forest
+
+biomass = rls_biomass_cont
+covariates = spatial_covariates_cont
+species_name = names(rls_biomass_cont)[-1]
+base_dir_cont   = base_dir_cont
 
 spatialrf_function_cont <- function(biomass = biomass,
                                     covariates = covariates,
                                     species_name = species_name,
-                                    base_dir_cont   = 'results/rls',
-                                    model_path      = 'model', 
-                                    contribution_path = 'contributions'){
+                                    base_dir_cont = base_dir_cont){
 
   require(SpatialML)
   require(DALEX)
@@ -27,7 +25,7 @@ spatialrf_function_cont <- function(biomass = biomass,
   covNames_new <- names(covariates)
   covNames_new <- covNames_new[-which(covNames_new %in% c('SurveyID', 'Y', 'X'))]
   fmla <<- as.formula(paste("Biomass ~ ", paste(covNames_new, collapse= "+")))
-    
+i=3
   contribution <- pbmclapply(2:length(raw_biomass), function(i){
     
     biomass <- raw_biomass[,c(1,i)] # select the ith species
@@ -38,7 +36,7 @@ spatialrf_function_cont <- function(biomass = biomass,
     biomass_only <- biomass[which(biomass[,2] > 0),]
     
     # keep only absences from species life area
-    RLS_sitesInfos <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+    RLS_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
     biomass <- inner_join(biomass, RLS_sitesInfos, by = "SurveyID")
     biomass <- biomass[,-c(26:33,35:37)]
     zone_geo <- biomass[which(biomass[,2] > 0),]
@@ -55,7 +53,7 @@ spatialrf_function_cont <- function(biomass = biomass,
         
     replacement <- ifelse(length(which(biomass[,2] == 0)) < n_subsample, T, F)
         
-    boot_absence <- absence[sample(which(absence[,2] == 0), n_subsample, replace = replacement),]
+    absence <- absence[sample(which(absence[,2] == 0), n_subsample, replace = replacement),]
         
     # combine absence and presence
     biomass_final <<- rbind(biomass_only, absence)
@@ -64,33 +62,38 @@ spatialrf_function_cont <- function(biomass = biomass,
     
     coords <<- biomass_final[,c(3,4)]
 
-    ### FITTING MODELS 
-    # fit the spatial random forests
-      
+    # Fit the model
+
     model_fit <- grf(formula = fmla,
                      dframe = biomass_final,
-                     bw = 15,
-                     kernel = "adaptive",
-                     coords = coords,
+                     bw = 15, # number of nearest neighbours
+                     kernel = "adaptive", # adaptive kernel allow to select a number of nearest neighbours. Other option : "fixed" => buffer
+                     coords = coords, # set X and Y coordinates (warning, order matters !)
                      ntree = 1000,
                      weighted = FALSE)
-                      
+   
+    # Use the package DALEX to assess covariates relative importance
+    # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
     explainer_sprf <- DALEX::explain(model = model_fit[[1]],
                                      data = biomass_final[covNames_new],
-                                     y = biomass_final[,2])
+                                     y = biomass_final[,2],
+                                     label = "ranger")
     
-    vip.25_sprf <- model_parts(explainer = explainer_sprf,
-                               loss_function = loss_root_mean_square,
-                               B = 25,
-                               type = "difference")
+    # Compute a 25-permutation-based value of the RMSE for all explanatory variables  
+    vip.25_sprf <- DALEX::model_parts(explainer = explainer_sprf,
+                                      loss_function = loss_root_mean_square, # Here we used the RMSE as our loss function
+                                      B = 25, # Number of permutation
+                                      type = "difference")
     
+    # From the model_parts function you get 25 RMSE values for each covariates. 
+    # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
     vip.25_sprf <- vip.25_sprf %>%
-      group_by(variable) %>% 
+      dplyr::group_by(variable) %>% 
       dplyr::summarise(Dropout_loss = mean(dropout_loss),
                        sd_dropout_loss = sd(dropout_loss))
     
     vip.25_sprf <- vip.25_sprf %>% 
-      filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_"))
+      dplyr::filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_"))
 
     },mc.cores = detectCores() - 1)
   
@@ -98,20 +101,17 @@ spatialrf_function_cont <- function(biomass = biomass,
                                     fitted_model = 'SPRF', 
                                     # estimate contribution
                                     contributions = lapply(contribution, '[[', 2),
-                                    # estimate median contribution
+                                    # standard-deviation contribution between permutations
                                     sd_contributions = lapply(contribution, '[[', 3))
   
-  # create prediction object to save
-      
-  path = (here::here("results", "rls", "predictions"))
+  # save contribution output in same file structure
       
   extracted_contributions <- setNames(split(extracted_contributions, seq(nrow(extracted_contributions))), extracted_contributions$species_name)
       
   model_dir <- 'Sprf'
-  contribution_final_path <- paste0(base_dir_cont, '/', contribution_path)
-  dir.create(contribution_final_path, recursive = T)
+  dir.create(base_dir_cont, recursive = T)
   names.list <- species_name
   names(extracted_contributions) <- names.list
   lapply(names(extracted_contributions), function(df)
-    saveRDS(extracted_contributions[[df]], file = paste0(contribution_final_path, '/', model_dir, '_', df, '.rds')))
+    saveRDS(extracted_contributions[[df]], file = paste0(base_dir_cont, '/', model_dir, '_', df, '.rds')))
 }

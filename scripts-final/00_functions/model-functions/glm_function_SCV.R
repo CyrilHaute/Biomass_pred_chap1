@@ -4,18 +4,16 @@
 # covariates = covariates
 # species_name = colnames(rls_biomass_SCV[[1]]$fitting)[-1]
 # base_dir = base_dir
-# model_path  = 'model_abunocc'
-# prediction_path = 'predictions_abunocc'
+# prediction_path = 'predictions_biomass'
 
 # function to fit glms
 glm_function <- function(biomass = biomass, 
                          covariates = covariates,
                          species_name = species_name,
-                         base_dir        = 'results/rls',
-                         prediction_path = 'predictions'){
+                         base_dir        = 'results/rls'){
   
   require(pbmcapply)
-  
+
   predictions <- pbmclapply(1:length(biomass), function(i){
     
     # create raw biomass object
@@ -59,7 +57,7 @@ glm_function <- function(biomass = biomass,
       biomass_only_val <- validation[which(validation[,2] > 0),]
         
       # keep only absences from species life area 
-      rls_sitesInfos <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+      rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
       biomass <- inner_join(biomass, rls_sitesInfos, by = "SurveyID")
       biomass <- biomass[,-c(24:31,33:35)]
       zone_geo <- biomass[which(biomass[,2] > 0),]
@@ -237,17 +235,15 @@ glm_function <- function(biomass = biomass,
 
   # save prediciton output in same file structure
   
-  path <- "results/rls_basic_all_R2/SCV/"
-  
   extracted_predictions <- setNames(split(extracted_predictions, seq(nrow(extracted_predictions))), extracted_predictions$species_name)
   
   model_dir <- "glm"
-  prediction_final_path <- paste0(base_dir, '/', prediction_path)
-  dir.create(prediction_final_path, recursive = T)
+  
+  dir.create(base_dir, recursive = T)
   names.list <- species_name
   names(extracted_predictions) <- names.list
   lapply(names(extracted_predictions), function(df)
-    saveRDS(extracted_predictions[[df]], file = paste0(prediction_final_path, '/', model_dir, '_', df, '.rds'))) 
+    saveRDS(extracted_predictions[[df]], file = paste0(base_dir, '/', model_dir, '_', df, '.rds'))) 
 
   rm(list=ls())
   gc()

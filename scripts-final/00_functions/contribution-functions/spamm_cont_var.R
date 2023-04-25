@@ -1,14 +1,14 @@
-# biomass = rls_biomass_cont
-# covariates = spatial_covariates_cont
-# species_name = names(rls_biomass_cont)[-1]
-# base_dir_cont   = base_dir_cont
-# contribution_path = 'contributions_biomass'
+# Function for fitting glmm (spaMM)
 
-spamm_function_cont<- function(biomass = biomass, 
-                               covariates = covariates,
-                               species_name = species_name,
-                               base_dir_cont   = 'results/rls',
-                               contribution_path = 'predictions'){
+biomass = rls_biomass_cont
+covariates = spatial_covariates_cont
+species_name = names(rls_biomass_cont)[-1]
+base_dir_cont   = base_dir_cont
+
+spamm_function_cont <- function(biomass = biomass, 
+                                covariates = covariates,
+                                species_name = species_name,
+                                base_dir_cont = base_dir_cont){
   
   require(spaMM)
   require(pbmcapply)
@@ -107,23 +107,29 @@ spamm_function_cont<- function(biomass = biomass,
       model_fit <- fitme(fmla, data = biomass_final, method = "ML")
       
     }
-    
+
+    # Use the package DALEX to assess covariates relative importance
+    # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
     explainer_spamm <- DALEX::explain(model = model_fit, 
                                       data = biomass_final[,3:25], 
-                                      y = biomass_final[,2])
+                                      y = biomass_final[,2],
+                                      label = "HLfit")
          
-    vip.25_spamm <- model_parts(explainer = explainer_spamm, 
-                                loss_function = loss_root_mean_square,
-                                B = 25,
-                                type = "difference")
+    # Compute a 25-permutation-based value of the RMSE for all explanatory variables 
+    vip.25_spamm <- DALEX::model_parts(explainer = explainer_spamm, 
+                                       loss_function = loss_root_mean_square, # Here we used the RMSE as our loss function
+                                       B = 25, # Number of permutation
+                                       type = "difference")
           
+    # From the model_parts function you get 25 RMSE values for each covariates. 
+    # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
     vip.25_spamm <- vip.25_spamm %>% 
-      group_by(variable) %>% 
+      dplyr::group_by(variable) %>% 
       dplyr::summarise(Dropout_loss = mean(dropout_loss),
                        sd_dropout_loss = sd(dropout_loss))
           
     vip.25_spamm <- vip.25_spamm %>% 
-      filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_", "X", "Y"))
+      dplyr::filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_", "X", "Y"))
     
     }, mc.cores = detectCores() - 1)
 
@@ -131,22 +137,19 @@ spamm_function_cont<- function(biomass = biomass,
                                     fitted_model = 'SPAMM', 
                                     # estimate contribution
                                     contributions = lapply(contribution, '[[', 2),
-                                    # estimate median contribution
+                                    # standard-deviation contribution between permutations
                                     sd_contributions = lapply(contribution, '[[', 3))
   
-  # create prediction object to save
-  
-  path = (here::here("results", "rls", "predictions"))
+  # save contribution output in same file structure
   
   extracted_contributions <- setNames(split(extracted_contributions, seq(nrow(extracted_contributions))), extracted_contributions$species_name)
   
   model_dir <- 'spaMM'
-  contribution_final_path <- paste0(base_dir_cont, '/', contribution_path)
-  dir.create(contribution_final_path, recursive = T)
+  dir.create(base_dir_cont, recursive = T)
   names.list <- species_name
   names(extracted_contributions) <- names.list
   lapply(names(extracted_contributions), function(df)
-    saveRDS(extracted_contributions[[df]], file = paste0(contribution_final_path, '/', model_dir, '_', df, '.rds')))
+    saveRDS(extracted_contributions[[df]], file = paste0(base_dir_cont, '/', model_dir, '_', df, '.rds')))
 
   rm(list=ls())
   gc()

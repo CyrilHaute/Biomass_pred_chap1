@@ -1,19 +1,14 @@
-# function to fit glms 
+# function to fit gams 
 
-# buildmer for model fitting and stepwise model selection of glmmTMB
-# remotes::install_github("cvoeten/buildmer"); https://github.com/cvoeten/buildmer
+biomass = rls_biomass_cont
+covariates = covariates_cont
+species_name = names(rls_biomass_cont)[-1]
+base_dir_cont   = base_dir_cont
 
-# biomass = rls_biomass_cont
-# covariates = covariates_cont
-# species_name = names(rls_biomass_cont)[-1]
-# contribution_path = 'contributions_biomass'
-
-# function to fit glms
 gam_function_cont <- function(biomass = biomass, 
                               covariates = covariates,
                               species_name = species_name,
-                              base_dir_cont        = 'results/rls',
-                              contribution_path = 'contributions'){
+                              base_dir_cont = base_dir_cont){
   
   require(mgcv)
   require(DALEX)
@@ -44,7 +39,7 @@ gam_function_cont <- function(biomass = biomass,
   # find the full model formula
   model_formula <- as.formula(paste0(response, covNames_combined))
   model_formula2 <- as.formula(paste0(response, covNames_combined2))
-
+i=3
   contribution <- pbmclapply(2:length(raw_biomass), function(i){
     
     biomass <- raw_biomass[,c(1,i)] # select the ith species
@@ -55,7 +50,7 @@ gam_function_cont <- function(biomass = biomass,
     biomass_only <- biomass[which(biomass[,2] > 0),]
     
     # keep only absences from species life area 
-    rls_sitesInfos <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+    rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
     biomass <- inner_join(biomass, rls_sitesInfos, by = "SurveyID")
     biomass <- biomass[,-c(24:31,33:35)]
     zone_geo <- biomass[which(biomass[,2] > 0),]
@@ -125,21 +120,27 @@ gam_function_cont <- function(biomass = biomass,
     covNames_new <- covNames_new[-21]
     covNames_new <- c(covNames_new, "Effectiveness")
 
+    # Use the package DALEX to assess covariates relative importance
+    # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
     explainer_gam <- DALEX::explain(model = model_fit, 
                                     data = biomass_final[covNames_new], 
-                                    y = biomass_final[,2])
+                                    y = biomass_final[,2],
+                                    label = "gam")
       
-    vip.25_gam <- model_parts(explainer = explainer_gam,
-                              loss_function = loss_root_mean_square,
-                              B = 25,
-                              type = "difference")
+    # Compute a 25-permutation-based value of the RMSE for all explanatory variables 
+    vip.25_gam <- DALEX::model_parts(explainer = explainer_gam,
+                                     loss_function = loss_root_mean_square, # Here we used the RMSE as our loss function
+                                     B = 25, # Number of permutation
+                                     type = "difference")
       
+    # From the model_parts function you get 25 RMSE values for each covariates. 
+    # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
     vip.25_gam <- vip.25_gam %>% 
       dplyr::group_by(variable) %>% 
       dplyr::summarise(Dropout_loss = mean(dropout_loss),
                        sd_dropout_loss = sd(dropout_loss))
       
-    vip.25_gam <- vip.25_gam %>% filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_"))
+    vip.25_gam <- vip.25_gam %>% dplyr::filter(!variable %in% c("SurveyID", "_baseline_", "_full_model_"))
 
     }, mc.cores = detectCores() - 1)
   
@@ -147,22 +148,19 @@ gam_function_cont <- function(biomass = biomass,
                                     fitted_model = 'GAM', 
                                     # estimate contribution
                                     contributions = lapply(contribution, '[[', 2),
-                                    # estimate median contribution
+                                    # standard-deviation contribution between permutations
                                     sd_contributions = lapply(contribution, '[[', 3))
 
-  # save prediction output in the same file structure
-  
-  path = (here::here("results", "rls", "predictions"))
+  # save contribution output in same file structure
   
   extracted_contributions <- setNames(split(extracted_contributions, seq(nrow(extracted_contributions))), extracted_contributions$species_name)
 
   model_dir <- 'gam'
-  contribution_final_path <- paste0(base_dir_cont, '/', contribution_path)
-  dir.create(contribution_final_path, recursive = T)
+  dir.create(base_dir_cont, recursive = T)
   names.list <- species_name
   names(extracted_contributions) <- names.list
   lapply(names(extracted_contributions), function(df)
-    saveRDS(extracted_contributions[[df]], file = paste0(contribution_final_path, '/', model_dir, '_', df, '.rds')))
+    saveRDS(extracted_contributions[[df]], file = paste0(base_dir_cont, '/', model_dir, '_', df, '.rds')))
   
   rm(list=ls())
   gc()

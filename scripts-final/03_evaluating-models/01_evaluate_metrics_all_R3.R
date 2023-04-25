@@ -7,7 +7,7 @@ library(pbmcapply)
 # Merge all files together by species
 
 # Extract names all elements in folder
-path <- "results/rls_basic_all_R2/SCV/predictions_biomass"
+path <- "results/predictions_all_species"
 
 all_files <- list.files(path = path)
 
@@ -17,7 +17,9 @@ Predictions_biomass <- mclapply(1:length(all_files), function(i) {
   readRDS(all_files_full[[i]])
 },mc.cores = 1)
 
-saveRDS(Predictions_biomass, file = "results/predictions_all_R3/bind/SCV/rls_predictions_biomass.rds")
+dir.create("results/predictions_bind")
+
+saveRDS(Predictions_biomass, file = "results/predictions_bind/rls_predictions_biomass.rds")
 rm(list = ls())
 gc()
 
@@ -25,9 +27,9 @@ gc()
 source('scripts-final/00_functions/models_evaluation_functions.R')
 
 ######################################## For spatial cross validation
-bind_files <- list.files('results/predictions_all_R3/bind/SCV', full.names = T)
+bind_files <- list.files('results/predictions_bind', full.names = T)
 
-##### For bind_files[1]
+##### For bind_files
 
 clean_files <- readRDS(bind_files)
 
@@ -49,6 +51,6 @@ model_assessment <- model_assessment %>% group_split(species_name)
 model_assessment <- mclapply(1:length(model_assessment), function(i){
   model_assessment <- model_assessment[[i]]}, mc.cores=1)
 
-dir.create('results/model_assessment_all_R3/SCV/validation', recursive = T)
+dir.create('results/model_assessment_validation', recursive = T)
 
-saveRDS(model_assessment, file = paste0('results/model_assessment_all_R3/SCV/validation', '.rds'))
+saveRDS(model_assessment, file = "results/model_assessment_validation/validation.rds")
