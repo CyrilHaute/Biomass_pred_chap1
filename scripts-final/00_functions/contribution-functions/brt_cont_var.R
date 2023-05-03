@@ -1,11 +1,11 @@
 # Function for fitting boosted regression tree abundance models
 
-biomass = rls_biomass_cont
-covariates = covariates
-species_name = names(rls_biomass_cont)[-1]
-base_dir_cont   = base_dir_cont
-contribution_path = 'contributions_biomass'
-n.cores=1
+# biomass = rls_biomass_cont
+# covariates = covariates
+# species_name = names(rls_biomass_cont)[-1]
+# base_dir_cont   = base_dir_cont
+# contribution_path = 'contributions_biomass'
+# n.cores=1
 
 brt_function_cont <- function(biomass = biomass, 
                               covariates = covariates, 

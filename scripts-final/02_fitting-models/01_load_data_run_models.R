@@ -64,7 +64,7 @@ source('scripts-final/02_fitting-models/02_fit-models/fit_spamm_SCV.R')
 # load in biomass data for biomass variable contribution estimation
 
 rls_biomass_cont <- readRDS("data/Cyril_data/Fish_RLS_cont_var.rds")
-rls_biomass_cont <- rls_biomass_cont[,c(1,3:4)]
+# rls_biomass_cont <- rls_biomass_cont[,c(1,3:4)]
 
 # load in covariates
 

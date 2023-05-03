@@ -1,9 +1,9 @@
 # function to fit random forest
 
-biomass = rls_biomass_cont
-covariates = covariates
-species_name = names(rls_biomass_cont)[-1]
-base_dir_cont   = base_dir_cont
+# biomass = rls_biomass_cont
+# covariates = covariates
+# species_name = names(rls_biomass_cont)[-1]
+# base_dir_cont   = base_dir_cont
 
 rf_function_cont <- function(biomass = biomass, 
                              covariates = covariates, 
