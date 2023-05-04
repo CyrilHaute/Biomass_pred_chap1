@@ -1,5 +1,5 @@
 # function to fit gams 
-
+# 
 # biomass = rls_biomass_cont
 # covariates = covariates_cont
 # species_name = names(rls_biomass_cont)[-1]

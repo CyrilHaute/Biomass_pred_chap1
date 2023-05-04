@@ -13,13 +13,13 @@ source("scripts-final/00_functions/species_traits_figures_function.R")
 
 pal_sp_trait = pnw_palette("Bay",3, type = "discrete")
 
-best_models <- readRDS("results/overall_best_models_R3.rds")
+best_models <- readRDS("results/overall_best_models.rds")
 
 #### Covariates contribution plot ####
 
 # Merge all files together by species
 
-path <- "results/contributions/contributions_biomass"
+path <- "results/model_contributions/"
 
 # load in abundance data
 # Save directory as character object

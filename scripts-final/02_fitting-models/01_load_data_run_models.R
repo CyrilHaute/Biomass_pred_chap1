@@ -97,5 +97,5 @@ source('scripts-final/02_fitting-models/03_fit-contributions/fit_glm_cont_var.R'
 source('scripts-final/02_fitting-models/03_fit-contributions/fit_gam_cont_var.R')
 source('scripts-final/02_fitting-models/03_fit-contributions/fit_rf_cont_var.R')
 source('scripts-final/02_fitting-models/03_fit-contributions/fit_sprf_cont_var.R')
-source('scripts-final/02_fitting-models/03_fit-contributions/fit_spamm_cont_var.R')
 source('scripts-final/02_fitting-models/03_fit-contributions/fit_brt_cont_var.R')
+source('scripts-final/02_fitting-models/03_fit-contributions/fit_spamm_cont_var.R')
