@@ -10,7 +10,7 @@ spamm_function <- function(biomass = biomass,
                            species_name = species_name,
                            base_dir   = 'results/rls'){
 
-  require(spaMM)
+  require(spaMM) #version = "3.13.0"
   require(pbmcapply)
 
   predictions <- pbmclapply(1:length(biomass), function(i){
@@ -112,7 +112,7 @@ spamm_function <- function(biomass = biomass,
         
         }else{
             
-          test <- unique(biomass_only_val$Effectiveness) %in% unique(biomass_final$cov21)
+          test <- unique(biomass_only_val$cov21) %in% unique(biomass_final$cov21)
           
           if(any(test == FALSE)){biomass_only_val <- biomass_only_val %>% filter(cov21 %in% unique(biomass_final$cov21))}
             
@@ -133,7 +133,7 @@ spamm_function <- function(biomass = biomass,
       names(predictions) <- c("verification_predict", "validation_predict", "MPA")
       predictions
 
-  }, mc.cores = detectCores() - 5)
+  }, mc.cores = detectCores() - 1)
 }, mc.cores = 1)
   
   validation_prediction <- mclapply(1:length(predictions[[1]]), function(i){ # for each species, make mean, median and sd of fitting prediction across cross validation

@@ -33,7 +33,7 @@ brt_function_cont <- function(biomass = biomass,
     # create formula
     covs     <- paste(covNames_org, collapse = '+')
     brt_formula <- as.formula(paste(response, covs))
-i=3
+
     contribution <- pbmclapply(2:length(raw_biomass), function(i){
       
       biomass <- raw_biomass[,c(1,i)] # select the ith species

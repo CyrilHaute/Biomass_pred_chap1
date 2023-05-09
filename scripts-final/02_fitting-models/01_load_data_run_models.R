@@ -1,3 +1,5 @@
+# R version 4.1.1
+
 # script to fit each of the functions to species matrix
 
 # load in packages ---- 
@@ -18,8 +20,8 @@ if(sum(libs %in% (.packages())) != length(libs)){
 rls_biomass_SCV <- readRDS("data/Cyril_data/rls_biomass_SCV.rds")
 # rls_biomass_SCV <- mclapply(1:length(rls_biomass_SCV), function(i){
 #   cv <- rls_biomass_SCV[[i]]
-#   cv$fitting <- cv$fitting[,c(1:11)]
-#   cv$validation <- cv$validation[,c(1:11)]
+#   cv$fitting <- cv$fitting[,c(1:4)]
+#   cv$validation <- cv$validation[,c(1:4)]
 #   cv
 # },mc.cores = 1)
 
@@ -49,12 +51,15 @@ base_dir <- 'results/predictions_all_species'
 
 # run biomass models
 
-source('scripts-final/02_fitting-models/02_fit-models/fit_glm_SCV.R')
-source('scripts-final/02_fitting-models/02_fit-models/fit_gam_SCV.R')
-source('scripts-final/02_fitting-models/02_fit-models/fit_rf_SCV.R')
-source('scripts-final/02_fitting-models/02_fit-models/fit_sprf_SCV.R')
-source('scripts-final/02_fitting-models/02_fit-models/fit_brt_SCV.R')
+# source('scripts-final/02_fitting-models/02_fit-models/fit_glm_SCV.R')
+# source('scripts-final/02_fitting-models/02_fit-models/fit_gam_SCV.R')
+# source('scripts-final/02_fitting-models/02_fit-models/fit_rf_SCV.R')
+# source('scripts-final/02_fitting-models/02_fit-models/fit_sprf_SCV.R')
+# source('scripts-final/02_fitting-models/02_fit-models/fit_brt_SCV.R')
 source('scripts-final/02_fitting-models/02_fit-models/fit_spamm_SCV.R')
+
+
+
 
 
 
@@ -93,9 +98,9 @@ base_dir_cont <- 'results/model_contributions'
 
 # run contribution models
 
-source('scripts-final/02_fitting-models/03_fit-contributions/fit_glm_cont_var.R')
-source('scripts-final/02_fitting-models/03_fit-contributions/fit_gam_cont_var.R')
-source('scripts-final/02_fitting-models/03_fit-contributions/fit_rf_cont_var.R')
-source('scripts-final/02_fitting-models/03_fit-contributions/fit_sprf_cont_var.R')
-source('scripts-final/02_fitting-models/03_fit-contributions/fit_brt_cont_var.R')
+# source('scripts-final/02_fitting-models/03_fit-contributions/fit_glm_cont_var.R')
+# source('scripts-final/02_fitting-models/03_fit-contributions/fit_gam_cont_var.R')
+# source('scripts-final/02_fitting-models/03_fit-contributions/fit_rf_cont_var.R')
+# source('scripts-final/02_fitting-models/03_fit-contributions/fit_sprf_cont_var.R')
+# source('scripts-final/02_fitting-models/03_fit-contributions/fit_brt_cont_var.R')
 source('scripts-final/02_fitting-models/03_fit-contributions/fit_spamm_cont_var.R')

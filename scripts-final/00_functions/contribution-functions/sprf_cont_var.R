@@ -25,7 +25,7 @@ spatialrf_function_cont <- function(biomass = biomass,
   covNames_new <- names(covariates)
   covNames_new <- covNames_new[-which(covNames_new %in% c('SurveyID', 'Y', 'X'))]
   fmla <<- as.formula(paste("Biomass ~ ", paste(covNames_new, collapse= "+")))
-i=3
+
   contribution <- pbmclapply(2:length(raw_biomass), function(i){
     
     biomass <- raw_biomass[,c(1,i)] # select the ith species

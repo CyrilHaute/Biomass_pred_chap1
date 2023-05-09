@@ -39,7 +39,7 @@ gam_function_cont <- function(biomass = biomass,
   # find the full model formula
   model_formula <- as.formula(paste0(response, covNames_combined))
   model_formula2 <- as.formula(paste0(response, covNames_combined2))
-i=3
+
   contribution <- pbmclapply(2:length(raw_biomass), function(i){
     
     biomass <- raw_biomass[,c(1,i)] # select the ith species

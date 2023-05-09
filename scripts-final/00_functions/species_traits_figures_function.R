@@ -1,5 +1,4 @@
-# data = cont
-# trait = "Habitat"
+
 
 kruskal_test_function <- function(data,
                                   trait
@@ -27,10 +26,6 @@ kruskal_test_function <- function(data,
   
 }
 
-# plot_data = Contributions_biomass
-# trait = "Habitat"
-# color = pal_sp_trait
-# labs_title = "C"
 
 species_traits_function <- function(plot_data,
                                     trait,
@@ -101,6 +96,7 @@ species_traits_function <- function(plot_data,
       print("p.chisq < 0.05")
       
       plot_trait <- cont %>%
+        mutate(var = fct_relevel(var, "ENV", "HUM", "HAB")) %>% 
         ggplot(aes_string(x = trait, y = "value", fill = "var")) +
         geom_boxplot(aes(fill = factor(var)), width=0.6, outlier.shape = NA) +
         scale_fill_manual(values = c("ENV" = color[1],

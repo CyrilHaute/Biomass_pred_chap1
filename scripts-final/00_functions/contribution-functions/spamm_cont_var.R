@@ -9,7 +9,7 @@ spamm_function_cont <- function(biomass = biomass,
                                 covariates = covariates,
                                 species_name = species_name,
                                 base_dir_cont = base_dir_cont){
-  install.packages("spaMM", dependencies = TRUE)
+
   require(spaMM)
   require(pbmcapply)
   require(DALEX)

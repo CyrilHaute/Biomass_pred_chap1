@@ -1,9 +1,9 @@
-biomass = rls_biomass_SCV
-covariates = spatial_covariates
-species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1])
-base_dir   = base_dir
-model_path      = 'model_abunocc'
-prediction_path = 'predictions_abunocc'
+# biomass = rls_biomass_SCV
+# covariates = spatial_covariates
+# species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1])
+# base_dir   = base_dir
+# model_path      = 'model_abunocc'
+# prediction_path = 'predictions_abunocc'
 
 spatialrf_function <- function(biomass = biomass, 
                                covariates = covariates,
@@ -12,7 +12,7 @@ spatialrf_function <- function(biomass = biomass,
   
   require(SpatialML)
   require(pbmcapply)
-i=1
+
   predictions <- pbmclapply(1:length(biomass), function(i){
     
     # create raw biomass object
@@ -26,7 +26,7 @@ i=1
     covNames_new <- names(covariates) # randomForests take matrix which can be subset with this object 
     covNames_new <- covNames_new[-which(covNames_new %in% c('SurveyID', 'Y', 'X'))]
     fmla <<- as.formula(paste("Biomass ~ ", paste(covNames_new, collapse= "+")))
-j=2
+
     species_j <- mclapply(2:length(raw_biomass$fitting), function(j){
       
       biomass <- raw_biomass$fitting[,c(1,j)] # select the jth species from the fitting set

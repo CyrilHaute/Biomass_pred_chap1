@@ -9,12 +9,6 @@ rescale_01 = function(x){
 
 # function to unnest large data from as a data.table ----
 
-# https://www.johannesbgruber.eu/post/a-faster-unnest/#fn1
-
-# tbl <- data.table(model_outputs %>% dplyr::select(-validation_observed_mean, -validation_predict_mean))
-# predicted <- tbl$predicted
-# observed <- tbl$observed
-
 unnest_dt2 <- function(tbl, ...) {
   
   tbl <- as.data.table(tbl)

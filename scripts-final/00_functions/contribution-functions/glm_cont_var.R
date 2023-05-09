@@ -41,7 +41,7 @@ glm_function_cont <- function(biomass = biomass,
   terms2 <- tabulate.formula(model_formula2)
   form <- build.formula(dep='Biomass',terms)
   form2 <- build.formula(dep='Biomass',terms2)
-i=3
+
   contribution <- pbmclapply(2:length(raw_biomass), function(i){
     
     biomass <- raw_biomass[,c(1,i)] # select the ith species
