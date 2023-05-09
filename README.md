@@ -10,5 +10,5 @@ This repository is structured as follow:
 - `data/` : contains all data required to run models
 - `scripts-final/` : contains all scripts and functions required to run models and reproduce figures
 - `results/` : contains all results to reproduce figures
-- `figures-R3/` : contains all figures
+- `figures/` : contains all figures
 
