@@ -1,3 +1,4 @@
+# function for evaluating covariates importance
 
 covariates_importance_function <- function(plot_data,
                                            fitted_model,
