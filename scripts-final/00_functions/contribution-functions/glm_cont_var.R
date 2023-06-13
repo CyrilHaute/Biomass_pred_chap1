@@ -1,12 +1,4 @@
-# function to fit glms 
-
-# buildmer for model fitting and stepwise model selection of glmmTMB
-# remotes::install_github("cvoeten/buildmer"); https://github.com/cvoeten/buildmer
-
-# biomass = rls_biomass_cont
-# covariates = covariates_cont
-# species_name = names(rls_biomass_cont)[-1]
-# base_dir_cont   = base_dir_cont
+# function to fit glm and assess covariates relative importance
 
 glm_function_cont <- function(biomass = biomass, 
                               covariates = covariates, 
