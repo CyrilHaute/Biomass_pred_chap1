@@ -1,9 +1,4 @@
-# biomass = rls_biomass_SCV
-# covariates = covariates
-# base_dir   = base_dir
-# species_name = colnames(rls_biomass_SCV[[1]]$fitting)[-1]
-# model_path      = 'model_abunocc'
-# prediction_path = 'predictions_abunocc'
+# Function to fit a Random Forest
 
 rf_function <- function(biomass = biomass, 
                         covariates = covariates, 
