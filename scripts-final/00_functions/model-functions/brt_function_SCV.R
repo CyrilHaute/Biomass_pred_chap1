@@ -1,12 +1,4 @@
-# Function for fitting boosted regression tree abundance models
-
-# biomass = rls_biomass_SCV
-# covariates = covariates
-# species_name = colnames(rls_biomass_SCV[[1]]$fitting)[-1]
-# base_dir        = base_dir
-# model_path      = 'model_abunocc'
-# prediction_path = 'predictions_biomass'
-# n.cores=1
+# function to fit boosted regression tree
 
 brt_function <- function(biomass = biomass, 
                          covariates = covariates, 
@@ -231,7 +223,7 @@ brt_function <- function(biomass = biomass,
                                     # estimate median predictions
                                     validation_observed_median = lapply(validation_observed, '[[', 2),
                                     validation_predict_median = lapply(validation_prediction, '[[', 2),
-                                    # the amount of variation caused by bootstrapping to random 0s
+                                    # the amount of variation caused by cross validation
                                     sd_validation = lapply(validation_prediction, '[[', 3),
                                     MPA = NA)
 

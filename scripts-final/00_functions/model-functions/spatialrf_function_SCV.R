@@ -1,9 +1,4 @@
-# biomass = rls_biomass_SCV
-# covariates = spatial_covariates
-# species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1])
-# base_dir   = base_dir
-# model_path      = 'model_abunocc'
-# prediction_path = 'predictions_abunocc'
+# function to fit spatial Random Forest
 
 spatialrf_function <- function(biomass = biomass, 
                                covariates = covariates,
@@ -165,7 +160,7 @@ spatialrf_function <- function(biomass = biomass,
                                   # estimate median predictions
                                   validation_observed_median = lapply(validation_observed, '[[', 2),#list(validation_observed),
                                   validation_predict_median = lapply(validation_prediction, '[[', 2),
-                                  # the amount of variation caused by bootstrapping to random 0s
+                                  # the amount of variation caused by cross validation
                                   sd_validation = lapply(validation_prediction, '[[', 3),
                                   MPA = NA)
 

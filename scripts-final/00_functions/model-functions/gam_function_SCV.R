@@ -1,13 +1,5 @@
 # function to fit gams 
 
-# biomass = rls_biomass_SCV
-# covariates = covariates
-# base_dir        = base_dir
-# model_path      = 'model_abun'
-# prediction_path = 'predictions_abunocc'
-# species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1])
-
-# function to fit glms
 gam_function <- function(biomass = biomass, 
                          covariates = covariates,
                          species_name = species_name,
@@ -228,13 +220,10 @@ gam_function <- function(biomass = biomass,
                                   # estimate median predictions
                                   validation_observed_median = lapply(validation_observed, '[[', 2),#list(validation_observed),
                                   validation_predict_median = lapply(validation_prediction, '[[', 2),
-                                  # the amount of variation caused by bootstrapping to random 0s
+                                  # the amount of variation caused by cross validation
                                   sd_validation = lapply(validation_prediction, '[[', 3),
                                   MPA = MPA_test[[1]])
-  
-  # sapply(extracted_predictions$validation_observed_mean, function(i) length(i))
-  # sapply(extracted_predictions$validation_predict_mean, function(i) length(i))
-  
+
   # save prediction output in the same file structure
   
   extracted_predictions <- setNames(split(extracted_predictions, seq(nrow(extracted_predictions))), extracted_predictions$species_name)

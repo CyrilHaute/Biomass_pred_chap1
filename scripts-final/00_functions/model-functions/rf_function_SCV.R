@@ -151,12 +151,9 @@ rf_function <- function(biomass = biomass,
                                   # estimate median predictions
                                   validation_observed_median = lapply(validation_observed, '[[', 2),
                                   validation_predict_median = lapply(validation_prediction, '[[', 2),
-                                  # the amount of variation caused by bootstrapping to random 0s
+                                  # the amount of variation caused by cross validation
                                   sd_validation = lapply(validation_prediction, '[[', 3),
                                   MPA = NA)
-  
-  # sapply(extracted_predictions$validation_observed_mean, function(i) length(i))
-  # sapply(extracted_predictions$validation_predict_mean, function(i) length(i))
 
   # create prediction object to save
   

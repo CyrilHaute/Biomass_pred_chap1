@@ -47,7 +47,7 @@ glm_function <- function(biomass = biomass,
       
       biomass <- raw_biomass$fitting[,c(1,j)] # select the jth species from the fitting set
       biomass <- inner_join(biomass, covariates, by = "SurveyID") # add covariates
-      biomass[,2] <- log10(biomass[,2]+1) # log10(x+1) transorm biomass
+      biomass[,2] <- log10(biomass[,2]+1) # log10(x+1) transform biomass
       validation <- raw_biomass$validation[,c(1,j)] # select the jth species from the validation set
       validation <- inner_join(validation, covariates, by = "SurveyID")
       validation[,2] <- log10(validation[,2]+1) 
@@ -226,12 +226,9 @@ glm_function <- function(biomass = biomass,
                                   # estimate median predictions
                                   validation_observed_median = lapply(validation_observed, '[[', 2),#list(validation_observed),
                                   validation_predict_median = lapply(validation_prediction, '[[', 2),
-                                  # the amount of variation caused by bootstrapping to random 0s
+                                  # the amount of variation caused by cross validation
                                   sd_validation = lapply(validation_prediction, '[[', 3),
                                   MPA = MPA_test[[1]])
-
-  # sapply(extracted_predictions$validation_observed_mean, function(i) length(i))
-  # sapply(extracted_predictions$validation_predict_mean, function(i) length(i))
 
   # save prediciton output in same file structure
   
