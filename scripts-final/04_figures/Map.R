@@ -13,12 +13,13 @@ library(ggspatial)
 
 
 ### pts_RLS_global = fichier excel contenant l'ensemble des points RLS
-pts_RLS_global <- readRDS("../Biomass_prediction/data/Cyril_data/RLS_sitesInfos.rds")
+pts_RLS_global <- readRDS("../Biomass_pred_chap1/data/Cyril_data/RLS_sitesInfos.rds")
 ### ERboudaries = Shapefile, couche QGIS avec l'ensemble des limites des écorégions
-ERboundaries <- st_read ("../hab_geo/boundaries/Boudaries.shp")
+ERboundaries <- st_read ("../Biomass_pred_chap1/data/Cyril_data/Boudaries.shp")
 
-  ### fonction st_as_sf : va transformer ton fichier excel pts_RLS_global en objet SIG (points)
+### fonction st_as_sf : va transformer ton fichier excel pts_RLS_global en objet SIG (points)
 pts_RLS_global<- st_as_sf(x = pts_RLS_global, coords = c("SiteLongitude" , "SiteLatitude"), crs = "WGS84")
+Fish_RLS <- readRDS("data/Cyril_data/RLS_fishdata.rds")
 pts_RLS_global<- pts_RLS_global %>% filter(SurveyID %in% Fish_RLS$SurveyID)
 
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -26,13 +27,12 @@ world <- ne_countries(scale = "medium", returnclass = "sf")
 ### fonction st_intersection = intersection points RLS x boundaries écorégions.
 sf::sf_use_s2(FALSE)
 pts_RLS <- st_intersection(pts_RLS_global, ERboundaries)
-st_write (pts_RLS, "../Biomass_prediction/data/Cyril_data",driver= "ESRI Shapefile")
+st_write (pts_RLS, "../Biomass_pred_chap1//data/Cyril_data",driver= "ESRI Shapefile")
 pts_RLS$SurveyID <- as.factor(pts_RLS$SurveyID)
 pts_RLS$Longitude <- sapply(1:nrow(pts_RLS), function(i){ pts_RLS$geometry[[i]][1]})
 pts_RLS$Latitude <- sapply(1:nrow(pts_RLS), function(i){ pts_RLS$geometry[[i]][2]})
 
 
-world <- ne_countries(scale = "medium", returnclass = "sf")
 RLS_Map <- ggplot(data = world) +
              geom_sf() +
              scale_x_continuous(limits=c(-180, 180)) +
@@ -47,6 +47,8 @@ RLS_Map <- ggplot(data = world) +
                    axis.title=element_text(size=15)) +  
   labs(fill = "")
 
+ggsave("figures/RLS_Map.pdf", RLS_Map, width = 12, height = 5)
 
-ggsave("RLS_Map.png", RLS_Map, width = 10, height = 10)
+
+
   
