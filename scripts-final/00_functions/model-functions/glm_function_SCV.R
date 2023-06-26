@@ -1,12 +1,5 @@
 # function to fit glms 
-# 
-# biomass = rls_biomass_SCV
-# covariates = covariates
-# species_name = colnames(rls_biomass_SCV[[1]]$fitting)[-1]
-# base_dir = base_dir
-# prediction_path = 'predictions_biomass'
 
-# function to fit glms
 glm_function <- function(biomass = biomass, 
                          covariates = covariates,
                          species_name = species_name,
@@ -135,48 +128,62 @@ glm_function <- function(biomass = biomass,
       # back transform predictions
       verification_predict <- 10^(verification_predict)-1
       validation_predict <- 10^(validation_predict)-1
+      validation_predict <- data.frame(SurveyID = biomass_only_val$SurveyID,
+                                       validation_predict = validation_predict)
         
       MPA <- ifelse(length(unique(biomass_final$cov21)) == 1, "no", "yes")
   
       predictions <- list(verification_predict, validation_predict, MPA)
       names(predictions) <- c("verification_predict", "validation_predict", "MPA")
       predictions
-        
+      
       }, mc.cores = detectCores() - 1)
     }, mc.cores = 1)
-  
+
   validation_prediction <- mclapply(1:length(predictions[[1]]), function(i){ # for each species, make mean, median and sd of fitting prediction across cross validation
     
     species_i <- lapply(predictions, `[[`, i)
-    
+
     validation_prediction <- lapply(species_i, `[[`, 2)
-    
-    max_prediction <- max(sapply(1:length(validation_prediction), function(j) {length(validation_prediction[[j]])}))
-    
-    validation_prediction <- lapply(1:length(validation_prediction), function(k) {
-      cv_k <- as.vector(validation_prediction[[k]])
-      length(cv_k) <- max_prediction
-      cv_k})
-    
-    validation_prediction <- as.matrix(do.call(cbind, validation_prediction))
-    validation_prediction[which(is.finite(validation_prediction) == FALSE)] <- NA
-    means_prediction  <- validation_prediction %>% rowMeans(na.rm = TRUE)
-    means_prediction <- as.vector(means_prediction)
-    medians_prediction <- validation_prediction %>% rowMedians(na.rm = TRUE)
-    medians_prediction <- as.vector(medians_prediction)
-    sd_prediction <- validation_prediction %>% rowSds(na.rm = TRUE)
-    sd_prediction <- mean(sd_prediction, na.rm = TRUE)
-    
+    SurveyID <- lapply(validation_prediction, `[[`, 1)
+    SurveyID <- unlist(SurveyID)
+    SurveyID <- as.data.frame(sort(unique(SurveyID))) %>% rename(SurveyID = "sort(unique(SurveyID))")
+
+    CV <- lapply(1:length(validation_prediction), function(i) {full_join(validation_prediction[[i]], SurveyID, by = "SurveyID")})
+    CV <- lapply(1:length(CV), function(i) {
+      
+      cv_i <- CV[[i]]
+      colnames(cv_i)[2] <- paste0("validation_predict_cv",i)
+      cv_i
+      
+      })
+
+    CV <- CV[[1]] %>% 
+      inner_join(CV[[2]], by = "SurveyID") %>%
+      inner_join(CV[[3]], by = "SurveyID") %>% 
+      inner_join(CV[[4]], by = "SurveyID") %>% 
+      inner_join(CV[[5]], by = "SurveyID") %>% 
+      inner_join(CV[[6]], by = "SurveyID") %>% 
+      inner_join(CV[[7]], by = "SurveyID") %>% 
+      inner_join(CV[[8]], by = "SurveyID") %>% 
+      inner_join(CV[[9]], by = "SurveyID") %>% 
+      inner_join(CV[[10]], by = "SurveyID")
+    CV <- CV[,-1]
+    means_prediction <- as.matrix(CV) %>% rowMeans(na.rm = TRUE)
+    medians_prediction <- as.matrix(CV) %>% rowMedians(na.rm = TRUE)
+    sd_prediction<- mean((as.matrix(CV) %>% rowSds(na.rm = TRUE)), na.rm = TRUE)
+
     final_object <- list(means_prediction, medians_prediction, sd_prediction)
     names(final_object) <- c("means_prediction", "medians_prediction", "sd_prediction")
     final_object
+
     
-  }, mc.cores = 1)
+  }, mc.cores = 10)
 
   validation_observed <- mclapply(1:length(biomass), function(i){
     
     cv_i <- biomass[[i]]$validation
-    
+
     validation_observed <- mclapply(2:ncol(cv_i), function(j){
       
       species_j <- cv_i[,c(1,j)]
@@ -185,30 +192,44 @@ glm_function <- function(biomass = biomass,
       
     }, mc.cores = 1)
   }, mc.cores = 1)
-    
+  
+
   validation_observed <- mclapply(1:length(validation_observed[[1]]), function(i){
     
     species_i <- lapply(validation_observed, `[[`, i)
     
-    validation_observed <- lapply(species_i, `[[`, 2)
-    
-    max_observation <- max(sapply(1:length(validation_observed), function(j) {length(validation_observed[[j]])}))
-    
-    validation_observed <- lapply(1:length(validation_observed), function(k) {
-      cv_k <- as.vector(validation_observed[[k]])
-      length(cv_k) <- max_observation
-      cv_k
-    })
-    
-    validation_observed  <- as.matrix(do.call(cbind, validation_observed ))
-    means_observed <- validation_observed  %>% rowMeans(na.rm = TRUE)
-    medians_observed <- validation_observed  %>% rowMedians(na.rm = TRUE)
-    
+    SurveyID <- lapply(species_i, `[[`, 1)
+    SurveyID <- unlist(SurveyID)
+    SurveyID <- as.data.frame(sort(unique(SurveyID))) %>% rename(SurveyID = "sort(unique(SurveyID))")
+
+    CV <- lapply(1:length(species_i), function(i) {full_join(species_i[[i]], SurveyID, by = "SurveyID")})
+    CV <- lapply(1:length(CV), function(i) {
+      
+      cv_i <- CV[[i]]
+      colnames(cv_i)[2] <- paste0("validation_predict_cv",i)
+      cv_i
+      
+      })
+
+    CV <- CV[[1]] %>% 
+      inner_join(CV[[2]], by = "SurveyID") %>%
+      inner_join(CV[[3]], by = "SurveyID") %>% 
+      inner_join(CV[[4]], by = "SurveyID") %>% 
+      inner_join(CV[[5]], by = "SurveyID") %>% 
+      inner_join(CV[[6]], by = "SurveyID") %>% 
+      inner_join(CV[[7]], by = "SurveyID") %>% 
+      inner_join(CV[[8]], by = "SurveyID") %>% 
+      inner_join(CV[[9]], by = "SurveyID") %>% 
+      inner_join(CV[[10]], by = "SurveyID")
+    CV <- CV[,-1]
+    means_observed <- as.matrix(CV) %>% rowMeans(na.rm = TRUE)
+    medians_observed <- as.matrix(CV) %>% rowMedians(na.rm = TRUE)
+
     final_object <- list(means_observed, medians_observed)
     names(final_object) <- c("means_observed", "medians_observed")
     final_object
     
-  }, mc.cores = 1)
+  }, mc.cores = 10)
 
   MPA_test <- mclapply(1:length(predictions), function(i){
     
