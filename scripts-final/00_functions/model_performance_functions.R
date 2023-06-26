@@ -86,8 +86,8 @@ performance_plot <- function(plot_data,
     ggplot(aes(x = model, y = value, fill = cat)) +
     geom_boxplot(outlier.shape = NA) +
     geom_abline(slope = slope, intercept = intercept, linetype = 2, size = 1.25, color = "red") +
-    scale_fill_manual(values = c("Best models" = pal_perf[2],
-                                 "All models" = pal_perf[1])) +
+    scale_fill_manual(values = c("Best models" = pal_perf[6],
+                                 "All models" = pal_perf[2])) +
     theme_bw() +
     coord_cartesian(ylim = ylim) + 
     theme(legend.position = legend.position) +

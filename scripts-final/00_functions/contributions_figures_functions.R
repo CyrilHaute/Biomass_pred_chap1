@@ -5,6 +5,7 @@ covariates_importance_function <- function(plot_data,
                                            color,
                                            labs_y,
                                            labs_fill,
+                                           ylim,
                                            legend.position
                                            ){
 
@@ -57,7 +58,7 @@ covariates_importance_function <- function(plot_data,
                                  "HUM" = color [3],
                                  "HAB" = color [2])) +
     theme_bw() +
-    coord_flip(ylim = c(0,0.22)) +
+    coord_flip(ylim = ylim) +
     facet_grid(~plot_level) +
     labs(y = labs_y, x = "", fill = labs_fill) +
     theme(legend.position = legend.position) +
@@ -75,6 +76,7 @@ covariates_importance_function <- function(plot_data,
           panel.grid.minor = element_blank())
 
 }
+
 
 var_max_function <- function(plot_data,
                              fitted_model
@@ -148,6 +150,7 @@ var_max_function <- function(plot_data,
   var_max <- var_max %>% rename(VAR = varmax)
   
 }
+
 
 merged_covariates_importance_function <- function(plot_data,
                                                   fitted_model,

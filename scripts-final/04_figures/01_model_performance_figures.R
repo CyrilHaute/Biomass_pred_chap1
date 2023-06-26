@@ -16,7 +16,7 @@ source('scripts-final/00_functions/model_performance_functions.R')
 # Set palette colors for performance figures
 
 pal_best = pnw_palette("Bay", 6 , type = "continuous")
-pal_perf = pnw_palette("Bay",2, type = "continuous")
+pal_perf = pnw_palette("Bay",6, type = "continuous")
 
 # select best fitted model for each model type based on a concensus metrics ----
 
@@ -118,6 +118,21 @@ names(perf_models_details) <- p_level
 best_assessments_SCV <- inner_join(all_assessments_SCV, best_models, by = "species_name")
 best_assessments_SCV <- best_assessments_SCV[best_assessments_SCV$fitted_model == best_assessments_SCV$best_model,]
 
+perf_models_all_best <- best_assessments_SCV %>%
+  summarise_at(., vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
+                                                                  IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
+                                                                  median  = round(median(x, na.rm = T), 2),
+                                                                  IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
+                                                                  Q0.95 = round(quantile(x, 0.95, na.rm = T), 2)))) %>%
+  mutate(summary_value = c('Q0.05','IQR0.25', 'median', 'IQR0.75', 'Q0.95')) %>%
+  unnest() %>%
+  group_by(summary_value) %>%
+  dplyr::select(Intercept:Spearman) %>%
+  t() %>%
+  data.frame() %>%
+  mutate(metric = rownames(.)) %>%
+  dplyr::select(metric, X1:X5)
+
 # Manage data for performance plot
 
 # performance_all <- all_assessments_SCV[,c(1,2,4:7)]
@@ -174,8 +189,8 @@ plot_slope <- performance_plot(performance_all_best,
                                slope = 0,
                                intercept = 0.30103,
                                color = pal_perf,
-                               ylim = c(-0.058, 0.302),
-                               legend.position = c(0.75, 0.73),
+                               ylim = c(-0.05, 0.1),
+                               legend.position = c(0.7, 0.76),
                                plot_title = "")
 
 plot_intercept <- performance_plot(performance_all_best,
@@ -183,11 +198,12 @@ plot_intercept <- performance_plot(performance_all_best,
                                    slope = 0,
                                    intercept = 0,
                                    color = pal_perf,
-                                   ylim = c(-1,8.5),
+                                   ylim = c(-1,10),
                                    legend.position = 'none',
                                    plot_title = "A")
 
 all_plots <- wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
-ggsave("figures-R3/plot_perf_best.png", all_plots, height = 15, width = 11)
+ggsave("figures-R3/plot_perf_best.pdf", all_plots, height = 15, width = 11)
+
