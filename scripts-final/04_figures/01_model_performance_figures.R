@@ -45,6 +45,11 @@ best_models <- all_assessments_SCV %>%
   do(best_model = .$fitted_model[which.max(.$discrimination)]) %>% 
   unnest(cols = c('best_model'))
 
+best_sp_chap1 <- inner_join(best_models, all_assessments_SCV, by = "species_name")
+best_sp_chap1 <- best_sp_chap1[best_sp_chap1$best_model == best_sp_chap1$fitted_model,]
+best_sp_chap1 <- best_sp_chap1[best_sp_chap1$Pearson > 0.5,]
+save(best_sp_chap1, file = "best_sp_chap1.RData")
+
 saveRDS(best_models, file = 'results/overall_best_models.rds')
 
 #### Best Model plot ####
@@ -61,7 +66,7 @@ best_model <- best_models_pr %>%
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
-  scale_y_continuous(limits=c(0, 30)) +
+  scale_y_continuous(limits=c(0, 29)) +
   labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B") +
   theme(title = element_text(size=20),
         axis.text=element_text(size=15),
@@ -181,7 +186,7 @@ plot_spearman <- performance_plot(performance_all_best,
                                   intercept = 1,
                                   color = pal_perf,
                                   ylim = c(-0.5, 1),
-                                  legend.position = 'none',
+                                  legend.position = c(0.5, 0.1),
                                   plot_title = "")
 
 plot_slope <- performance_plot(performance_all_best,
@@ -190,7 +195,7 @@ plot_slope <- performance_plot(performance_all_best,
                                intercept = 0.30103,
                                color = pal_perf,
                                ylim = c(-0.05, 0.1),
-                               legend.position = c(0.7, 0.76),
+                               legend.position = "none",
                                plot_title = "")
 
 plot_intercept <- performance_plot(performance_all_best,
@@ -206,4 +211,3 @@ all_plots <- wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
 ggsave("figures-R3/plot_perf_best.pdf", all_plots, height = 15, width = 11)
-

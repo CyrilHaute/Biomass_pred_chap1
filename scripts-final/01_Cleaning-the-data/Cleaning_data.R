@@ -5,6 +5,8 @@ lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-li
 if(sum(libs %in% (.packages())) != length(libs)){
   stop('packages not loaded correctly')}
 
+source("scripts-final/00_functions/CV_cleaning_data_function.R")
+
 ######Load raw covariates data
 
 rls_habitat <- readRDS("data/Cyril_data/RLS_habitat.rds")
@@ -80,7 +82,54 @@ saveRDS(mpa, "data/Cyril_data/RLS_mpa2.rds")
 
 #Load fish data
 
-Fish_RLS <- readRDS("data/Cyril_data/RLS_fishdata.rds")
+RLS_species_list <- read.csv("data/Cyril_data/Species_list_RLS_Aug2021.csv", header = TRUE)
+RLS_fishdata <- readRDS("RLS_fishdata.rds")
+
+RLS_data <- RLS_fishdata %>%
+  left_join(rls_sitesInfos[, 1:2]) %>% # add sites
+  left_join(RLS_species_list[, c(2:4, 6:9)]) %>% # add species infos
+  mutate(species = if_else(Level == "species", valid_name_FishBase, TAXONOMIC_NAME), # new column with unique species names
+         species = recode(species, "Ophieleotris spp." = "Giuris spp.")) # rename "Ophieleotris spp." as "Giuris spp." 
+
+# There are 14 repeated observations
+RLS_data %>% 
+  group_by(across()) %>%
+  dplyr::count() %>% 
+  filter(n > 1)
+# Mainly observations from a species of wrasse (Ophthalmolepis lineolata)
+# Remove these
+RLS_data <- unique(RLS_data)
+# Remove fish identified at a higher taxonomic level than "genus" (i.e., family, class)
+RLS_data <- RLS_data %>% filter(Level != "higher")
+Fish_RLS <- RLS_data
+
+Fish_RLS <- Fish_RLS[-which(grepl('spp.', Fish_RLS$TAXONOMIC_NAME, fixed = T)),]
+Fish_RLS <- Fish_RLS[-which(grepl('sp.', Fish_RLS$TAXONOMIC_NAME, fixed = T)),]
+
+#Keep only needed column
+
+Fish_RLS <- Fish_RLS[,-c(2,4,5,7:13)]
+Fish_RLS <- Fish_RLS %>% inner_join(rls_sitesInfos, by = "SurveyID")
+
+rls_cov_hab <- readRDS("data/Cyril_data/RLS_hab.rds")
+rls_cov_env <- readRDS("data/Cyril_data/RLS_env.rds")
+rls_cov_soc <- readRDS("data/Cyril_data/RLS_soc.rds")
+rls_cov_mpa <- readRDS("data/Cyril_data/RLS_mpa2.rds")
+covariates <- rls_cov_env %>% 
+  inner_join(rls_cov_soc, by = "SurveyID") %>%
+  inner_join(rls_cov_hab, by = "SurveyID") %>% 
+  inner_join(rls_cov_mpa, by = "SurveyID")
+
+Fish_RLS$Biomass <- as.numeric(levels(Fish_RLS$Biomass)[Fish_RLS$Biomass])
+Fish_RLS <- Fish_RLS[-which(is.na(Fish_RLS$Biomass)),]
+Fish_RLS <- Fish_RLS %>% filter(SurveyID %in% unique(covariates$SurveyID))
+Fish_RLS <- Fish_RLS %>% group_by(TAXONOMIC_NAME, SiteCode, SiteLatitude, SiteLongitude, SurveyID, SurveyDate, Depth) %>% summarise(Biomass = mean(Biomass))
+Fish_RLS <- Fish_RLS %>% group_by(TAXONOMIC_NAME) %>% mutate(Taille = n())
+Fish_RLS <- Fish_RLS %>% filter(Taille >= 50)
+Fish_RLS <- Fish_RLS[,-c(3,4,6,7,9)]
+Fish_RLS$TAXONOMIC_NAME <- as.factor(Fish_RLS$TAXONOMIC_NAME) #Save fish species name in a vector
+nm_sp <- levels(Fish_RLS$TAXONOMIC_NAME)
+
 
 ######For relative variable contribution, create a species matrix biomass
 
@@ -109,102 +158,23 @@ Fish_RLS <- inner_join(Fish_RLS, rls_sitesInfos)
 
 Fish_RLS <- Fish_RLS[,-c(5:15)]
 
-#create a list of 10 Fish_RLS dataset, for now they are all the same
-biomass_scv <- list(Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS, Fish_RLS)
+Fish_RLS <- Fish_RLS %>% spread(TAXONOMIC_NAME,Biomass)
 
-biomass_scv <- mclapply(1:length(biomass_scv), function(i){ #for each dataset, split by species
+species <- mclapply(3:ncol(Fish_RLS), function(i){
   
-  cv_i <- biomass_scv[[i]]
+  species_i <- Fish_RLS[,i] #select the i species
   
-  split_species <- cv_i %>% group_split(TAXONOMIC_NAME)
+  species_i[is.na(species_i)] <- 0 #replace NA by 0
   
-}, mc.cores=1)
-
-#for each dataset and species, split the data into two subset : fitting (80% of the dataset) and validation (20% of the dataset)
-biomass_scv <- pbmclapply(1:length(biomass_scv), function(i){
-  
-  cv_i <- biomass_scv[[i]]
-  
-  Fish_RLS <- mclapply(1:length(cv_i), function(j){
-    
-    species_j <- cv_i[[j]]
-    
-    smp_size <- floor(0.8 * nrow(species_j))
-    
-    train_ind <- sample(seq_len(nrow(species_j)), size = smp_size)
-    
-    train_test <- list(species_j[train_ind,], species_j[-train_ind,])
-    
-    train_test[[1]] <- train_test[[1]] %>%            #delete from the train set transects that appears in the same site than the point in the validation set
-      filter(!SiteCode %in% train_test[[2]]$SiteCode) 
-    
-    names(train_test) <- c("fitting", "validation")
-    
-    train_test$fitting$set <- rep("fitting", nrow(train_test$fitting))
-    
-    train_test$validation$set <- rep("validation", nrow(train_test$validation))
-    
-    train_test <- do.call(rbind, train_test)
-    
-    train_test
-    
-  }, mc.cores = detectCores() - 1)
-   
-}, mc.cores = 1)
-
-
-biomass_scv <- pbmclapply(1:length(biomass_scv), function(i){
-  
-  cv_i <- biomass_scv[[i]]
-  
-  cv_i <- do.call(rbind, cv_i) #for each cross validation dataset, bind all the species together
-  
-  cv_i <- cv_i %>% 
-    group_split(set) #then split it by set, either fitting or validation
-
-  cv_i_matrix <- mclapply(1:length(cv_i), function(j){ #Create a species matrix (each column is a species) => create 0
-  
-    cv_j <- cv_i[[j]]
-    
-    cv_j <- cv_j[,-c(4,5)] #delete the set column
-    
-    cv_j <- cv_j %>% spread(TAXONOMIC_NAME,Biomass) #spread function to create your species matrix
-    
-  }, mc.cores = detectCores() - 1)
+  species_i
   
 }, mc.cores = 1)
 
+species <- do.call(cbind, species)
+species <- cbind(Fish_RLS[,c(1:2)], species)
 
-biomass_scv <- pbmclapply(1:length(biomass_scv), function(i){ #replace NA by 0
-  
-  cv_i <- biomass_scv[[i]] #select the i cross validation dataset (between 1 and 10)
-  
-  fit_val <- mclapply(1:length(cv_i), function(j){
-    
-    cv_j <- cv_i[[j]] #select the j set dataset (between fitting and validation)
-    
-    species <- mclapply(2:ncol(cv_j), function(k){
-      
-      species_k <- cv_j[,k] #select the k species
-      
-      species_k[is.na(species_k)] <- 0 #replace NA by 0
-      
-      species_k
-      
-    }, mc.cores = 1)
-    
-    species <- do.call(cbind, species)
-    
-    species <- cbind(cv_j[,1], species)
-    
-  }, mc.cores = 1)
-  
-  names(fit_val) <- c("fitting", "validation")
-  
-  fit_val
-  
-}, mc.cores = detectCores() - 1)
+biomass_scv <- CV(species, 10)
 
-names(biomass_scv) <- c("cv1", "cv2", "cv3", "cv4", "cv5", "cv6", "cv7", "cv8", "cv9", "cv10")
+names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", i)})
 
 saveRDS(biomass_scv, file = "data/Cyril_data/rls_biomass_SCV.rds")

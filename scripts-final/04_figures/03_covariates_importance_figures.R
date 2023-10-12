@@ -51,7 +51,7 @@ covariates_importance_GLM <- covariates_importance_function(plot_data = Contribu
                                                            color = pal_contribution,
                                                            labs_y = "",
                                                            labs_fill = "",
-                                                           ylim = c(0,0.32),
+                                                           ylim = c(0,0.36),
                                                            legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = Contributions_biomass,

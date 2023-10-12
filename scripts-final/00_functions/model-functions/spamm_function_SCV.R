@@ -58,9 +58,13 @@ spamm_function <- function(biomass = biomass,
       
       absence <- biomass[which(biomass[,2] == 0),]
       
+      if(nrow(absence) > 0) {
+      
       replacement <- ifelse(length(which(biomass[,2] == 0)) < n_subsample, T, F)
       
       absence <- absence[sample(which(absence[,2] == 0), n_subsample, replace = replacement),]
+      
+      }
       
       # combine absence and presence
       biomass_final <- rbind(biomass_only, absence)
@@ -115,14 +119,15 @@ spamm_function <- function(biomass = biomass,
             
         }
       
-      verification_predict  <- as.numeric(predict(model_fit, biomass_only, type = 'response'))
-      validation_predict  <- as.numeric(predict(model_fit, biomass_only_val, type = 'response'))
+      verification_predict  <- tryCatch(as.numeric(predict(model_fit, biomass_only, type = 'response')), error = function(e) NA)
+      validation_predict  <- tryCatch(as.numeric(predict(model_fit, biomass_only_val, type = 'response')), error = function(e) NA)
         
       # back transform predictions
-      verification_predict <- 10^(verification_predict)-1
-      validation_predict <- 10^(validation_predict)-1
-      validation_predict <- data.frame(SurveyID = biomass_only_val$SurveyID,
-                                       validation_predict = validation_predict)
+      if(!is.na(validation_predict)){
+        verification_predict <- 10^(verification_predict)-1
+        validation_predict <- 10^(validation_predict)-1
+        validation_predict <- data.frame(SurveyID = biomass_only_val$SurveyID,
+                                         validation_predict = validation_predict)}
         
       MPA <- ifelse(length(unique(biomass_final$cov21)) == 1, "no", "yes")
         
@@ -135,94 +140,27 @@ spamm_function <- function(biomass = biomass,
   
   validation_prediction <- mclapply(1:length(predictions[[1]]), function(i){ # for each species, make mean, median and sd of fitting prediction across cross validation
     
+    
     species_i <- lapply(predictions, `[[`, i)
     
     validation_prediction <- lapply(species_i, `[[`, 2)
-    SurveyID <- lapply(validation_prediction, `[[`, 1)
-    SurveyID <- unlist(SurveyID)
-    SurveyID <- as.data.frame(sort(unique(SurveyID))) %>% rename(SurveyID = "sort(unique(SurveyID))")
-    
-    CV <- lapply(1:length(validation_prediction), function(i) {full_join(validation_prediction[[i]], SurveyID, by = "SurveyID")})
-    CV <- lapply(1:length(CV), function(i) {
-      
-      cv_i <- CV[[i]]
-      colnames(cv_i)[2] <- paste0("validation_predict_cv",i)
-      cv_i
-      
-    })
-    
-    CV <- CV[[1]] %>% 
-      inner_join(CV[[2]], by = "SurveyID") %>%
-      inner_join(CV[[3]], by = "SurveyID") %>% 
-      inner_join(CV[[4]], by = "SurveyID") %>% 
-      inner_join(CV[[5]], by = "SurveyID") %>% 
-      inner_join(CV[[6]], by = "SurveyID") %>% 
-      inner_join(CV[[7]], by = "SurveyID") %>% 
-      inner_join(CV[[8]], by = "SurveyID") %>% 
-      inner_join(CV[[9]], by = "SurveyID") %>% 
-      inner_join(CV[[10]], by = "SurveyID")
-    CV <- CV[,-1]
-    means_prediction <- as.matrix(CV) %>% rowMeans(na.rm = TRUE)
-    medians_prediction <- as.matrix(CV) %>% rowMedians(na.rm = TRUE)
-    sd_prediction<- mean((as.matrix(CV) %>% rowSds(na.rm = TRUE)), na.rm = TRUE)
-    
-    final_object <- list(means_prediction, medians_prediction, sd_prediction)
-    names(final_object) <- c("means_prediction", "medians_prediction", "sd_prediction")
-    final_object
-    
+    test <- do.call(rbind, validation_prediction)
+    test <- test[which(!is.na(test$validation_predict)),]
     
   }, mc.cores = 10)
   
-  validation_observed <- mclapply(1:length(biomass), function(i){
+  validation <- lapply(biomass, '[[', 2)
+  
+  validation_observed <- mclapply(2:ncol(validation[[1]]), function(i){
     
-    cv_i <- biomass[[i]]$validation
+    names_col <- c("SurveyID", colnames(validation[[1]])[i])
+    test <- lapply(validation, '[', names_col)
+    test <- do.call(rbind, test)
+    names(test) <- c("SurveyID", "Biomass")
+    test <- test[test$Biomass > 0,]
+    test <- test %>% filter(SurveyID %in% validation_prediction[[i-1]]$SurveyID)
     
-    validation_observed <- mclapply(2:ncol(cv_i), function(j){
-      
-      species_j <- cv_i[,c(1,j)]
-      
-      species_j <- species_j[which(species_j[,2] > 0),]
-      
-    }, mc.cores = 1)
   }, mc.cores = 1)
-  
-  
-  validation_observed <- mclapply(1:length(validation_observed[[1]]), function(i){
-    
-    species_i <- lapply(validation_observed, `[[`, i)
-    
-    SurveyID <- lapply(species_i, `[[`, 1)
-    SurveyID <- unlist(SurveyID)
-    SurveyID <- as.data.frame(sort(unique(SurveyID))) %>% rename(SurveyID = "sort(unique(SurveyID))")
-    
-    CV <- lapply(1:length(species_i), function(i) {full_join(species_i[[i]], SurveyID, by = "SurveyID")})
-    CV <- lapply(1:length(CV), function(i) {
-      
-      cv_i <- CV[[i]]
-      colnames(cv_i)[2] <- paste0("validation_predict_cv",i)
-      cv_i
-      
-    })
-    
-    CV <- CV[[1]] %>% 
-      inner_join(CV[[2]], by = "SurveyID") %>%
-      inner_join(CV[[3]], by = "SurveyID") %>% 
-      inner_join(CV[[4]], by = "SurveyID") %>% 
-      inner_join(CV[[5]], by = "SurveyID") %>% 
-      inner_join(CV[[6]], by = "SurveyID") %>% 
-      inner_join(CV[[7]], by = "SurveyID") %>% 
-      inner_join(CV[[8]], by = "SurveyID") %>% 
-      inner_join(CV[[9]], by = "SurveyID") %>% 
-      inner_join(CV[[10]], by = "SurveyID")
-    CV <- CV[,-1]
-    means_observed <- as.matrix(CV) %>% rowMeans(na.rm = TRUE)
-    medians_observed <- as.matrix(CV) %>% rowMedians(na.rm = TRUE)
-    
-    final_object <- list(means_observed, medians_observed)
-    names(final_object) <- c("means_observed", "medians_observed")
-    final_object
-    
-  }, mc.cores = 10)
   
   MPA_test <- mclapply(1:length(predictions), function(i){
     
@@ -235,15 +173,10 @@ spamm_function <- function(biomass = biomass,
   extracted_predictions <- tibble(species_name = species_name, 
                                   fitted_model = 'SPAMM', 
                                   # estimate mean predictions
-                                  validation_observed_mean = lapply(validation_observed, '[[', 1),
-                                  validation_predict_mean = lapply(validation_prediction, '[[', 1),
-                                  # estimate median predictions
-                                  validation_observed_median = lapply(validation_observed, '[[', 2),#list(validation_observed),
-                                  validation_predict_median = lapply(validation_prediction, '[[', 2),
-                                  # the amount of variation caused by cross validation
-                                  sd_validation = lapply(validation_prediction, '[[', 3),
+                                  validation_observed = lapply(validation_observed, '[[', 2),
+                                  validation_predict = lapply(validation_prediction, '[[', 2),
                                   MPA = MPA_test[[1]])
-
+  
   # create prediction object to save
   
   extracted_predictions <- setNames(split(extracted_predictions, seq(nrow(extracted_predictions))), extracted_predictions$species_name)

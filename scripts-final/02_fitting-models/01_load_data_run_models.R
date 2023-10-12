@@ -11,6 +11,7 @@ lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-li
 if(sum(libs %in% (.packages())) != length(libs)){
   stop('packages not loaded correctly')}
 
+
 ####################### Biomass predictions #######################
 
 # load in data ----
@@ -20,7 +21,7 @@ if(sum(libs %in% (.packages())) != length(libs)){
 rls_biomass_SCV <- readRDS("data/Cyril_data/rls_biomass_SCV.rds")
 
 # load in covariates
-  
+
 rls_cov_hab <- readRDS("data/Cyril_data/RLS_hab.rds")
 rls_cov_env <- readRDS("data/Cyril_data/RLS_env.rds")
 rls_cov_soc <- readRDS("data/Cyril_data/RLS_soc.rds")

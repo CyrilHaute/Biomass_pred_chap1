@@ -30,6 +30,7 @@ unnest_dt2 <- function(tbl, ...) {
 
 # function for hex density plots of observed vs. predicted abundance ----
 
+
 observed_predicted_plot <- function(input_data, 
                                     nbins = 20,
                                     levels = c('GLM', 'GAM', 'SPAMM', 'RF', 'GBM', 'SPRF')){
@@ -38,11 +39,11 @@ observed_predicted_plot <- function(input_data,
   
   # remove turn values that are <0 to NAs
   # rescale predictions
-  model_outputs$predicted <- pbapply::pblapply(model_outputs$validation_predict_mean, function(x) return(ifelse(x < 0, x, x)))
+  model_outputs$predicted <- pbapply::pblapply(model_outputs$validation_predict, function(x) return(ifelse(x < 0, x, x)))
   model_outputs$predicted <- pbapply::pblapply(model_outputs$predicted, function(x) rescale_01(log10(x+1)))
-  
+
   # rescale observations
-  model_outputs$observed <- pbapply::pblapply(model_outputs$validation_observed_mean, function(x) rescale_01(log10(x+1)))
+  model_outputs$observed <- pbapply::pblapply(model_outputs$validation_observed, function(x) rescale_01(log10(x+1)))
   
   # unnest using data.table because dplyr is slow for this much data
   if(nrow(model_outputs) > 10000){
@@ -55,7 +56,7 @@ observed_predicted_plot <- function(input_data,
     for(i in 1:(length(sample_seq)-1)){
       print(i)
       model_outputs_list[[i]] <- unnest_dt2(data.table(model_outputs[sample_seq[i]:sample_seq[i+1],] %>% 
-                                                         dplyr::select(-validation_observed_mean, -validation_predict_mean)), 
+                                                         dplyr::select(-validation_observed, -validation_predict)), 
                                             predicted, 
                                             observed)
     }
@@ -63,12 +64,11 @@ observed_predicted_plot <- function(input_data,
   }else{
     
     # if fewer samples just unnest it directly
-    model_outputs <- as_data_frame(unnest_dt2(data.table(model_outputs %>% dplyr::select(-validation_observed_mean, -validation_predict_mean)), predicted, observed))
+    model_outputs <- as_data_frame(unnest_dt2(data.table(model_outputs %>% dplyr::select(-validation_observed, -validation_predict)), predicted, observed))
     
   }
   
   # create a transformations label
-  # model_outputs$transformation <- gsub('gam.|gbm.|glm.|rf.', '', model_outputs$plot_level)
   model_outputs$transformation <- model_outputs$fitted_model
   
   # truncate the data to 99th percentiles
@@ -97,13 +97,11 @@ observed_predicted_plot <- function(input_data,
       theme(panel.grid = element_blank(), 
             strip.background = element_rect(fill = 'grey90', colour = 'grey90'), 
             aspect.ratio = 1)
-    
+
     # add faceting to plot level
     facet_plot <- base_plot + 
       facet_grid(~fitted_model) + #de base facet_grid, sans ncol
-      geom_abline() + 
-      scale_x_continuous(breaks = c(0, 0.5, 1)) + 
-      scale_y_continuous(breaks =  c(0, 0.5, 1))
+      geom_abline(slope = 0.95, intercept = 0)
     
     plot_levels_plot[[i]] <- facet_plot + 
       labs(x = "Observed", y = "Predicted") +
@@ -122,5 +120,5 @@ observed_predicted_plot <- function(input_data,
   }, mc.cores = 1)
   
   all_plots <- (plot_levels_plot[[1]] + plot_levels_plot[[2]]) / (plot_levels_plot[[3]] + plot_levels_plot[[4]]) / (plot_levels_plot[[5]] + plot_levels_plot[[6]])
-  ggsave("figures-R3/all_predictions.png", all_plots, width = 10, height = 10)
+  ggsave("figures-R3/all_predictions.pdf", all_plots, width = 11, height = 15)
 }

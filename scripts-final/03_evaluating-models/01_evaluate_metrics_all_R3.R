@@ -39,11 +39,11 @@ model_assessment <- pbmclapply(1:length(clean_files), function(i){
   clean_files <- clean_files[[i]]
   clean_files %>% 
     rowwise() %>% 
-    do(metrics = biomass_assessment_metrics(predictions   = .$validation_predict_mean, 
-                                              observations  = .$validation_observed_mean,
+    do(metrics = biomass_assessment_metrics(predictions   = .$validation_predict, 
+                                              observations  = .$validation_observed,
                                               scale = NULL)) %>% 
     unnest(metrics) %>% 
-    bind_cols(clean_files[,1:8], .)
+    bind_cols(clean_files[,1:5], .)
 }, mc.cores = detectCores() -1)
 
 model_assessment <- do.call(bind_rows, model_assessment)

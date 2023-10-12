@@ -90,7 +90,8 @@ performance_plot <- function(plot_data,
                                  "All models" = pal_perf[2])) +
     theme_bw() +
     coord_cartesian(ylim = ylim) + 
-    theme(legend.position = legend.position) +
+    theme(legend.position = legend.position,
+          legend.direction = "horizontal") +
     labs(y = metrics_sel, x = "", title = plot_title, fill = "") +
     theme(title = element_text(size=20),
           axis.text=element_text(size=15),

@@ -25,13 +25,13 @@ model_predictions_all <- predictions_all
 # get seperate data for validations and verifications
 validation_data <- model_predictions_all %>% 
   group_by(fitted_model, species_name) %>%
-  do(validation_observed_mean = .$validation_observed_mean[[1]][.$validation_observed_mean[[1]] > 0], 
-     validation_predict_mean = .$validation_predict_mean[[1]][.$validation_observed_mean[[1]] > 0]) %>% 
+  do(validation_observed = .$validation_observed[[1]][.$validation_observed[[1]] > 0], 
+     validation_predict = .$validation_predict[[1]][.$validation_observed[[1]] > 0]) %>% 
   ungroup()
         
 # remove species with identical observations (cannot fit a model here)
-if(sum(sapply(validation_data$validation_observed_mean, function(x) length(unique(x))==1)) != 0){
-   validation_data <- validation_data[-which(sapply(validation_data$validation_observed_mean, function(x) length(unique(x))==1)),]}
+if(sum(sapply(validation_data$validation_observed, function(x) length(unique(x))==1)) != 0){
+   validation_data <- validation_data[-which(sapply(validation_data$validation_observed, function(x) length(unique(x))==1)),]}
 
 # create plots 
 observed_predicted_plot(input_data = validation_data, 
