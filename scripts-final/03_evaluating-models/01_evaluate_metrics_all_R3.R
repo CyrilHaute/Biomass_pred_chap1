@@ -4,24 +4,26 @@ library(tidyverse)
 library(parallel)
 library(pbmcapply)
 
+############## Don't need to execute this, go directly to the bind results ##############
+
 # Merge all files together by species
 
 # Extract names all elements in folder
-path <- "results/predictions_all_species"
-
-all_files <- list.files(path = path)
-
-Predictions_biomass <- mclapply(1:length(all_files), function(i) {
-  all_files_full <- list()
-  all_files_full[i] <- paste0(path, '/', all_files[i])
-  readRDS(all_files_full[[i]])
-},mc.cores = 1)
-
-dir.create("results/predictions_bind")
-
-saveRDS(Predictions_biomass, file = "results/predictions_bind/rls_predictions_biomass.rds")
-rm(list = ls())
-gc()
+# path <- "results/predictions_all_species"
+# 
+# all_files <- list.files(path = path)
+# 
+# Predictions_biomass <- mclapply(1:length(all_files), function(i) {
+#   all_files_full <- list()
+#   all_files_full[i] <- paste0(path, '/', all_files[i])
+#   readRDS(all_files_full[[i]])
+# },mc.cores = 1)
+# 
+# dir.create("results/predictions_bind")
+# 
+# saveRDS(Predictions_biomass, file = "results/predictions_bind/rls_predictions_biomass.rds")
+# rm(list = ls())
+# gc()
 
 # all functions for evaluating outputs
 source('scripts-final/00_functions/models_evaluation_functions.R')

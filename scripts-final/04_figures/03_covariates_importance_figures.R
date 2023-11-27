@@ -1,7 +1,7 @@
 # load in packages ---- 
 
 libs <- c('tidyverse', 'gridExtra', 'ggplot2', 'patchwork', 'matrixStats', 'parallel','PNWColors')
-lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.1')
+lapply(libs, library, character.only = T, lib.loc = .libPaths()[1])
 
 # check all packages are loaded
 if(sum(libs %in% (.packages())) != length(libs)){
@@ -17,28 +17,30 @@ best_models <- readRDS("results/overall_best_models.rds")
 
 #### Covariates contribution plot ####
 
+############## Don't need to execute this, go directly to the bind results ##############
+
 # Merge all files together by species
 
-path <- "results/model_contributions/"
-
-# load in abundance data
-# Save directory as character object
-directory <- path
-
-# Extract names all elements in folder
-all_files <- list.files(path = directory)
-
-Contributions_biomass <- mclapply(1:length(all_files), function(i) {
-  all_files_full <- list()
-  all_files_full[i] <- paste0(directory, '/', all_files[i])
-  readRDS(all_files_full[[i]])
-},mc.cores = 1)
-
-Contributions_biomass <- do.call(rbind, Contributions_biomass)
-
-dir.create("results/contributions_bind")
-
-saveRDS(Contributions_biomass, file = "results/contributions_bind/rls_contributions_biomass.rds")
+# path <- "results/model_contributions/"
+# 
+# # load in abundance data
+# # Save directory as character object
+# directory <- path
+# 
+# # Extract names all elements in folder
+# all_files <- list.files(path = directory)
+# 
+# Contributions_biomass <- mclapply(1:length(all_files), function(i) {
+#   all_files_full <- list()
+#   all_files_full[i] <- paste0(directory, '/', all_files[i])
+#   readRDS(all_files_full[[i]])
+# },mc.cores = 1)
+# 
+# Contributions_biomass <- do.call(rbind, Contributions_biomass)
+# 
+# dir.create("results/contributions_bind")
+# 
+# saveRDS(Contributions_biomass, file = "results/contributions_bind/rls_contributions_biomass.rds")
 
 bind_files <- list.files('results/contributions_bind/', full.names = T)
 

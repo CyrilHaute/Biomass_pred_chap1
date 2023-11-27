@@ -3,7 +3,7 @@
 # load in packages ---- 
 
 libs <- c('tidyverse', 'gridExtra', 'ggplot2', 'patchwork', 'matrixStats', 'parallel','PNWColors')
-lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.1')
+lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.3')
 
 # check all packages are loaded
 if(sum(libs %in% (.packages())) != length(libs)){
@@ -44,11 +44,6 @@ best_models <- all_assessments_SCV %>%
   group_by(species_name) %>% 
   do(best_model = .$fitted_model[which.max(.$discrimination)]) %>% 
   unnest(cols = c('best_model'))
-
-best_sp_chap1 <- inner_join(best_models, all_assessments_SCV, by = "species_name")
-best_sp_chap1 <- best_sp_chap1[best_sp_chap1$best_model == best_sp_chap1$fitted_model,]
-best_sp_chap1 <- best_sp_chap1[best_sp_chap1$Pearson > 0.5,]
-save(best_sp_chap1, file = "best_sp_chap1.RData")
 
 saveRDS(best_models, file = 'results/overall_best_models.rds')
 

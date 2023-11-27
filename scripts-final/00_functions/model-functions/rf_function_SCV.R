@@ -74,7 +74,7 @@ rf_function <- function(biomass = biomass,
       validation_predict <- tryCatch(predict(model_fit, biomass_only_val, type = 'response'), error = function(e) NA)
 
       # back transform predictions
-      if(!is.na(validation_predict)){
+      if(!any(is.na(validation_predict))){
       verification_predict <- 10^(verification_predict)-1
       validation_predict <- 10^(validation_predict)-1
       validation_predict <- data.frame(SurveyID = biomass_only_val$SurveyID,
@@ -83,6 +83,12 @@ rf_function <- function(biomass = biomass,
       predictions <- list(verification_predict, validation_predict)
       names(predictions) <- c("verification_predict", "validation_predict")
       predictions
+      
+      validation_predict <- inner_join(validation_predict, validation, by = "SurveyID")
+      validation_predict$`Bodianus diplotaenia` <- 10^(validation_predict$`Bodianus diplotaenia`)-1
+      ggplot(validation_predict, aes(y = validation_predict, x = `Bodianus diplotaenia`)) + geom_point() + geom_smooth(method = 'lm')
+      ggplot(validation_predict, aes(y = validation_predict, x = cov21)) + geom_point() + geom_smooth(method = 'lm')
+      
       
       }, mc.cores = detectCores() - 1)
     }, mc.cores = 1)
