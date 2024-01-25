@@ -15,6 +15,7 @@ rls_socio <- readRDS("data/Cyril_data/rls_socio_withoutNA.rds")
 mpa <- readRDS("data/Cyril_data/RLS_mpa.rds")
 rls_coral_cover <- read.csv("data/Cyril_data/RLS_benthic_data_imputed.txt", header = TRUE, sep = "") #coral cover from RLS
 rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
+test <- dplyr::inner_join(rls_socio, rls_sitesInfos)
 
 ######Select environmental covariates
 

@@ -5,7 +5,7 @@
 # load in packages ---- 
 
 libs <- c('tidyverse', 'parallel', 'itertools', 'matrixStats', 'MASS', 'statmod', 'buildmer')
-lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.1')
+lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.3')
 
 # check all packages are loaded
 if(sum(libs %in% (.packages())) != length(libs)){
@@ -19,6 +19,16 @@ if(sum(libs %in% (.packages())) != length(libs)){
 # load in biomass data for biomass predictions in spatial cross validation
   
 rls_biomass_SCV <- readRDS("data/Cyril_data/rls_biomass_SCV.rds")
+rls_biomass_SCV <- lapply(1:length(rls_biomass_SCV), function(i) {
+  
+  rls_i <- rls_biomass_SCV[[i]]
+  rls_join <- do.call(rbind, rls_i)
+  
+})
+
+rls_biomass_SCV <- do.call(rbind, rls_biomass_SCV)
+rls_biomass_SCV <- unique(rls_biomass_SCV)
+write.csv(rls_biomass_SCV, "fish_biomass_data.csv")
 
 # load in covariates
 
@@ -30,7 +40,7 @@ covariates <- rls_cov_env %>%
   inner_join(rls_cov_soc, by = "SurveyID") %>%
   inner_join(rls_cov_hab, by = "SurveyID") %>% 
   inner_join(rls_cov_mpa, by = "SurveyID")
-  
+write.csv(covariates, "covariates.csv")
 # add coordonates (ONLY for spatial model : spaMM and SpatialRF)
 
 rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
