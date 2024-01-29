@@ -1,5 +1,10 @@
 # Function to fit a Random Forest
 
+biomass = rls_biomass_SCV
+covariates = covariates
+species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1])
+base_dir = base_dir
+
 rf_function <- function(biomass = biomass, 
                         covariates = covariates, 
                         species_name = species_name,
@@ -24,10 +29,10 @@ rf_function <- function(biomass = biomass,
     species_j <- pbmclapply(2:length(raw_biomass$fitting), function(j){
       
       biomass <- raw_biomass$fitting[,c(1,j)] # select the jth species from the fitting set
-      biomass <- inner_join(biomass, covariates, by = "SurveyID") # add covariates
+      biomass <- dplyr::inner_join(biomass, covariates, by = "SurveyID") # add covariates
       biomass[,2] <- log10(biomass[,2]+1) # log10(x+1) transform biomass
       validation <- raw_biomass$validation[,c(1,j)] # select the jth species from the validation set
-      validation <- inner_join(validation, covariates, by = "SurveyID")
+      validation <- dplyr::inner_join(validation, covariates, by = "SurveyID")
       validation[,2] <- log10(validation[,2]+1) 
       
       # get biomass data
@@ -36,12 +41,12 @@ rf_function <- function(biomass = biomass,
       
       # keep only absences from species life area
       rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
-      biomass <- inner_join(biomass, rls_sitesInfos, by = "SurveyID")
+      biomass <- dplyr::inner_join(biomass, rls_sitesInfos, by = "SurveyID")
       biomass <- biomass[,-c(24:31,33:35)]
       # biomass <- biomass[,-c(15:22,24:26)]
       zone_geo <- biomass[which(biomass[,2] > 0),]
       zone_geo <- unique(zone_geo$Ecoregion)
-      biomass <- biomass %>% filter(Ecoregion %in% zone_geo)
+      biomass <- biomass |>  dplyr::filter(Ecoregion %in% zone_geo)
       biomass <- biomass[,-24]
       # biomass <- biomass[,-15]
 

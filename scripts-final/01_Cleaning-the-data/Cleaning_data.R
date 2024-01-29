@@ -52,9 +52,9 @@ mpa$Effectiveness <- as.factor(mpa$Effectiveness)
 ######Select habitat covariates
 
 rls_coral_cover <- rls_coral_cover[,c(1,5)]
-rls_habitat <- inner_join(rls_habitat, rls_coral_cover, by = "SurveyID") #join RLS coral cover and Allen Coral Atlas habitat data
+rls_habitat <- dplyr::inner_join(rls_habitat, rls_coral_cover, by = "SurveyID") #join RLS coral cover and Allen Coral Atlas habitat data
 
-rls_habitat <- inner_join(rls_habitat, rls_sitesInfos[,c(1,13)], by = "SurveyID") #add depth
+rls_habitat <- dplyr::inner_join(rls_habitat, rls_sitesInfos[,c(1,13)], by = "SurveyID") #add depth
 
 names(rls_habitat) <- c("SurveyID", "sand_500m", "coral_algae_500m", "rock_500m", "rubble_500m", "seagrass_500m",
                         "microalgal_mats_500m", "coral_algae_10km", "rock_10km", "rubble_10km", "sand_10km", 
@@ -65,8 +65,9 @@ names(rls_habitat) <- c("SurveyID", "sand_500m", "coral_algae_500m", "rock_500m"
                         "shallow_lagoon_10km", "deep_lagoon_10km", "plateau_10km", "sheltered_reef.slope_10km", "terrestrial_reef.flat_10km",
                         "patch_reefs_10km", "coral", "depth")
 
-rls_habitat <- rls_habitat %>% 
-  mutate(Sum_geo_10 = rowSums(.[,c(25:35)])) #assess reef extent from reef geomorphology
+rls_habitat <- rls_habitat |>  
+  dplyr::rowwise() |> 
+  dplyr::mutate(Sum_geo_10 = sum(dplyr::c_across(colnames(rls_habitat)[25:35]))) #assess reef extent from reef geomorphology
 
 cor_hab <- cor(rls_habitat[,-1])
 corrplot(cor_hab, type = "upper")
@@ -84,24 +85,24 @@ saveRDS(mpa, "data/Cyril_data/RLS_mpa2.rds")
 #Load fish data
 
 RLS_species_list <- read.csv("data/Cyril_data/Species_list_RLS_Aug2021.csv", header = TRUE)
-RLS_fishdata <- readRDS("RLS_fishdata.rds")
+RLS_fishdata <- readRDS("data/Cyril_data/RLS_fishdata.rds")
 
-RLS_data <- RLS_fishdata %>%
-  left_join(rls_sitesInfos[, 1:2]) %>% # add sites
-  left_join(RLS_species_list[, c(2:4, 6:9)]) %>% # add species infos
-  mutate(species = if_else(Level == "species", valid_name_FishBase, TAXONOMIC_NAME), # new column with unique species names
-         species = recode(species, "Ophieleotris spp." = "Giuris spp.")) # rename "Ophieleotris spp." as "Giuris spp." 
+RLS_data <- RLS_fishdata |> 
+  dplyr::left_join(rls_sitesInfos[, 1:2]) |>  # add sites
+  dplyr::left_join(RLS_species_list[, c(2:4, 6:9)]) |>  # add species infos
+  dplyr::mutate(species = dplyr::if_else(Level == "species", valid_name_FishBase, TAXONOMIC_NAME), # new column with unique species names
+                species = dplyr::recode(species, "Ophieleotris spp." = "Giuris spp.")) # rename "Ophieleotris spp." as "Giuris spp." 
 
 # There are 14 repeated observations
-RLS_data %>% 
-  group_by(across()) %>%
-  dplyr::count() %>% 
-  filter(n > 1)
+RLS_data |> 
+  dplyr::group_by(dplyr::across()) |> 
+  dplyr::count() |>  
+  dplyr::filter(n > 1)
 # Mainly observations from a species of wrasse (Ophthalmolepis lineolata)
 # Remove these
 RLS_data <- unique(RLS_data)
 # Remove fish identified at a higher taxonomic level than "genus" (i.e., family, class)
-RLS_data <- RLS_data %>% filter(Level != "higher")
+RLS_data <- RLS_data |>  dplyr::filter(Level != "higher")
 Fish_RLS <- RLS_data
 
 Fish_RLS <- Fish_RLS[-which(grepl('spp.', Fish_RLS$TAXONOMIC_NAME, fixed = T)),]
@@ -110,7 +111,7 @@ Fish_RLS <- Fish_RLS[-which(grepl('sp.', Fish_RLS$TAXONOMIC_NAME, fixed = T)),]
 #Keep only needed column
 
 Fish_RLS <- Fish_RLS[,-c(2,4,5,7:13)]
-Fish_RLS <- Fish_RLS %>% inner_join(rls_sitesInfos, by = "SurveyID")
+Fish_RLS <- Fish_RLS |>  dplyr::inner_join(rls_sitesInfos, by = "SurveyID")
 
 rls_cov_hab <- readRDS("data/Cyril_data/RLS_hab.rds")
 rls_cov_env <- readRDS("data/Cyril_data/RLS_env.rds")

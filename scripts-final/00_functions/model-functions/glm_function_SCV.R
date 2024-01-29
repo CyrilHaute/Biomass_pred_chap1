@@ -1,5 +1,10 @@
 # function to fit glms 
 
+biomass = rls_biomass_SCV
+covariates = covariates
+species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1])
+base_dir = base_dir
+
 glm_function <- function(biomass = biomass, 
                          covariates = covariates,
                          species_name = species_name,
@@ -31,18 +36,18 @@ glm_function <- function(biomass = biomass,
     covNames_combined2 <- paste0(c(covNames_new_bis, covNames_new_2), collapse = '+')
     model_formula <- as.formula(paste0(response, covNames_combined))
     model_formula2 <- as.formula(paste0(response, covNames_combined2))
-    terms <- tabulate.formula(model_formula)
-    terms2 <- tabulate.formula(model_formula2)
-    form <- build.formula(dep='Biomass',terms)
-    form2 <- build.formula(dep='Biomass',terms2)
+    terms <- buildmer::tabulate.formula(model_formula)
+    terms2 <- buildmer::tabulate.formula(model_formula2)
+    form <- buildmer::build.formula(dep='Biomass',terms)
+    form2 <- buildmer::build.formula(dep='Biomass',terms2)
 
     species_j <- mclapply(2:length(raw_biomass$fitting), function(j){
       
       biomass <- raw_biomass$fitting[,c(1,j)] # select the jth species from the fitting set
-      biomass <- inner_join(biomass, covariates, by = "SurveyID") # add covariates
+      biomass <- dplyr::inner_join(biomass, covariates, by = "SurveyID") # add covariates
       biomass[,2] <- log10(biomass[,2]+1) # log10(x+1) transform biomass
       validation <- raw_biomass$validation[,c(1,j)] # select the jth species from the validation set
-      validation <- inner_join(validation, covariates, by = "SurveyID")
+      validation <- dplyr::inner_join(validation, covariates, by = "SurveyID")
       validation[,2] <- log10(validation[,2]+1) 
   
       # get biomass data
@@ -51,11 +56,11 @@ glm_function <- function(biomass = biomass,
         
       # keep only absences from species life area 
       rls_sitesInfos <- readRDS("data/Cyril_data/RLS_sitesInfos.rds")
-      biomass <- inner_join(biomass, rls_sitesInfos, by = "SurveyID")
+      biomass <- dplyr::inner_join(biomass, rls_sitesInfos, by = "SurveyID")
       biomass <- biomass[,-c(24:31,33:35)]
       zone_geo <- biomass[which(biomass[,2] > 0),]
       zone_geo <- unique(zone_geo$Ecoregion)
-      biomass <- biomass %>% filter(Ecoregion %in% zone_geo)
+      biomass <- biomass |>  dplyr::filter(Ecoregion %in% zone_geo)
       biomass <- biomass[,-24]
       
       # keep only two times more absences than observation  
@@ -87,7 +92,7 @@ glm_function <- function(biomass = biomass,
       
       little_cov <- names(n_values[which(sapply(1:length(n_values), function(i) {length(n_values[[i]])}) <= 6)])
       
-      if(is_empty(little_cov) == TRUE){biomass_final <- biomass_final
+      if(sjmisc::is_empty(little_cov) == TRUE){biomass_final <- biomass_final
       
       }else{
         

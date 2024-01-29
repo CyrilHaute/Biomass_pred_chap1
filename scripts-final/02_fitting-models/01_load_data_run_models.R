@@ -36,10 +36,10 @@ rls_cov_hab <- readRDS("data/Cyril_data/RLS_hab.rds")
 rls_cov_env <- readRDS("data/Cyril_data/RLS_env.rds")
 rls_cov_soc <- readRDS("data/Cyril_data/RLS_soc.rds")
 rls_cov_mpa <- readRDS("data/Cyril_data/RLS_mpa2.rds")
-covariates <- rls_cov_env %>% 
-  inner_join(rls_cov_soc, by = "SurveyID") %>%
-  inner_join(rls_cov_hab, by = "SurveyID") %>% 
-  inner_join(rls_cov_mpa, by = "SurveyID")
+covariates <- rls_cov_env |> 
+  dplyr::inner_join(rls_cov_soc, by = "SurveyID") |> 
+  dplyr::inner_join(rls_cov_hab, by = "SurveyID") |> 
+  dplyr::inner_join(rls_cov_mpa, by = "SurveyID")
 write.csv(covariates, "covariates.csv")
 # add coordonates (ONLY for spatial model : spaMM and SpatialRF)
 
