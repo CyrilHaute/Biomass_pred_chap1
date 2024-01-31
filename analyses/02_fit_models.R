@@ -1,6 +1,6 @@
 # This script run the six biomass prediction models (glm, gam, rf, sprf, spamm and brt)
 
-source('scripts-final/00_functions/model-functions/glm_function_SCV.R')
+source("R/02_glm_function_SCV.R")
 source('scripts-final/00_functions/model-functions/gam_function_SCV.R')
 source('scripts-final/00_functions/model-functions/rf_function_SCV.R')
 source('scripts-final/00_functions/model-functions/spatialrf_function_SCV.R')
@@ -19,7 +19,7 @@ base_dir <- 'outputs/biomass_prediction/'
 print('glm biomass prediction')
 glm_function(biomass = biomass_scv,
              covariates = rls_covariates,
-             species_name = colnames(rls_biomass_SCV[[1]]$fitting[,-1]),
+             species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
              base_dir = base_dir)
 
 # run gam
