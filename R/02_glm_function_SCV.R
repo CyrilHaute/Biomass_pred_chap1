@@ -51,7 +51,6 @@ glm_function <- function(biomass,
       
       # add covariates
       fitting <- dplyr::inner_join(fitting, covariates, by = "survey_id")
-      
       # log10(x+1) transform biomass
       fitting[,species_name[j]] <- log10(fitting[,species_name[j]] + 1)
       
