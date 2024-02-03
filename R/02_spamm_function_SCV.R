@@ -1,10 +1,14 @@
 # function to fit glmm (SPAMM)
+# utils::install.packages("spaMM", repos = "https://cloud.r-project.org")
 
 spamm_function <- function(biomass = biomass, 
                            covariates = spatial_covariates,
                            species_name = species_name,
                            base_dir   = 'results/rls'){
-
+pck <- c("methods", "stats", "graphics", "Matrix", "MASS", "proxy", "Rcpp", "nlme", "nloptr", "minqa", "pbapply", "crayon", "gmp",
+         "ROI", "boot", "geometry", "numDeriv", "backports")
+lapply(1:length(pck), function(i) {install.packages(pck[i])})
+lapply(pck, require, character.only = TRUE)
   require(spaMM) #version = "3.13.0"
   require(pbmcapply)
 

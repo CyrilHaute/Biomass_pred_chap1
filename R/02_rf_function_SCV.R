@@ -1,9 +1,9 @@
 # Function to fit a Random Forest
 
-biomass = biomass_scv
-covariates = rls_covariates
-species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-base_dir = base_dir
+# biomass = biomass_scv
+# covariates = rls_covariates
+# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+# base_dir = base_dir
 
 rf_function <- function(biomass, 
                         covariates, 
@@ -12,7 +12,7 @@ rf_function <- function(biomass,
   
   species_j <- list()
   
-  for(i in 1:2) {
+  for(i in 1:length(biomass)) {
     
     print(paste0("cv ", i))
     
@@ -107,6 +107,71 @@ rf_function <- function(biomass,
       biomass_validation <- rbind(biomass_only_val, absence_val)
       
       names(biomass_final)[names(biomass_final) == species_name[j]] <- "Biomass"
+      names(biomass_validation)[names(biomass_validation) == species_name[j]] <- "Biomass"
+      
+      # As some covariates are at the country level, it means you can have very few or even only one value for these covariates
+      # Check for the number of values in each covariates and add noise if < 6 values
+      
+      n_values <- lapply(1:ncol(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
+      n_values_val <- lapply(1:ncol(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
+      
+      names(n_values) <- colnames(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")])
+      names(n_values_val) <- colnames(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")])
+      
+      little_cov <- names(n_values[which(sapply(1:length(n_values), function(i) {nrow(n_values[[i]])}) <= 6)])
+      little_cov_val <- names(n_values_val[which(sapply(1:length(n_values_val), function(i) {nrow(n_values_val[[i]])}) <= 6)])
+      
+      if(sjmisc::is_empty(little_cov) == TRUE){
+        
+        biomass_final <- biomass_final
+        
+      }else{
+        
+        n_cov <- which(names(biomass_final) %in% little_cov)
+        
+        noise <- lapply(1:length(n_cov), function(i) {
+          
+          abs(rnorm(nrow(biomass_final), 0.01, 0.01))
+          
+        })
+        
+        if(length(noise) == 1){
+          
+          biomass_final[,n_cov] <- biomass_final[,n_cov] + unlist(noise)
+          
+        }else{
+          
+          biomass_final[,n_cov] <- biomass_final[,n_cov] + noise
+          
+        }
+        
+      }
+      
+      if(sjmisc::is_empty(little_cov_val) == TRUE){
+        
+        biomass_validation <- biomass_validation
+        
+      }else{
+        
+        n_cov_val <- which(names(biomass_validation) %in% little_cov_val)
+        
+        noise_val <- lapply(1:length(n_cov_val), function(i) {
+          
+          abs(rnorm(nrow(biomass_validation), 0.01, 0.01))
+          
+        })
+        
+        if(length(noise_val) == 1){
+          
+          biomass_validation[,n_cov_val] <- biomass_validation[,n_cov_val] + unlist(noise_val)
+          
+        }else{
+          
+          biomass_validation[,n_cov_val] <- biomass_validation[,n_cov_val] + noise_val
+          
+        }
+        
+      }
 
       model_fit <- tryCatch(randomForest::randomForest(x = biomass_final[colnames(covariates)[!colnames(covariates) %in% "survey_id"]],
                                                        y = biomass_final$Biomass,
@@ -123,10 +188,10 @@ rf_function <- function(biomass,
         validation_predict <- data.frame(survey_id = biomass_validation$survey_id,
                                          validation_predict = validation_predict)
 
-        validation_observed <- biomass_validation[,c("survey_id", species_name[j])]
+        validation_observed <- biomass_validation[,c("survey_id", "Biomass")]
 
         validation_observed <- validation_observed |>
-          dplyr::rename(validation_observed = species_name[j])
+          dplyr::rename(validation_observed = Biomass)
 
         validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
 
