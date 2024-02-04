@@ -1,0 +1,111 @@
+# function for producing a common scale of assessment criteria ----
+
+aggregate_metrics <- function(plot_data,
+         metrics = c('Armse', 'Amae', 'Intercept', 'Slope', 'Pearson', 'Spearman', 'Psd', 'Pdispersion', 'Pr2'),
+         targets = list(Armse    = c(0, -10, 10),
+                        Amae     = c(0, -10, 10), 
+                        Intercept  = c(0, -5, 5), 
+                        Slope      = c(1,  0, 2), 
+                        Pearson    = c(1,  0, 1), 
+                        Spearman   = c(1,  0, 1), 
+                        Psd         = c(0,  0, 10), 
+                        Pdispersion = c(1,  0, 2), 
+                        Pr2         = c(1,  0, 1)), 
+         levels = c('GLM', 'GAM', 'GBM', 'SPRF')
+         ){
+  
+  # get metrics
+  metrics_data <- na.omit(plot_data[metrics])
+  
+  # match targets to relative scale if < 0
+  metrics_data[,which(names(metrics_data) %in% c('Slope'))] <- abs(metrics_data[,which(names(metrics_data) %in% c('Slope'))] - 1)
+  metrics_data[,which(names(metrics_data) %in% c('Intercept'))] <- abs(metrics_data[,which(names(metrics_data) %in% c('Intercept'))])
+  
+  # rank order and rescale
+  rescale_01 <- function(x){(x-min(x,na.rm = T))/(max(x, na.rm = T)-min(x, na.rm = T))}
+  metrics_data <- data.frame(sapply(metrics_data, function(x) rescale_01(rank(x))))
+  
+  # range inversion
+  invert_range <- function(x){ (max(x, na.rm = T)+min(x, na.rm = T)) - x}
+  metrics_data[which(names(metrics_data) %in% c('Armse', 'Amae', 'Amae_rel_mean', 'Intercept', 'Slope', 'Psd', 'Pdispersion'))] <-
+    sapply(metrics_data[which(names(metrics_data) %in% c('Armse', 'Amae', 'Amae_rel_mean', 'Intercept', 'Slope', 'Psd', 'Pdispersion'))], function(x) invert_range(x))
+
+  # create columns for plotting
+  if(length(which(names(metrics_data) %in% c('Armse', 'Amae', 'Amae_rel_mean'))) == 1){
+    accuracy <- metrics_data[,which(names(metrics_data) %in% c('Armse', 'Amae', 'Amae_rel_mean'))]}else{
+    accuracy <- rowSums(metrics_data[,which(names(metrics_data) %in% c('Armse', 'Amae', 'Amae_rel_mean'))])/length(which(names(metrics_data) %in% c('Armse', 'Amae', 'Amae_rel_mean')))}
+  
+  if(length(which(names(metrics_data) %in% c('Intercept', 'Slope', 'Pearson', 'Spearman'))) == 1){
+    discrimination <- metrics_data[,which(names(metrics_data) %in% c('Intercept', 'Slope', 'Pearson', 'Spearman'))]}else{
+    discrimination <- rowSums(metrics_data[,which(names(metrics_data) %in% c('Intercept', 'Slope', 'Pearson', 'Spearman'))])/length(which(names(metrics_data) %in% c('Intercept', 'Slope', 'Pearson', 'Spearman')))}
+  
+  if(length(which(names(metrics_data) %in% c("Pdispersion", "Pr2"))) == 1){precision <- metrics_data[,which(names(metrics_data) %in% c("Pdispersion", "Pr2"))]}else{
+    precision <- rowSums(metrics_data[,which(names(metrics_data) %in% c("Pdispersion", "Pr2"))])/length(which(names(metrics_data) %in% c("Pdispersion", "Pr2")))}
+  
+  # aggregate the evaluation metrics
+  aggregated_evaluation_metrics <- rowSums(cbind(accuracy, discrimination, precision))/3
+  
+  # index for ANY NAs
+  NA_index <- rowSums(sapply(plot_data[metrics], is.na))>0
+  
+  plot_data$accuracy                      <- NA
+  plot_data$discrimination                <- NA
+  plot_data$precision                     <- NA
+  plot_data$aggregated_evaluation_metrics <- NA
+  
+  if(sum(NA_index)!=0){
+  plot_data$accuracy[-which(NA_index)]                      <- accuracy
+  plot_data$discrimination[-which(NA_index)]                <- discrimination
+  plot_data$precision[-which(NA_index)]                     <- precision
+  plot_data$aggregated_evaluation_metrics[-which(NA_index)] <- aggregated_evaluation_metrics
+  }else{
+    plot_data$accuracy                      <- accuracy
+    plot_data$discrimination                <- discrimination
+    plot_data$precision                     <- precision
+    plot_data$aggregated_evaluation_metrics <- aggregated_evaluation_metrics
+  }
+  
+  return(plot_data)
+  
+}
+
+
+performance_plot <- function(plot_data,
+                             metrics_sel, #options are pearson, spearman, slope and intercept
+                             slope,
+                             intercept,
+                             color,
+                             ylim,
+                             legend.position,
+                             plot_title
+                             ){
+  
+  plot_perf <- plot_data %>% 
+    filter(metrics == metrics_sel) %>% 
+    mutate(model = fct_relevel(model, "GLM", "GAM", "SPAMM","RF", "GBM", "SPRF")) %>%
+    ggplot(aes(x = model, y = value, fill = cat)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_abline(slope = slope, intercept = intercept, linetype = 2, size = 1.25, color = "red") +
+    scale_fill_manual(values = c("Best models" = pal_perf[6],
+                                 "All models" = pal_perf[2])) +
+    theme_bw() +
+    coord_cartesian(ylim = ylim) + 
+    theme(legend.position = legend.position,
+          legend.direction = "horizontal") +
+    labs(y = metrics_sel, x = "", title = plot_title, fill = "") +
+    theme(title = element_text(size=20),
+          axis.text=element_text(size=15),
+          axis.title=element_text(size=25),
+          legend.text=element_text(size=20), 
+          legend.title=element_text(size=25),
+          strip.text.x = element_text(size = 20),
+          strip.text.y = element_text(size = 20),
+          strip.background = element_blank(),
+          panel.background = element_rect(fill = "white", colour = "grey50",
+                                          size = 1, linetype = "solid"),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank())
+  
+  print(plot_perf)
+  
+}
