@@ -1,11 +1,13 @@
-# Function to create the spatial cross validation dataset
 
-#' Title
+#' Title : scv_function
+#' 
+#' This function create a k fold spatial cross validation.
 #'
-#' @param dats 
-#' @param n.folds 
+#' @param dats a dataframe that is to be split into k folds
+#' @param n.folds a numeric corresponding to the number of k fold of the cross validation
 #'
-#' @return
+#' @return a list with k element. Each element of the list is a fold of the cross validation. In each element, you have two dataframes, one is for model training (named "fitting")
+#' the second is for model testing (named "validation")
 #' @export
 #'
 #' @examples
@@ -52,8 +54,6 @@ scv_function <- function(dats,
     # split into train and test sets
     train <- dats[-indis,]
     test <- dats[indis,]
-    # train$set <- rep("fitting", nrow(train))
-    # test$set <- rep("validation", nrow(test))
     train_test[[i]] <- list(train, test)
     names(train_test[[i]]) <- c("fitting", "validation")
     

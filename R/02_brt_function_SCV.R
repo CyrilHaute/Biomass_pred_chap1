@@ -6,6 +6,21 @@ species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fit
 n.cores = 1
 base_dir = base_dir
 
+#' Title brt_function
+#' 
+#' This function fit a gradient boosting machine model using the R package `gbm` with a k fold spatial cross validation procedure
+#'
+#' @param biomass a list in which a each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
+#' train the model and the second one named "validation" to test the model
+#' @param covariates a datagrame containg all covariates to fit the model
+#' @param species_name a vector containg the name of all species contain in @param biomass
+#' @param base_dir the path to save the data
+#'
+#' @return a dataframe with as many row as the length of @param species_name . Each row is a species with its biomass observation and prediction from each cross validation fold
+#' @export
+#'
+#' @examples
+
 brt_function <- function(biomass, 
                          covariates, 
                          species_name,
@@ -114,17 +129,19 @@ brt_function <- function(biomass,
       biomass_validation <- rbind(biomass_only_val, absence_val)
       
       names(biomass_final)[names(biomass_final) == species_name[j]] <- "Biomass"
+      names(biomass_validation)[names(biomass_validation) == species_name[j]] <- "Biomass"
       
       # As some covariates are at the country level, it means you can have very few or even only one value for these covariates
       # Check for the number of values in each covariates and add noise if < 6 values
       
-      # n_values <- lapply(1:ncol(biomass_final[,colnames(covariates)[!colnames(covariates) %in% c("survey_id", "effectiveness")]]), function(i) {unique(biomass_final[,colnames(covariates)[!colnames(covariates) %in% c("survey_id", "effectiveness")]][,i])})
-      
       n_values <- lapply(1:ncol(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
+      n_values_val <- lapply(1:ncol(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
       
       names(n_values) <- colnames(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")])
+      names(n_values_val) <- colnames(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")])
       
-      little_cov <- names(n_values[which(sapply(1:length(n_values), function(i) {nrow(n_values[[i]])}) <= 6)])
+      little_cov <- names(n_values[which(sapply(1:length(n_values), function(i) {length(n_values[[i]])}) <= 6)])
+      little_cov_val <- names(n_values_val[which(sapply(1:length(n_values_val), function(i) {length(n_values_val[[i]])}) <= 6)])
       
       if(sjmisc::is_empty(little_cov) == TRUE){
         
@@ -151,11 +168,39 @@ brt_function <- function(biomass,
         }
         
       }
+      
+      if(sjmisc::is_empty(little_cov_val) == TRUE){
+        
+        biomass_validation <- biomass_validation
+        
+      }else{
+        
+        n_cov_val <- which(names(biomass_validation) %in% little_cov_val)
+        
+        noise_val <- lapply(1:length(n_cov_val), function(i) {
+          
+          abs(rnorm(nrow(biomass_validation), 0.01, 0.01))
+          
+        })
+        
+        if(length(noise_val) == 1){
+          
+          biomass_validation[,n_cov_val] <- biomass_validation[,n_cov_val] + unlist(noise_val)
+          
+        }else{
+          
+          biomass_validation[,n_cov_val] <- biomass_validation[,n_cov_val] + noise_val
+          
+        }
+        
+      }
+      
       ### FITTING BOOSTED REGRESSION TREES
       
       # boosted regression tree modelling in 'gbm'
       # fit models with gbm packages
       # fit boosted regression tree with stochastic gradient boosting (i.e., bag.fraction != 1)
+      
       model_fit <- tryCatch(gbm::gbm(formula = brt_formula,
                                      data = biomass_final, 
                                      distribution = 'gaussian', 
@@ -167,78 +212,87 @@ brt_function <- function(biomass,
                                      n.cores = n.cores), error = function(e) NA)
         
       # if(!is.na(model_fit[1])){
-      #     
+      # 
       # # selecting the best number of trees from cross validations
-      #   gbm.mod.perf <- gbm::gbm.perf(model_fit, method = "cv", plot.it = F) 
-      #     
+      #   gbm.mod.perf <- gbm::gbm.perf(model_fit, method = "cv", plot.it = F)
+      # 
       #   # fit model to all data
       #   model_fit <- gbm::gbm(formula = brt_formula,
-      #                         data = biomass_final, 
-      #                         distribution = 'gaussian', 
+      #                         data = biomass_final,
+      #                         distribution = 'gaussian',
       #                         n.trees = gbm.mod.perf,
       #                         bag.fraction = 0.8,
-      #                         interaction.depth = 3, 
+      #                         interaction.depth = 3,
       #                         shrinkage = 0.001)
-      # }else{ # if the optimal number of trees cannot be identified in gbm
+      # }else{ 
+      #   
+      #   # if the optimal number of trees cannot be identified in gbm
       #   # find the best model using gbm
+      #   
       #   times = 0
+      #   
       #   gbm.mod.perf <- NULL
+      #   
       #   while(is.null(gbm.mod.perf)){
+      #     # test <- biomass_final[,which(colnames(biomass_final) %in% c("survey_id", "Biomass") == FALSE)]
       #     gbm.mod.perf <- tryCatch(dismo::gbm.step(data = data.frame(biomass_final),
       #                                              gbm.x = 3:ncol(data.frame(biomass_final)),
       #                                              gbm.y = 2,
       #                                              family = 'gaussian', # cannot have multinomial in this package, but also cannot fit models with single covariate and cross validation in gbm
       #                                              tree.complexity = 3,
       #                                              learning.rate = 0.001-(0.0001*times),
-      #                                              n.folds = 10, 
-      #                                              bag.fraction = 0.8, 
+      #                                              n.folds = 10,
+      #                                              bag.fraction = 0.8,
       #                                              plot.main = F)$n.trees, error = function(e) NULL)
       #     times <- times + 1
+      #     
       #     if(times == 500){stop()}
+      #     
       #   }
+      #   
       #   model_fit <- tryCatch(gbm(formula = brt_formula,
-      #                             data = biomass_final, 
-      #                             distribution = 'gaussian', 
+      #                             data = biomass_final,
+      #                             distribution = 'gaussian',
       #                             n.trees = gbm.mod.perf,
       #                             bag.fraction = 0.8,
-      #                             interaction.depth = 3, 
+      #                             interaction.depth = 3,
       #                             shrinkage = 0.001), error = identity)
-      #     
+      # 
       #   if(class(model_fit)[1] == 'simpleError'){
       #     verification_predict  <- NA
       #     validation_predict <- NA
       #     next
       #   }
-      #     
+      # 
       # } # end of if the optimal number of trees cannot be identified in gbm
       
-      if(!any(is.na(model_fit) == TRUE)){
-        
-        validation_predict <- predict(model_fit, biomass_validation, type = 'response')
-        
-        # back transform predictions
-        validation_predict <- 10^(validation_predict) - 1
-        
-        validation_predict <- data.frame(survey_id = biomass_validation$survey_id,
-                                         validation_predict = validation_predict)
-        
-        validation_observed <- biomass_validation[,c("survey_id", species_name[j])]
-        
-        validation_observed <- validation_observed |>
-          dplyr::rename(validation_observed = species_name[j])
-        
-        validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
-        
-        validation_obs_prd <- validation_predict |>
-          dplyr::inner_join(validation_observed)
-        
-        validation_obs_prd
-        
-      }else{
-        
-        validation_obs_prd  <- NA
-        
-      }
+      # if(!any(is.na(model_fit) == TRUE)){
+      #   
+      #   validation_predict <- predict(model_fit, biomass_validation, type = 'response')
+      #   
+      #   # back transform predictions
+      #   validation_predict <- 10^(validation_predict) - 1
+      #   
+      #   validation_predict <- data.frame(survey_id = biomass_validation$survey_id,
+      #                                    validation_predict = validation_predict)
+      #   
+      #   validation_observed <- biomass_validation[,c("survey_id", "Biomass")]
+      #   
+      #   validation_observed <- validation_observed |>
+      #     dplyr::rename(validation_observed = Biomass)
+      #   
+      #   validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
+      #   
+      #   validation_obs_prd <- validation_predict |>
+      #     dplyr::inner_join(validation_observed)
+      #   
+      #   validation_obs_prd
+      #   
+      # }else{
+      #   
+      #   validation_obs_prd  <- NA
+      #   
+      # }
       
     }, mc.cores = parallel::detectCores() - 1)
       
