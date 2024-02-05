@@ -4,12 +4,12 @@
 # covariates = rls_covariates
 # species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
 # base_dir = base_dir
-
+# 
 #' Title spamm_function
 #' 
 #' This function fit a glmm using the R package `spaMM` with a k fold spatial cross validation procedure
 #'
-#' @param biomass a list in which a each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
+#' @param biomass a list in which each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
 #' train the model and the second one named "validation" to test the model
 #' @param covariates a datagrame containg all covariates to fit the model
 #' @param species_name a vector containg the name of all species contain in @param biomass

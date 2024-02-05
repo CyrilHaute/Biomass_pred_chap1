@@ -43,7 +43,7 @@ load("new_data/new_raw_data/habitat_covariates/final_habitat.Rdata")
 # As the sum of habitats within a buffer do not always fit 100%, we converted percentage to relative in order to remove deep sea and land cover
 # and acount only for coral habitats. First we assessed the sum of all habitat (either benthic and geomorphologic), for both buffers (500m, 10km),
 # to keep the raw information of the sum of all habitat.
-
+###################################################################################### changer chiffre par nom colonne
 rls_habitat <- habitat |>  
   dplyr::rowwise() |> 
   dplyr::mutate(sum_geo_10 = sum(dplyr::c_across(colnames(habitat)[25:35])), # Assess reef extent from reef geomorphology
@@ -122,10 +122,10 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
 
 length(unique(rls_coral_fish_mean_biomass_count$survey_id))
 
-rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |> 
+rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |>
   tidyr::spread(species_name, biomass, fill = 0)
 
-rls_fish_cov <- rls_spread_coral_reef |> 
+rls_fish_cov <- rls_spread_coral_reef |>
   dplyr::inner_join(rls_covariates)
 
 ##############################################
@@ -186,13 +186,25 @@ rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_al
 
 species_name <- colnames(rls_spread_coral_reef)[!colnames(rls_spread_coral_reef) %in% c("survey_id", "latitude", "longitude")]
 
+# species_name <- unique(rls_fish_cov$species_name)
+
 rls_biomass <- rls_spread_coral_reef |> 
   dplyr::inner_join(rls_surveys)
 
 rls_biomass <- rls_biomass |> 
   dplyr::select(survey_id, latitude, longitude, site_code, species_name)
 
-biomass_scv <- scv_function(dats = rls_biomass, 
+# biomass_scv <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
+#   
+#   sp_i <- rls_biomass |> 
+#     dplyr::select(survey_id, latitude, longitude, site_code, species_name[i])
+#   
+#   biomass_scv <- scv_function(dats = sp_i, 
+#                               n.folds = 10)
+#   
+# }, mc.cores = parallel::detectCores() - 1)
+
+biomass_scv <- scv_function(dats = rls_biomass,
                             n.folds = 10)
 
 names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", i)})

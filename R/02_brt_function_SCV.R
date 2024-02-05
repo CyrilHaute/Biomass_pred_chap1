@@ -10,7 +10,7 @@ base_dir = base_dir
 #' 
 #' This function fit a gradient boosting machine model using the R package `gbm` with a k fold spatial cross validation procedure
 #'
-#' @param biomass a list in which a each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
+#' @param biomass a list in which each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
 #' train the model and the second one named "validation" to test the model
 #' @param covariates a datagrame containg all covariates to fit the model
 #' @param species_name a vector containg the name of all species contain in @param biomass

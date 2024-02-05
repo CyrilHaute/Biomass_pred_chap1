@@ -1,15 +1,15 @@
 # function to fit spatial Random Forest
 
-# biomass = biomass_scv
-# covariates = rls_covariates
-# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-# base_dir = base_dir
+biomass = biomass_scv
+covariates = rls_covariates
+species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+base_dir = base_dir
 
 #' Title spatialrf_function
 #' 
 #' This function fit a spatial random forest using the R package `SpatialML` with a k fold spatial cross validation procedure
 #'
-#' @param biomass a list in which a each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
+#' @param biomass a list in which each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
 #' train the model and the second one named "validation" to test the model
 #' @param covariates a datagrame containg all covariates to fit the model
 #' @param species_name a vector containg the name of all species contain in @param biomass
@@ -203,17 +203,22 @@ spatialrf_function <- function(biomass,
       ### FITTING MODELS 
       # fit the spatial random forests
 
-      model_fit <- SpatialML::grf(formula = fmla,
-                                  dframe = biomass_final,
-                                  bw = 15,
-                                  kernel = "adaptive",
-                                  coords = coords,
-                                  ntree = 1000,
-                                  geo.weighted = FALSE)
+      model_fit <- tryCatch(SpatialML::grf(formula = fmla,
+                                           dframe = biomass_final,
+                                           bw = 15,
+                                           kernel = "adaptive",
+                                           coords = coords,
+                                           ntree = 1000,
+                                           geo.weighted = FALSE), error = function(e) NA)
       
       if(!any(is.na(model_fit) == TRUE)){
         
-        validation_predict  <- tryCatch(SpatialML::predict.grf(object = model_fit, new.data = biomass_validation, x.var.name = "X" , y.var.name = "Y", local.w = 1, global.w = 0), error = function(e) NA)
+        validation_predict  <- tryCatch(SpatialML::predict.grf(object = model_fit, 
+                                                               new.data = biomass_validation, 
+                                                               x.var.name = "X" , 
+                                                               y.var.name = "Y", 
+                                                               local.w = 1, 
+                                                               global.w = 0), error = function(e) NA)
         
         # back transform predictions
         validation_predict <- 10^(validation_predict) - 1
@@ -239,11 +244,21 @@ spatialrf_function <- function(biomass,
         
       }
       
+      return(validation_obs_prd)
+      
       rm(model_fit)
       gc()
 
     }, mc.cores = parallel::detectCores() - 1)
     
+    # test <- unlist(lapply(1:length(species_j[[1]]), function(i) {
+    #   
+    #   sp_i <- species_j[[1]][[i]]
+    #   
+    #   if(any(class(sp_i) == "try-error")){i}
+    #   
+    # }))
+
   }
 
   validation_prediction <- parallel::mclapply(1:length(species_j[[1]]), function(i){

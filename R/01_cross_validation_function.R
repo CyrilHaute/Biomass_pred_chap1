@@ -12,35 +12,46 @@
 #'
 #' @examples
 
+# dats = rls_biomass
+# n.folds = 10
+
 scv_function <- function(dats, 
                          n.folds){
   
   # flexible object for storing folds
   folds <- list()
   
+  positive_indices <- which.min(unlist(lapply(dats[, -(1:4)], function(col) length(which(col > 0))))) + 4
+  
   fold.size <- nrow(dats)/n.folds
+  fold.size.pos <- nrow(dats[which(dats[,positive_indices] > 0),])/n.folds
+  fold.size.zero <- nrow(dats[which(dats[,positive_indices] == 0),])/n.folds
   
   # all obs are in
-  remain <- 1:nrow(dats)
+  remain.pos <- which(dats[,positive_indices] > 0)
+  remain.zero <- which(dats[,positive_indices] == 0)
   
+  # positive_indices <- which.min(unlist(lapply(dats[, -(1:4)], function(col) length(which(col > 0)))))
+
   for(i in 1:n.folds) {
     
     # randomly sample “fold_size” from the ‘remaining observations’
-    select <- sample(remain, fold.size, replace = FALSE)
+    select.pos <- sample(remain.pos, fold.size.pos, replace = FALSE)
+    select.zero <- sample(remain.zero, fold.size.zero, replace = FALSE)
     
     # store indices
-    folds[[i]] <- select
+    folds[[i]] <- c(select.pos, select.zero)
     
     if (i == n.folds){
       
-      folds[[i]] <- remain
+      folds[[i]] <- c(remain.pos, remain.zero)
       
     }
     
     # update remaining indices to reflect what was taken out
-    remain <- setdiff(remain, select)
+    remain.pos <- setdiff(remain.pos, select.pos)
+    remain.zero <- setdiff(remain.zero, select.zero)
     
-    remain
   }
   
   train_test <- list()
