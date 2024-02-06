@@ -1,9 +1,9 @@
 # function to fit spatial Random Forest
 
-biomass = biomass_scv
-covariates = rls_covariates
-species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-base_dir = base_dir
+# biomass = biomass_scv
+# covariates = rls_covariates
+# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+# base_dir = base_dir
 
 #' Title spatialrf_function
 #' 
@@ -250,14 +250,6 @@ spatialrf_function <- function(biomass,
       gc()
 
     }, mc.cores = parallel::detectCores() - 1)
-    
-    # test <- unlist(lapply(1:length(species_j[[1]]), function(i) {
-    #   
-    #   sp_i <- species_j[[1]][[i]]
-    #   
-    #   if(any(class(sp_i) == "try-error")){i}
-    #   
-    # }))
 
   }
 

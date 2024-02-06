@@ -215,7 +215,7 @@ spamm_function <- function(biomass,
         
         }else{
             
-          test <- unique(biomass_only_val$effectiveness) %in% unique(biomass_final$effectiveness)
+          test <- unique(biomass_validation$effectiveness) %in% unique(biomass_final$effectiveness)
           
           if(any(test == FALSE)){
             

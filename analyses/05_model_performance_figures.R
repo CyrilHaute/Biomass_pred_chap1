@@ -27,30 +27,16 @@ all_assessments_SCV <- all_assessments_SCV |>
 # estimate for each species the best model based on performance metrics  
 best_models <- all_assessments_SCV |> 
   # estimate the relative metric performance within a cross validation and dataset
-  tidyr::nest() |> 
+  tidyr::nest() |>
   dplyr::mutate(metric_aggregation = purrr::map(data, ~aggregate_metrics(., 
                                                                   metrics = c('Intercept', 'Slope', 'Pearson', 'Spearman')))) |> 
-  # .$metric_aggregation |> 
-  do.call(rbind, .) |> 
+  tidyr::unnest() |>
   # find the best fitting model for each species within each fitted_model
   dplyr::group_by(species_name) |> 
   dplyr::do(best_model = .$fitted_model[which.max(.$discrimination)]) |> 
   tidyr::unnest(cols = c('best_model'))
 
-saveRDS(best_models, file = 'results/overall_best_models.rds')
-
-
-best_models <- all_assessments_SCV |> 
-  # estimate the relative metric performance within a cross validation and dataset
-  tidyr::nest() |> 
-  dplyr::mutate(metric_aggregation = purrr::map(data, ~aggregate_metrics(., 
-                                                                         metrics = c('Intercept', 'Slope', 'Pearson', 'Spearman'))))
-
-best_models <- best_models$metric_aggregation[[1]] |> 
-  # find the best fitting model for each species within each fitted_model
-  dplyr::group_by(species_name) |> 
-  dplyr::do(best_model = .$fitted_model[which.max(.$discrimination)]) |> 
-  tidyr::unnest(cols = c('best_model'))
+# saveRDS(best_models, file = 'results/overall_best_models.rds')
 
 #### Best Model plot ####
 
@@ -65,11 +51,11 @@ library(ggplot2)
 
 best_model <- best_models_pr |> 
   # mutate(best_model = fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "GBM", "SPRF")) %>%
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "RF")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "RF", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
-  scale_y_continuous(limits=c(0, 80)) +
+  # scale_y_continuous(limits=c(0, 80)) +
   labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B") +
   theme(title = element_text(size=20),
         axis.text=element_text(size=15),
