@@ -1,10 +1,3 @@
-# function to fit spatial Random Forest
-
-# biomass = biomass_scv
-# covariates = rls_covariates
-# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-# base_dir = base_dir
-
 #' Title spatialrf_function
 #' 
 #' This function fit a spatial random forest using the R package `SpatialML` with a k fold spatial cross validation procedure

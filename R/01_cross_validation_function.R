@@ -30,8 +30,6 @@ scv_function <- function(dats,
   # all obs are in
   remain.pos <- which(dats[,positive_indices] > 0)
   remain.zero <- which(dats[,positive_indices] == 0)
-  
-  # positive_indices <- which.min(unlist(lapply(dats[, -(1:4)], function(col) length(which(col > 0)))))
 
   for(i in 1:n.folds) {
     
