@@ -1,9 +1,9 @@
 # function to fit glmm (SPAMM)
 
-# biomass = biomass_scv
-# covariates = rls_covariates
-# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-# base_dir = base_dir
+biomass = biomass_scv
+covariates = rls_covariates
+species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+base_dir = base_dir
 # 
 #' Title spamm_function
 #' 
@@ -245,8 +245,8 @@ spamm_function <- function(biomass,
         
         validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
         
-        validation_obs_prd <- validation_predict |> 
-          dplyr::inner_join(validation_observed)
+        validation_obs_prd <- validation_predict |>
+          dplyr::inner_join(validation_observed, multiple = "first")
         
         validation_obs_prd 
         

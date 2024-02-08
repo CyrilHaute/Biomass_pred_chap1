@@ -211,7 +211,7 @@ rf_function <- function(biomass,
         validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
 
         validation_obs_prd <- validation_predict |>
-          dplyr::inner_join(validation_observed)
+          dplyr::inner_join(validation_observed, multiple = "first")
 
         validation_obs_prd
 

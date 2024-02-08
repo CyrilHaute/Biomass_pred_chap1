@@ -4,7 +4,7 @@ source("R/02_glm_function_SCV.R")
 source("R/02_gam_function_SCV.R")
 source("R/02_rf_function_SCV.R")
 source("R/02_spatialrf_function_SCV.R")
-source("R/02_spamm_function_SCV.R")
+# source("R/02_spamm_function_SCV.R")
 # source('scripts-final/00_functions/model-functions/brt_function_SCV.R')
 
 
@@ -43,17 +43,17 @@ spatialrf_function(biomass = biomass_scv,
                    species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
                    base_dir = base_dir)
 
-# run spamm (GLMM)
-print('spamm biomass prediction')
-spamm_function(biomass = biomass_scv,
-               covariates = rls_covariates,
-               species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
-               base_dir = base_dir)
-
-# run boosted regression trees
-print('brt biomass prediction')
-brt_function(biomass = biomass_scv,
-             covariates = rls_covariates,
-             species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
-             n.cores = 1,
-             base_dir = base_dir)
+# # run spamm (GLMM)
+# print('spamm biomass prediction')
+# spamm_function(biomass = biomass_scv,
+#                covariates = rls_covariates,
+#                species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
+#                base_dir = base_dir)
+# 
+# # run boosted regression trees
+# print('brt biomass prediction')
+# brt_function(biomass = biomass_scv,
+#              covariates = rls_covariates,
+#              species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
+#              n.cores = 1,
+#              base_dir = base_dir)

@@ -217,9 +217,9 @@ spatialrf_function <- function(biomass,
                                                                new.data = biomass_validation, 
                                                                x.var.name = "X" , 
                                                                y.var.name = "Y", 
-                                                               local.w = 1, 
-                                                               global.w = 0), error = function(e) NA)
-        
+                                                               local.w = 0.5, 
+                                                               global.w = 0.5), error = function(e) NA)
+      
         # back transform predictions
         validation_predict <- 10^(validation_predict) - 1
         
@@ -234,7 +234,7 @@ spatialrf_function <- function(biomass,
         validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
         
         validation_obs_prd <- validation_predict |>
-          dplyr::inner_join(validation_observed)
+          dplyr::inner_join(validation_observed, multiple = "first")
         
         validation_obs_prd
         
