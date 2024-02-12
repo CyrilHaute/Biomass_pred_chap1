@@ -12,7 +12,6 @@ source("R/02_spatialrf_function_SCV.R")
 load("data/new_derived_data/biomass_scv.RData")
 load("data/new_derived_data/rls_covariates.RData")
 
-# set up base-directory for file saves
 base_dir <- 'outputs/biomass_prediction/'
 
 # run glm 
