@@ -8,7 +8,7 @@ source("R/01_cross_validation_function.R")
 #########################################################
 
 # List environmental covariates
-environment_file <- list.files("new_data/new_raw_data/environmental_covariates", full.names = TRUE)
+environment_file <- list.files("data/new_raw_data/environmental_covariates", full.names = TRUE)
 
 # Load environmental covariates within a list
 environment_cov_list <- lapply(1:length(environment_file), function(i) {
@@ -38,7 +38,8 @@ rls_env <- rls_env |>
 ############# Load habitat covariates #############
 ###################################################
 
-load("new_data/new_raw_data/habitat_covariates/final_habitat.Rdata")
+load("data/new_raw_data/habitat_covariates/final_habitat.Rdata")
+load("data/new_raw_data/habitat_covariates/Benthic_composition_inferred_tropical.Rdata")
 
 # As the sum of habitats within a buffer do not always fit 100%, we converted percentage to relative in order to remove deep sea and land cover
 # and acount only for coral habitats. First we assessed the sum of all habitat (either benthic and geomorphologic), for both buffers (500m, 10km),
@@ -63,19 +64,27 @@ rls_habitat <- rls_habitat |>
 rls_habitat <- rls_habitat |> 
   dplyr::rename(reef_extent = sum_geo_10)
 
+rls_habitat$survey_id <- as.character(rls_habitat$survey_id)
+rls_habitat <- rls_habitat |> 
+  dplyr::inner_join(inferred_benthos)
+
+rls_habitat <- rls_habitat |> 
+  dplyr::select(-c(longitude, latitude))
+
 ##################################################
 ############# Load social covariates #############
 ##################################################
 
-load("new_data/new_raw_data/social_covariates/corruption.RData")
-load("new_data/new_raw_data/social_covariates/gdp.RData")
-load("new_data/new_raw_data/social_covariates/gravity.RData")
-load("new_data/new_raw_data/social_covariates/hdi.RData")
-load("new_data/new_raw_data/social_covariates/marine_ecosystem_dependency.RData")
-load("new_data/new_raw_data/social_covariates/mpa.Rdata")
-load("new_data/new_raw_data/social_covariates/natural_ressource_rent.RData")
-load("new_data/new_raw_data/social_covariates/neartt.RData")
-load("new_data/new_raw_data/social_covariates/ngo.RData")
+load("data/new_raw_data/social_covariates/corruption.RData")
+load("data/new_raw_data/social_covariates/gdp.RData")
+load("data/new_raw_data/social_covariates/gravity.RData")
+load("data/new_raw_data/social_covariates/hdi.RData")
+load("data/new_raw_data/social_covariates/marine_ecosystem_dependency.RData")
+load("data/new_raw_data/social_covariates/mpa.Rdata")
+load("data/new_raw_data/social_covariates/natural_ressource_rent.RData")
+load("data/new_raw_data/social_covariates/neartt.RData")
+load("data/new_raw_data/social_covariates/ngo.RData")
+load("data/new_raw_data/social_covariates/fishing_boat.RData")
 
 ngo <- ngo[which(is.na(ngo$ngo) == FALSE),]
 
@@ -87,9 +96,12 @@ rls_soc <- corruption |>
   dplyr::inner_join(mpa) |> 
   dplyr::inner_join(natural_ressource_rent) |> 
   dplyr::inner_join(neartt) |> 
-  dplyr::inner_join(ngo)
+  dplyr::inner_join(ngo) |> 
+  dplyr::inner_join(fishing_boat)
 
 rls_soc$effectiveness <- as.factor(rls_soc$effectiveness)
+
+rls_habitat$survey_id <- as.integer(rls_habitat$survey_id)
 
 rls_covariates <- rls_env |> 
   dplyr::inner_join(rls_soc) |> 
@@ -101,8 +113,8 @@ rls_covariates$survey_id <- as.character(rls_covariates$survey_id)
 ############# Load fish biomass data #############
 ##################################################
 
-load("new_data/new_raw_data/RLS_actinopterygii_data.Rdata")
-load("new_data/new_raw_data/00_rls_surveys.Rdata")
+load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
+load("data/new_raw_data/00_rls_surveys.Rdata")
 
 rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 rls_fish_data <- dplyr::inner_join(RLS_actinopterygii_data, rls_surveys)
@@ -142,11 +154,11 @@ rls_env_selec <- scale(rls_env_selec, center = TRUE, scale = TRUE)
 cor_env <- stats::cor(rls_env_selec) #Look at correlation between covariates
 corrplot::corrplot(cor_env, type = "upper") 
 
-rls_env_selec2 <- rls_env_selec[,c("min_5year_o2", "mean_1year_chl", "mean_1year_so_mean", "mean_1year_ph" , "min_1year_analysed_sst", "min_1year_degree_heating_week", "max_5year_degree_heating_week")]
+rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_7days_chl", "mean_7days_analysed_sst")]
 cor_env2 <- stats::cor(rls_env_selec2)
 corrplot::corrplot(cor_env2, type = "upper")
 
-rls_env_final <- rls_fish_cov[,c("survey_id", "min_5year_o2", "mean_1year_chl", "mean_1year_so_mean", "mean_1year_ph" , "min_1year_analysed_sst", "min_1year_degree_heating_week", "max_5year_degree_heating_week")]
+rls_env_final <- rls_fish_cov[,c("survey_id", "min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_7days_chl", "mean_7days_analysed_sst")]
 
 
 # Select social covariates
@@ -158,12 +170,14 @@ rls_soc_selec$gravtot2 <- log10(rls_soc_selec$gravtot2 + mean(rls_soc_selec$grav
 rls_soc_selec[,-c(1:3, 9)] <- scale(rls_soc_selec[,-c(1:3, 9)], center = TRUE, scale = TRUE)
 
 cor_soc <- stats::cor(rls_soc_selec[,-c(1:3, 9)])
+corrplot::corrplot(cor_soc)
 
-rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "marine_ecosystem_dependency")]
+rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "n_fishing_vessels", "ngo")]
 
 cor_soc2 <- stats::cor(rls_soc_selec2)
+corrplot::corrplot(cor_soc2)
 
-rls_soc_final <- rls_fish_cov[,c("survey_id", "gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "effectiveness")]
+rls_soc_final <- rls_fish_cov[,c("survey_id", "gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "n_fishing_vessels", "ngo", "effectiveness")]
 
 
 # Select habitat covariates
@@ -174,10 +188,12 @@ rls_hab_selec <- rls_hab_selec |>
 cor_hab <- stats::cor(rls_hab_selec[,-c(1)])
 corrplot::corrplot(cor_hab, type = "upper")
 
-rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m")]
+colnames(inferred_benthos)[-c(1:3)]
+rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline algae")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
+corrplot::corrplot(cor_hab2, type = "upper")
 
-rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m")]
+rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline algae")]
 
 
 #####################################################################
@@ -188,11 +204,18 @@ species_name <- colnames(rls_spread_coral_reef)[!colnames(rls_spread_coral_reef)
 
 # species_name <- unique(rls_fish_cov$species_name)
 
-rls_biomass <- rls_spread_coral_reef |> 
-  dplyr::inner_join(rls_surveys)
+rls_biomass <- rls_fish_cov |> 
+  dplyr::inner_join(rls_surveys[,c("survey_id", "site_code", "depth")])
 
-rls_biomass <- rls_biomass |> 
-  dplyr::select(survey_id, latitude, longitude, site_code, species_name)
+rls_biomass <- rls_biomass |>
+  dplyr::select(survey_id, 
+                latitude, 
+                longitude, 
+                site_code, 
+                species_name, 
+                colnames(rls_env_final)[!colnames(rls_env_final) %in% "survey_id"], 
+                colnames(rls_soc_final)[!colnames(rls_soc_final) %in% "survey_id"], 
+                colnames(rls_hab_final)[!colnames(rls_hab_final) %in% "survey_id"])
 
 # biomass_scv <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
 #   
