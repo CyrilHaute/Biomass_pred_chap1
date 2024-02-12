@@ -12,8 +12,8 @@
 #'
 #' @examples
 
-dats = rls_biomass
-n.folds = 10
+# dats = rls_biomass
+# n.folds = 10
 
 scv_function <- function(dats, 
                          n.folds){
