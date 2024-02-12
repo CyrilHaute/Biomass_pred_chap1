@@ -126,13 +126,20 @@ rls_coral_fish_mean_biomass <- rls_coral_fish |>
   dplyr::group_by(survey_id, site_code, species_name, latitude, longitude, survey_date, depth) |> 
   dplyr::summarise(biomass = mean(biomass))
 
-rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |> 
-  dplyr::group_by(species_name, ) |> 
-  dplyr::mutate(count = dplyr::n()) |> 
+rls_coral_fish_mean_biomass <- rls_coral_fish_mean_biomass |> 
+  dplyr::inner_join(rls_covariates) |> 
+  dplyr::select(survey_id, species_name, biomass, latitude, longitude)
+
+rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
+  dplyr::group_by(species_name, ) |>
+  dplyr::mutate(count = dplyr::n()) |>
   dplyr::filter(count >= 50) |>
   dplyr::select(survey_id, species_name, biomass, latitude, longitude)
 
 length(unique(rls_coral_fish_mean_biomass_count$survey_id))
+
+# rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |>
+#   tidyr::spread(species_name, biomass, fill = 0)
 
 rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |>
   tidyr::spread(species_name, biomass, fill = 0)
@@ -212,20 +219,7 @@ rls_biomass <- rls_biomass |>
                 latitude, 
                 longitude, 
                 site_code, 
-                species_name, 
-                colnames(rls_env_final)[!colnames(rls_env_final) %in% "survey_id"], 
-                colnames(rls_soc_final)[!colnames(rls_soc_final) %in% "survey_id"], 
-                colnames(rls_hab_final)[!colnames(rls_hab_final) %in% "survey_id"])
-
-# biomass_scv <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
-#   
-#   sp_i <- rls_biomass |> 
-#     dplyr::select(survey_id, latitude, longitude, site_code, species_name[i])
-#   
-#   biomass_scv <- scv_function(dats = sp_i, 
-#                               n.folds = 10)
-#   
-# }, mc.cores = parallel::detectCores() - 1)
+                species_name)
 
 biomass_scv <- scv_function(dats = rls_biomass,
                             n.folds = 10)
@@ -238,5 +232,5 @@ rls_covariates <- rls_env_final |>
   dplyr::inner_join(rls_soc_final) |> 
   dplyr::inner_join(rls_hab_final)
 
-save(rls_covariates, file = "new_data/new_derived_data/rls_covariates.RData")
-save(biomass_scv, file = "new_data/new_derived_data/biomass_scv.RData")
+save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
+save(biomass_scv, file = "data/new_derived_data/biomass_scv.RData")

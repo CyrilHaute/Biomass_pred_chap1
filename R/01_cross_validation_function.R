@@ -12,26 +12,13 @@
 #'
 #' @examples
 
-dats = rls_biomass
-n.folds = 10
-
 scv_function <- function(dats, 
                          n.folds){
   
   # flexible object for storing folds
   folds <- list()
-  
-  # Store levels of categorical variables
-  cat_levels <- levels(dats$effectiveness)
 
-  test <- sapply(1:length(cat_levels), function(i) { 
-    
-    length(which(dats$effectiveness %in% cat_levels[i] == TRUE))/n.folds
-    
-    })
-  names(test) <- cat_levels
-  
-  positive_indices <- which.min(unlist(lapply(dats[, -c(1:4, 597:620)], function(col) length(which(col > 0))))) + 4
+  positive_indices <- which.min(unlist(lapply(dats[,species_name], function(col) length(which(col > 0))))) + 4
   
   fold.size <- nrow(dats)/n.folds
   fold.size.pos <- nrow(dats[which(dats[,positive_indices] > 0),])/n.folds
@@ -73,19 +60,7 @@ scv_function <- function(dats,
     # split into train and test sets
     train <- dats[-indis,]
     test <- dats[indis,]
-    
-    # Restore levels of categorical variables
-    for (j in 1:length(cat_levels)) {
-      
-      if (!is.null(cat_levels[[j]])) {
-        
-        train[, j] <- factor(train[, j], levels = cat_levels[[j]])
-        test[, j] <- factor(test[, j], levels = cat_levels[[j]])
-        
-      }
-      
-    }
-    
+
     train_test[[i]] <- list(train, test)
     names(train_test[[i]]) <- c("fitting", "validation")
     
@@ -98,7 +73,7 @@ scv_function <- function(dats,
     
     train_test[[i]]$validation <- train_test[[i]]$validation |> 
       dplyr::select(-site_code)
-    
+
   }
   
   return(train_test)
