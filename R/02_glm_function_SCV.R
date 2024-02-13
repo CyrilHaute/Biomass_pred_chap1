@@ -13,6 +13,11 @@
 #'
 #' @examples
 
+biomass = biomass_scv
+covariates = rls_covariates
+species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+base_dir = base_dir
+
 glm_function <- function(biomass, 
                          covariates,
                          species_name,
@@ -78,7 +83,7 @@ glm_function <- function(biomass,
       
       # keep only absences from species life area 
       # load rls surveys info, we need ecoregion 
-      load("new_data/new_raw_data/00_rls_surveys.Rdata")
+      load("data/new_raw_data/00_rls_surveys.Rdata")
       rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
       
       fitting <- dplyr::inner_join(fitting, rls_surveys)
@@ -209,23 +214,23 @@ glm_function <- function(biomass,
       # Fit the model
       
       if(length(unique(biomass_final$effectiveness)) == 1){
-        
+
         model_fit <- tryCatch(glm(formula = form2, family = gaussian, data = biomass_final), error = function(e) NA)
-        
+
         }else{
-          
+
           test <- unique(biomass_validation$effectiveness) %in% unique(biomass_final$effectiveness) # test if you have the same MPA effectivness factors in the fitting and validation set
-          
+
           if(any(test == FALSE)){
-            
+
             biomass_validation <- biomass_validation |>
-              
+
               dplyr::filter(effectiveness %in% unique(biomass_final$effectiveness))
-            
+
             }
-          
+
           model_fit <- tryCatch(glm(formula = form, family = gaussian, data = biomass_final), error = function(e) NA)
-          
+
         }
       
       if(!any(is.na(model_fit) == TRUE)){

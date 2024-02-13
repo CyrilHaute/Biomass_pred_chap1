@@ -41,6 +41,8 @@ rls_env <- rls_env |>
 load("data/new_raw_data/habitat_covariates/final_habitat.Rdata")
 load("data/new_raw_data/habitat_covariates/Benthic_composition_inferred_tropical.Rdata")
 
+colnames(inferred_benthos) <- stringr::str_replace_all(colnames(inferred_benthos), pattern = " ", "_")
+
 # As the sum of habitats within a buffer do not always fit 100%, we converted percentage to relative in order to remove deep sea and land cover
 # and acount only for coral habitats. First we assessed the sum of all habitat (either benthic and geomorphologic), for both buffers (500m, 10km),
 # to keep the raw information of the sum of all habitat.
@@ -196,11 +198,11 @@ cor_hab <- stats::cor(rls_hab_selec[,-c(1)])
 corrplot::corrplot(cor_hab, type = "upper")
 
 colnames(inferred_benthos)[-c(1:3)]
-rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline algae")]
+rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
 corrplot::corrplot(cor_hab2, type = "upper")
 
-rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline algae")]
+rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
 
 
 #####################################################################
