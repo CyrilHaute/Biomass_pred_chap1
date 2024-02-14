@@ -44,7 +44,7 @@ library(ggplot2)
 
 best_model <- best_models_pr |> 
   # mutate(best_model = fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "GBM", "SPRF")) %>%
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "RF", "GBM", "SPRF")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "RF", "GBM", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
