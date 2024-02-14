@@ -12,6 +12,9 @@
 #'
 #' @examples
 
+# dats = rls_biomass
+# n.folds = 20
+
 scv_function <- function(dats, 
                          n.folds){
   
@@ -65,7 +68,7 @@ scv_function <- function(dats,
     names(train_test[[i]]) <- c("fitting", "validation")
     
     # delete from the train set, transects that appears in the same site than the point in the validation set
-    train_test[[i]]$fitting <- train_test[[i]]$fitting |> 
+    train_test[[i]]$fitting <- train_test[[i]]$fitting |>
       dplyr::filter(!site_code %in% train_test[[i]]$validation$site_code)
     
     train_test[[i]]$fitting <- train_test[[i]]$fitting |> 

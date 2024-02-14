@@ -135,7 +135,7 @@ rls_coral_fish_mean_biomass <- rls_coral_fish_mean_biomass |>
 rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::group_by(species_name, ) |>
   dplyr::mutate(count = dplyr::n()) |>
-  dplyr::filter(count >= 50) |>
+  dplyr::filter(count >= 60) |>
   dplyr::select(survey_id, species_name, biomass, latitude, longitude)
 
 length(unique(rls_coral_fish_mean_biomass_count$survey_id))
@@ -224,7 +224,7 @@ rls_biomass <- rls_biomass |>
                 species_name)
 
 biomass_scv <- scv_function(dats = rls_biomass,
-                            n.folds = 20)
+                            n.folds = 10)
 
 names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", i)})
 
