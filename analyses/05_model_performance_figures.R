@@ -26,21 +26,14 @@ all_assessments_SCV <- all_assessments_SCV |>
 
 # estimate for each species the best model based on performance metrics  
 best_models <- all_assessments_SCV |> 
-  # estimate the relative metric performance within a cross validation and dataset
-  tidyr::nest() |>
-  dplyr::mutate(metric_aggregation = purrr::map(data, ~aggregate_metrics(., 
-                                                                  metrics = c('Intercept', 'Slope', 'Pearson', 'Spearman')))) |> 
-  tidyr::unnest() |>
+  aggregate_metrics(., 
+                    metrics = c("Intercept", "Slope", "Pearson", "Spearman")) |>
   # find the best fitting model for each species within each fitted_model
   dplyr::group_by(species_name) |> 
   dplyr::do(best_model = .$fitted_model[which.max(.$discrimination)]) |> 
   tidyr::unnest(cols = c('best_model'))
 
-# saveRDS(best_models, file = 'results/overall_best_models.rds')
-
 #### Best Model plot ####
-
-# best_models <- readRDS("results/overall_best_models.rds")
 
 best_models_pr <- best_models |>  
   dplyr::group_by(best_model) |> 
@@ -51,7 +44,7 @@ library(ggplot2)
 
 best_model <- best_models_pr |> 
   # mutate(best_model = fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "GBM", "SPRF")) %>%
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "RF", "SPRF")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "RF", "GBM", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
@@ -161,10 +154,7 @@ performance_best <- dplyr::tibble(species_name = rep(best_assessments_SCV$specie
 performance_best[performance_best$metrics == "Intercept",2] <- log10(performance_best[performance_best$metrics == "Intercept",2]$value + 1)
 performance_best[performance_best$metrics == "Slope",2] <- log10(performance_best[performance_best$metrics == "Slope",2]$value + 1)
 
-# performance_best <- performance_best[,c(1,4)]
-
-#############################################################################################################################################"
-performance_all_best <- dplyr::inner_join(performance_all, performance_best, by = "species_name", relationship = "many-to-many")
+performance_all_best <- dplyr::full_join(performance_all, performance_best)
 performance_all_best$cat <- NA
 
 performance_all_best[which(performance_all_best$model == performance_all_best$best_model),6] <- "Best models"
@@ -206,7 +196,7 @@ plot_intercept <- performance_plot(performance_all_best,
                                    legend.position = 'none',
                                    plot_title = "A")
 
-all_plots <- wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
+all_plots <- patchwork::wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
-ggsave("figures-R3/plot_perf_best.pdf", all_plots, height = 15, width = 11)
+ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 10, width = 10)

@@ -51,7 +51,7 @@ spatialrf_function <- function(biomass,
       
       # keep only absences from species life area 
       # load rls surveys info, we need ecoregion 
-      load("new_data/new_raw_data/00_rls_surveys.Rdata")
+      load("data/new_raw_data/00_rls_surveys.Rdata")
       rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 
       fitting <- dplyr::inner_join(fitting, rls_surveys)
