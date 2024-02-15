@@ -1,29 +1,25 @@
-# load in packages ---- 
-
-libs <- c('tidyverse', 'gridExtra', 'ggplot2', 'patchwork', 'matrixStats', 'parallel','PNWColors')
-lapply(libs, library, character.only = T, lib.loc = .libPaths()[1])
-
-# check all packages are loaded
-if(sum(libs %in% (.packages())) != length(libs)){
-  stop('packages not loaded correctly')}
-
 # source functions ----
 
-source("scripts-final/00_functions/contributions_figures_functions.R")
+source("R/06_contributions_figures_functions.R")
 
 pal_contribution <- PNWColors::pnw_palette("Bay",3, type = "discrete")
 
-best_models <- readRDS("results/overall_best_models.rds")
+load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
-bind_files <- list.files('results/contributions_bind/', full.names = T)
+list_files_path <- list.files("outputs/biomass_contribution", full.names = T)
+bind_files <- lapply(1:length(list_files_path), function(i) {
+  
+  load(list_files_path[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+bind_files <- do.call(rbind, bind_files)
 
 ##### For bind_files
 
-Contributions_biomass <- readRDS(bind_files)
-
-covariates_importance_GLM <- covariates_importance_function(plot_data = Contributions_biomass,
+covariates_importance_GLM <- covariates_importance_function(plot_data = bind_files,
                                                            fitted_model = "GLM",
                                                            color = pal_contribution,
                                                            labs_y = "",
@@ -47,7 +43,7 @@ covariates_importance_SPAMM <- covariates_importance_function(plot_data = Contri
                                                            ylim = c(0,0.21),
                                                            legend.position = "none")
 
-covariates_importance_RF <- covariates_importance_function(plot_data = Contributions_biomass,
+covariates_importance_RF <- covariates_importance_function(plot_data = bind_files,
                                                            fitted_model = "RF",
                                                            color = pal_contribution,
                                                            labs_y = "",

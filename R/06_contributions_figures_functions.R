@@ -1,13 +1,11 @@
 # function for evaluating covariates importance
 
-# load("outputs/biomass_contribution/glm_extracted_contributions.RData")
-# 
-# plot_data = extracted_contributions
-# fitted_model = "GLM"
+# plot_data = bind_files
+# fitted_model = "RF"
 # color = pal_contribution
 # labs_y = ""
 # labs_fill = ""
-# ylim = c(0,0.36)
+# ylim = c(0,0.21)
 # legend.position = "none"
 
 covariates_importance_function <- function(plot_data,
@@ -26,8 +24,8 @@ covariates_importance_function <- function(plot_data,
   plot_level <- fitted_model
   only_model <- plot_data |> 
     dplyr::filter(fitted_model == plot_level)
-  # only_model <- only_model |> 
-  #   dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
+  only_model <- only_model |>
+    dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
 
   ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
   ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})

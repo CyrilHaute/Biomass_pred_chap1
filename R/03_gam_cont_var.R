@@ -5,10 +5,10 @@ covariates = rls_covariates
 species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
 base_dir_cont = base_dir
 
-gam_function_cont <- function(biomass = biomass, 
-                              covariates = covariates,
-                              species_name = species_name,
-                              base_dir_cont = base_dir_cont){
+gam_function_cont <- function(biomass, 
+                              covariates,
+                              species_name,
+                              base_dir_cont){
   
   # create raw biomass object and select cross validation set i
   raw_biomass <- biomass
@@ -120,13 +120,13 @@ gam_function_cont <- function(biomass = biomass,
     
     # Fit the model
 
-    if(length(unique(biomass_final$Effectiveness)) == 1){
+    if(length(unique(biomass_final$effectiveness)) == 1){
       
-      model_fit <- gam(model_formula2, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
+      model_fit <- mgcv::gam(model_formula2, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
       
     }else{
 
-      model_fit <- gam(model_formula, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
+      model_fit <- mgcv::gam(model_formula, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
       
     }
     

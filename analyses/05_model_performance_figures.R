@@ -6,7 +6,7 @@ source("R/05_model_performance_functions.R")
 
 # Set palette colors for performance figures
 
-pal_best <- PNWColors::pnw_palette("Bay", 6 , type = "continuous")
+pal_best <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
 pal_perf <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
 
 # select best fitted model for each model type based on a concensus metrics ----
@@ -32,6 +32,8 @@ best_models <- all_assessments_SCV |>
   dplyr::group_by(species_name) |> 
   dplyr::do(best_model = .$fitted_model[which.max(.$discrimination)]) |> 
   tidyr::unnest(cols = c('best_model'))
+
+save(best_models, file = "outputs/best_models.Rdata")
 
 #### Best Model plot ####
 
