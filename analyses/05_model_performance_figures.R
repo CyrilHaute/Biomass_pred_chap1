@@ -44,17 +44,17 @@ library(ggplot2)
 
 best_model <- best_models_pr |> 
   # mutate(best_model = fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "GBM", "SPRF")) %>%
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "SPAMM", "RF", "SPRF")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
   # scale_y_continuous(limits=c(0, 80)) +
   labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B") +
-  theme(title = element_text(size=20),
-        axis.text=element_text(size=15),
-        axis.title=element_text(size=25),
-        legend.text=element_text(size=20), 
-        legend.title=element_text(size=25),
+  theme(title = element_text(size = 20),
+        axis.text=element_text(size = 15),
+        axis.title=element_text(size = 25),
+        legend.text=element_text(size = 20), 
+        legend.title=element_text(size = 25),
         legend.position = "none",
         panel.background = element_rect(fill = "white", colour = "grey50",
                                         size = 1, linetype = "solid"),

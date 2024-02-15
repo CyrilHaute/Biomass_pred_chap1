@@ -1,14 +1,14 @@
 # function for evaluating covariates importance
 
-load("outputs/biomass_contribution/glm_extracted_contributions.RData")
-
-plot_data = extracted_contributions
-fitted_model = "GLM"
-color = pal_contribution
-labs_y = ""
-labs_fill = ""
-ylim = c(0,0.36)
-legend.position = "none"
+# load("outputs/biomass_contribution/glm_extracted_contributions.RData")
+# 
+# plot_data = extracted_contributions
+# fitted_model = "GLM"
+# color = pal_contribution
+# labs_y = ""
+# labs_fill = ""
+# ylim = c(0,0.36)
+# legend.position = "none"
 
 covariates_importance_function <- function(plot_data,
                                            fitted_model,
