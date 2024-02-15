@@ -6,12 +6,12 @@ source("R/05_model_performance_functions.R")
 
 # Set palette colors for performance figures
 
-pal_best = PNWColors::pnw_palette("Bay", 6 , type = "continuous")
-pal_perf = PNWColors::pnw_palette("Bay",6, type = "continuous")
+pal_best <- PNWColors::pnw_palette("Bay", 6 , type = "continuous")
+pal_perf <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
 
 # select best fitted model for each model type based on a concensus metrics ----
 
-metrics = c('Intercept', 'Slope', 'Pearson', 'Spearman')
+metrics <- c("Intercept", "Slope", "Pearson", "Spearman")
 
 # read data
 
