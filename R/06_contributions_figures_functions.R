@@ -88,65 +88,67 @@ covariates_importance_function <- function(plot_data,
 
 }
 
+# plot_data = bind_files
+# fitted_model = plot_level
 
 var_max_function <- function(plot_data,
                              fitted_model
                              ){
   
   plot_level <- fitted_model
-  only_model <- Contributions_biomass %>% filter(fitted_model == plot_level)
-  only_model <- only_model %>% filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
-  only_model <- only_model[which(sapply(1:nrow(only_model), function(i) {is.null(only_model$contributions[[i]])}) == FALSE),]
+  only_model <- plot_data |> 
+    dplyr::filter(fitted_model == plot_level)
+  only_model <- only_model |> 
+    dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
+  # only_model <- only_model[which(sapply(1:nrow(only_model), function(i) {is.null(only_model$contributions[[i]])}) == FALSE),]
   
-  ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions[[i]][c(11:17)]})
-  ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$sd_contributions[[i]][c(11:17)]})
+  ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
+  ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
   ENV <- do.call(rbind, ENV)
   ENV_sd <- do.call(rbind, ENV_sd)
-  ENV <- tibble(species_name = only_model$species_name,
-                value = rowMedians(ENV),
-                sd = rowMedians(ENV_sd),
-                var = rep("ENV",nrow(ENV)),
-                plot_level = rep(plot_level, nrow(ENV)))
+  ENV <- dplyr::tibble(species_name = only_model$species_name,
+                       value = matrixStats::rowMedians(ENV),
+                       sd = matrixStats::rowMedians(ENV_sd),
+                       var = rep("ENV",nrow(ENV)),
+                       plot_level = rep(plot_level, nrow(ENV)))
   
-  SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions[[i]][c(1:3,5,9,10,18)]})
-  SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$sd_contributions[[i]][c(1:3,5,9,10,18)]})
+  SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
+  SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
   SOC <- do.call(rbind, SOC)
   SOC_sd <- do.call(rbind, SOC_sd)
-  SOC <- tibble(species_name = only_model$species_name,
-                value = rowMedians(SOC),
-                sd = rowMedians(SOC_sd),
-                var = rep("HUM",nrow(SOC)),
-                plot_level = rep(plot_level, nrow(SOC)))
+  SOC <- dplyr::tibble(species_name = only_model$species_name,
+                       value = matrixStats::rowMedians(SOC),
+                       sd = matrixStats::rowMedians(SOC_sd),
+                       var = rep("HUM",nrow(SOC)),
+                       plot_level = rep(plot_level, nrow(SOC)))
   
-  HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions[[i]][c(4,6:8,19:21)]})
-  HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$sd_contributions[[i]][c(4,6:8,19:21)]})
+  HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
+  HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
   HAB <- do.call(rbind, HAB)
   HAB_sd <- do.call(rbind, HAB_sd)
-  HAB <- tibble(species_name = only_model$species_name,
-                value = rowMedians(HAB),
-                sd = rowMedians(HAB_sd),
-                var = rep("HAB",nrow(HAB)),
-                plot_level = rep(plot_level,nrow(HAB)))
+  HAB <- dplyr::tibble(species_name = only_model$species_name,
+                       value = matrixStats::rowMedians(HAB),
+                       sd = matrixStats::rowMedians(HAB_sd),
+                       var = rep("HAB",nrow(HAB)),
+                       plot_level = rep(plot_level,nrow(HAB)))
   
-  cont <- ENV %>% 
-    full_join(HAB) %>% 
-    full_join(SOC)
-  cont$plot_level <- rep(plot_level, nrow(cont))
-  cont
-  
-  best <- tibble(species_name = unique(cont$species_name),
-                 ENV = cont[cont$var == "ENV",2],
-                 SOC = cont[cont$var == "HUM",2],
-                 HAB = cont[cont$var == "HAB",2])
-  best <- inner_join(best, best_models, by = "species_name")
+  cont <- ENV |> 
+    dplyr::full_join(HAB) |> 
+    dplyr::full_join(SOC)
+
+  best <- dplyr::tibble(species_name = unique(cont$species_name),
+                        ENV = cont[cont$var == "ENV",2],
+                        SOC = cont[cont$var == "HUM",2],
+                        HAB = cont[cont$var == "HAB",2])
+  best <- dplyr::inner_join(best, best_models, by = "species_name")
   best <- as.matrix(best)
   
   best <- lapply(1:nrow(best), function(i) {
     test <- best[i,]
     testt <- which.max(test[2:4])
-    testtt <- tibble(species_name = test[1],
-                     varmax = testt,
-                     plot_level = test[5])
+    testtt <- dplyr::tibble(species_name = test[1],
+                            varmax = testt,
+                            plot_level = test[5])
   })
   
   best <- do.call(rbind, best)
@@ -155,12 +157,24 @@ var_max_function <- function(plot_data,
   best[best$varmax == "2" ,2] <- "HUM"
   best[best$varmax == "3" ,2] <- "HAB"
   
-  cont <- cont %>% inner_join(best, by = c("species_name", "plot_level"))
+  cont <- cont |> 
+    dplyr::inner_join(best, by = c("species_name", "plot_level"))
   
-  var_max <- cont %>% group_by(plot_level, varmax) %>% summarise(n = n()/3)
-  var_max <- var_max %>% rename(VAR = varmax)
+  var_max <- cont |> 
+    dplyr::group_by(plot_level, varmax) |> 
+    dplyr::summarise(n = dplyr::n()/3)
+  var_max <- var_max |> 
+    dplyr::rename(VAR = varmax)
   
 }
+
+# plot_data = bind_files
+# fitted_model = "GLM"
+# color = pal_contribution
+# labs_y = ""
+# labs_fill = ""
+# legend.position = "none"
+# mul = 2
 
 
 merged_covariates_importance_function <- function(plot_data,
@@ -171,59 +185,62 @@ merged_covariates_importance_function <- function(plot_data,
                                                   legend.position,
                                                   mul
                                                   ){
+  
+  require(ggplot2)
 
   # covariates relative importance by median
   
   plot_level <- fitted_model
-  only_model <- plot_data %>% filter(fitted_model == plot_level)
-  only_model <- only_model %>% filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
+  only_model <- plot_data |> 
+    dplyr::filter(fitted_model == plot_level)
+  only_model <- only_model |> 
+    dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
   
-  ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions[[i]][c(11:17)]})
-  ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$sd_contributions[[i]][c(11:17)]})
+  ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
+  ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
   ENV <- do.call(rbind, ENV)
   ENV_sd <- do.call(rbind, ENV_sd)
-  ENV <- tibble(value = colMedians(ENV),
-                sd = colMedians(ENV_sd),
-                var = c("max_sst_1year", "mean_DHW_1year", "mean_DHW_5year", "mean_chl_1year", "mean_pH_1year", "mean_sss_1year", "min_sst_1year"),
-                VAR = rep("ENV",7),
-                plot_level = rep(plot_level, 7))
+  ENV <- dplyr::tibble(value = matrixStats::colMedians(ENV),
+                       sd = matrixStats::colMedians(ENV_sd),
+                       var = c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),
+                       VAR = rep("ENV", 8),
+                       plot_level = rep(plot_level, 8))
   
-  SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions[[i]][c(1:3,5,9,10,18)]})
-  SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$sd_contributions[[i]][c(1:3,5,9,10,18)]})
+  SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
+  SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
   SOC <- do.call(rbind, SOC)
   SOC_sd <- do.call(rbind, SOC_sd)
-  SOC <- tibble(value = colMedians(SOC),
-                sd = colMedians(SOC_sd),
-                var = c("MPA Effectiveness",  "Human Development Index", "Natural Ressource", "Conflicts", "GDP", "Gravity", "Neartt"),
-                VAR = rep("HUM",7),
-                plot_level = rep(plot_level, 7))
+  SOC <- dplyr::tibble(value = matrixStats::colMedians(SOC),
+                       sd = matrixStats::colMedians(SOC_sd),
+                       var = c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),
+                       VAR = rep("HUM", 8),
+                       plot_level = rep(plot_level, 8))
   
-  HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions[[i]][c(4,6:8,19:21)]})
-  HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$sd_contributions[[i]][c(4,6:8,19:21)]})
+  HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
+  HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
   HAB <- do.call(rbind, HAB)
   HAB_sd <- do.call(rbind, HAB_sd)
-  HAB <- tibble(value = colMedians(HAB),
-                sd = colMedians(HAB_sd),
-                var = c("Reef extent(Allen)" ,"Coral", "Coral_Algea(Allen)", "Depth", "Rock(Allen)", "Rubble(Allen)", "Sand(Allen)"),
-                VAR = rep("HAB",7),
-                plot_level = rep(plot_level,7))
+  HAB <- dplyr::tibble(value = matrixStats::colMedians(HAB),
+                       sd = matrixStats::colMedians(HAB_sd),
+                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),
+                       VAR = rep("HAB", 8),
+                       plot_level = rep(plot_level, 8))
   
-  cont <- ENV %>% 
-    full_join(HAB) %>% 
-    full_join(SOC)
-  cont$plot_level <- rep(plot_level, nrow(cont))
-  
-  var_max <- var_max_function(plot_data = Contributions_biomass,
+  cont <- ENV |>  
+    dplyr::full_join(HAB) |> 
+    dplyr::full_join(SOC)
+
+  var_max <- var_max_function(plot_data = bind_files,
                               fitted_model = plot_level)
   
   #merge contribution per var and model
   
-  cont_merge <- cont %>% 
-    group_by(VAR, plot_level) %>% 
-    summarise(value = mean(value),
-              sd = mean(sd))
+  cont_merge <- cont |>  
+    dplyr::group_by(VAR, plot_level) |> 
+    dplyr::summarise(value = mean(value),
+                     sd = mean(sd))
   
-  cont_merge <- inner_join(cont_merge, var_max, by = c("plot_level", "VAR"))
+  cont_merge <- dplyr::inner_join(cont_merge, var_max, by = c("plot_level", "VAR"))
   
   merged_importance_plot <- ggplot(cont_merge) +
     geom_col(aes(x = reorder(VAR, value), y = value, fill = VAR)) +
@@ -234,7 +251,7 @@ merged_covariates_importance_function <- function(plot_data,
                                  "HUM" = color[3],
                                  "HAB" = color[2])) +
     theme_bw() +
-    coord_flip(ylim = c(0,0.13)) +
+    coord_flip() +
     facet_grid(~plot_level) +
     labs(y = labs_y, x = "", fill = labs_fill) +
     theme(legend.position = legend.position) +

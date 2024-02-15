@@ -2,7 +2,7 @@
 
 source("R/06_contributions_figures_functions.R")
 
-pal_contribution <- PNWColors::pnw_palette("Bay",3, type = "discrete")
+pal_contribution <- PNWColors::pnw_palette("Bay", 3, type = "discrete")
 
 load("outputs/best_models.Rdata")
 
@@ -27,7 +27,7 @@ covariates_importance_GLM <- covariates_importance_function(plot_data = bind_fil
                                                            ylim = c(0,0.36),
                                                            legend.position = "none")
 
-covariates_importance_GAM <- covariates_importance_function(plot_data = Contributions_biomass,
+covariates_importance_GAM <- covariates_importance_function(plot_data = bind_files,
                                                            fitted_model = "GAM",
                                                            color = pal_contribution,
                                                            labs_y = "",
@@ -35,7 +35,7 @@ covariates_importance_GAM <- covariates_importance_function(plot_data = Contribu
                                                            ylim = c(0,0.21),
                                                            legend.position = "none")
 
-covariates_importance_SPAMM <- covariates_importance_function(plot_data = Contributions_biomass,
+covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_files,
                                                            fitted_model = "SPAMM",
                                                            color = pal_contribution,
                                                            labs_y = "",
@@ -51,7 +51,7 @@ covariates_importance_RF <- covariates_importance_function(plot_data = bind_file
                                                            ylim = c(0,0.21),
                                                            legend.position = "none")
 
-covariates_importance_GBM <- covariates_importance_function(plot_data = Contributions_biomass,
+covariates_importance_GBM <- covariates_importance_function(plot_data = bind_files,
                                                            fitted_model = "GBM",
                                                            color = pal_contribution,
                                                            labs_y = "Change in RMSE",
@@ -59,7 +59,7 @@ covariates_importance_GBM <- covariates_importance_function(plot_data = Contribu
                                                            ylim = c(0,0.21),
                                                            legend.position = "none")
 
-covariates_importance_SPRF <- covariates_importance_function(plot_data = Contributions_biomass,
+covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_files,
                                                              fitted_model = "SPRF",
                                                              color = pal_contribution,
                                                              labs_y = "Change in RMSE",
@@ -71,7 +71,7 @@ covariates_importance_all <- (covariates_importance_GLM + covariates_importance_
 
 ggsave("figures-R3/covariates_importance_all.pdf", covariates_importance_all, height = 15, width = 11)
 
-merged_covariates_importance_GLM <- merged_covariates_importance_function(plot_data = Contributions_biomass,
+merged_covariates_importance_GLM <- merged_covariates_importance_function(plot_data = bind_files,
                                                                           fitted_model = "GLM",
                                                                           color = pal_contribution,
                                                                           labs_y = "",
@@ -79,7 +79,7 @@ merged_covariates_importance_GLM <- merged_covariates_importance_function(plot_d
                                                                           legend.position = "none",
                                                                           mul = 2)
 
-merged_covariates_importance_GAM <- merged_covariates_importance_function(plot_data = Contributions_biomass,
+merged_covariates_importance_GAM <- merged_covariates_importance_function(plot_data = bind_files,
                                                                           fitted_model = "GAM",
                                                                           color = pal_contribution,
                                                                           labs_y = "",
@@ -87,7 +87,7 @@ merged_covariates_importance_GAM <- merged_covariates_importance_function(plot_d
                                                                           legend.position = "none",
                                                                           mul = 2)
 
-merged_covariates_importance_SPAMM <- merged_covariates_importance_function(plot_data = Contributions_biomass,
+merged_covariates_importance_SPAMM <- merged_covariates_importance_function(plot_data = bind_files,
                                                                             fitted_model = "SPAMM",
                                                                             color = pal_contribution,
                                                                             labs_y = "",
@@ -95,7 +95,7 @@ merged_covariates_importance_SPAMM <- merged_covariates_importance_function(plot
                                                                             legend.position = "none",
                                                                             mul = 2)
 
-merged_covariates_importance_RF <- merged_covariates_importance_function(plot_data = Contributions_biomass,
+merged_covariates_importance_RF <- merged_covariates_importance_function(plot_data = bind_files,
                                                                          fitted_model = "RF",
                                                                          color = pal_contribution,
                                                                          labs_y = "",
@@ -103,7 +103,7 @@ merged_covariates_importance_RF <- merged_covariates_importance_function(plot_da
                                                                          legend.position = "none",
                                                                          mul = 3)
 
-merged_covariates_importance_GBM <- merged_covariates_importance_function(plot_data = Contributions_biomass,
+merged_covariates_importance_GBM <- merged_covariates_importance_function(plot_data = bind_files,
                                                                           fitted_model = "GBM",
                                                                           color = pal_contribution,
                                                                           labs_y = "Change in RMSE",
@@ -111,7 +111,7 @@ merged_covariates_importance_GBM <- merged_covariates_importance_function(plot_d
                                                                           legend.position = "none",
                                                                           mul = 3)
 
-merged_covariates_importance_SPRF <- merged_covariates_importance_function(plot_data = Contributions_biomass,
+merged_covariates_importance_SPRF <- merged_covariates_importance_function(plot_data = bind_files,
                                                                            fitted_model = "SPRF",
                                                                            color = pal_contribution,
                                                                            labs_y = "Change in RMSE",

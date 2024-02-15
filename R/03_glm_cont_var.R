@@ -160,13 +160,6 @@ glm_function_cont <- function(biomass,
 
     }, mc.cores = 15)
 
-  # extracted_contributions <- tibble(species_name = species_name, 
-  #                                   fitted_model = 'GLM', 
-  #                                   # estimate contribution
-  #                                   contributions = lapply(contribution, '[[', 2),
-  #                                   # standard-deviation contribution between permutations
-  #                                   sd_contributions = lapply(contribution, '[[', 3))
-  
   extracted_contributions <- dplyr::tibble(species_name = species_name, 
                                            fitted_model = "GLM", 
                                            # estimate contribution

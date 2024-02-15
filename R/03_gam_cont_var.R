@@ -1,9 +1,9 @@
 # function to fit gam and assess covariates relative importance
 
-biomass = biomass_contribution
-covariates = rls_covariates
-species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
-base_dir_cont = base_dir
+# biomass = biomass_contribution
+# covariates = rls_covariates
+# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
+# base_dir_cont = base_dir
 
 gam_function_cont <- function(biomass, 
                               covariates,
