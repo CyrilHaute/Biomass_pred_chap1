@@ -223,6 +223,9 @@ rls_biomass <- rls_biomass |>
                 site_code, 
                 species_name)
 
+biomass_contribution <- rls_biomass |> 
+  dplyr::select(-site_code)
+
 biomass_scv <- scv_function(dats = rls_biomass,
                             n.folds = 20)
 
@@ -234,5 +237,6 @@ rls_covariates <- rls_env_final |>
   dplyr::inner_join(rls_soc_final) |> 
   dplyr::inner_join(rls_hab_final)
 
+save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(biomass_scv, file = "data/new_derived_data/biomass_scv.RData")
