@@ -141,7 +141,7 @@ spatialrf_function_cont <- function(biomass,
     vip.25_sprf <- vip.25_sprf |> 
       dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
 
-    }, mc.cores = 10)
+    }, mc.cores = 15)
   
   extracted_contributions <- dplyr::tibble(species_name = species_name, 
                                            fitted_model = "SPRF", 

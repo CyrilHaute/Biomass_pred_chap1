@@ -155,25 +155,20 @@ gam_function_cont <- function(biomass,
     vip.25_gam <- vip.25_gam |> 
       dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
 
-    }, mc.cores = 10)
+    }, mc.cores = 15)
   
-  extracted_contributions <- tibble(species_name = species_name, 
-                                    fitted_model = 'GAM', 
-                                    # estimate contribution
-                                    contributions = lapply(contribution, '[[', 2),
-                                    # standard-deviation contribution between permutations
-                                    sd_contributions = lapply(contribution, '[[', 3))
-
+  extracted_contributions <- dplyr::tibble(species_name = species_name, 
+                                           fitted_model = "GAM", 
+                                           # estimate contribution
+                                           contributions_and_sd = contribution)
+  
   # save contribution output in same file structure
   
-  extracted_contributions <- setNames(split(extracted_contributions, seq(nrow(extracted_contributions))), extracted_contributions$species_name)
-
-  model_dir <- 'gam'
-  dir.create(base_dir_cont, recursive = T)
-  names.list <- species_name
-  names(extracted_contributions) <- names.list
-  lapply(names(extracted_contributions), function(df)
-    saveRDS(extracted_contributions[[df]], file = paste0(base_dir_cont, '/', model_dir, '_', df, '.rds')))
+  model_dir <- "gam"
+  
+  dir.create(base_dir_cont)
+  
+  save(extracted_contributions, file = paste0(base_dir_cont, model_dir, "_extracted_contributions.RData"))
   
   rm(list=ls())
   gc()
