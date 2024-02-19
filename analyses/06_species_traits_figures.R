@@ -1,44 +1,28 @@
-# load in packages ---- 
-
-libs <- c('tidyverse', 'gridExtra', 'ggplot2', 'patchwork', 'matrixStats', 'parallel','PNWColors', 'agricolae')
-lapply(libs, library, character.only = T, lib.loc = '/home/marbec/R/x86_64-pc-linux-gnu-library/4.1')
-
-# check all packages are loaded
-if(sum(libs %in% (.packages())) != length(libs)){
-  stop('packages not loaded correctly')}
-
 # source functions ----
 
-source("scripts-final/00_functions/species_traits_figures_function.R")
+source("R/06_species_traits_figures_function.R")
 
-pal_sp_trait = pnw_palette("Bay",3, type = "discrete")
+pal_sp_trait <- PNWColors::pnw_palette("Bay",3, type = "discrete")
 
-best_models <- readRDS("results/overall_best_models.rds")
+load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
 # Merge all files together by species
 
-path <- "results/model_contributions/"
+list_files_path <- list.files("outputs/biomass_contribution", full.names = T)
+bind_files <- lapply(1:length(list_files_path), function(i) {
+  
+  load(list_files_path[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+bind_files <- do.call(rbind, bind_files)
 
-# load in abundance data
-# Save directory as character object
-directory <- path
+fitted_model <- unique(bind_files$fitted_model)
 
-# Extract names all elements in folder
-all_files <- list.files(path = directory)
-
-Contributions_biomass <- mclapply(1:length(all_files), function(i) {
-  all_files_full <- list()
-  all_files_full[i] <- paste0(directory, '/', all_files[i])
-  readRDS(all_files_full[[i]])
-},mc.cores = 1)
-
-Contributions_biomass <- do.call(rbind, Contributions_biomass)
-
-fitted_model <- unique(Contributions_biomass$fitted_model)
-
-sp_car <- readRDS("data/Cyril_data/RLS_species_traits_new.rds")
+# Load species traits
+sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE)
 
 plot_max.length <- species_traits_function(plot_data = Contributions_biomass,
                                            trait = "ML_cat",
