@@ -123,5 +123,5 @@ observed_predicted_plot <- function(input_data,
   })
   
   all_plots <- (plot_levels_plot[[1]] + plot_levels_plot[[2]]) / (plot_levels_plot[[3]] + plot_levels_plot[[4]]) / (plot_levels_plot[[5]] + plot_levels_plot[[6]])
-  ggsave("figures/all_predictions.pdf", all_plots, width = 11, height = 15)
+  ggsave("figures/all_predictions.png", all_plots, width = 11, height = 15)
 }

@@ -1,5 +1,7 @@
 # script to produce figures that evaluate model performances
 
+library(ggplot2)
+
 # source functions ----
 
 source("R/04_model_performance_functions.R")
@@ -42,8 +44,6 @@ best_models_pr <- best_models |>
   dplyr::summarise(n = dplyr::n()) |> 
   dplyr::mutate(pr = (n*100)/sum(n))
 
-library(ggplot2)
-
 best_model <- best_models_pr |> 
   dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "GBM", "SPAMM", "RF", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
@@ -51,10 +51,10 @@ best_model <- best_models_pr |>
   scale_fill_manual(values = pal_best) +
   labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B") +
   theme(title = element_text(size = 20),
-        axis.text=element_text(size = 15),
-        axis.title=element_text(size = 25),
-        legend.text=element_text(size = 20), 
-        legend.title=element_text(size = 25),
+        axis.text = element_text(size = 15),
+        axis.title = element_text(size = 25),
+        legend.text = element_text(size = 20), 
+        legend.title = element_text(size = 25),
         legend.position = "none",
         panel.background = element_rect(fill = "white", colour = "grey50",
                                         size = 1, linetype = "solid"),
@@ -199,4 +199,5 @@ plot_intercept <- performance_plot(performance_all_best,
 all_plots <- patchwork::wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
-ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 11)
+ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
+ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)

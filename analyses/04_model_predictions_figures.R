@@ -1,6 +1,6 @@
 # source functions ----
   
-source("R/model_prediction_functions.R")
+source("R/04_model_prediction_functions.R")
 
 output_files <- list.files("outputs/biomass_prediction", full.names = T)
 
