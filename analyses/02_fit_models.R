@@ -42,13 +42,6 @@ rf_function(biomass = biomass_scv,
             species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
             base_dir = base_dir)
 
-# # run spatial random forest
-# print('sprf biomass prediction')
-# spatialrf_function(biomass = biomass_scv,
-#                    covariates = rls_covariates,
-#                    species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
-#                    base_dir = base_dir)
-
 # run spamm (GLMM)
 print("spamm biomass prediction")
 spamm_function(biomass = biomass_scv,
@@ -62,11 +55,4 @@ brt_function(biomass = biomass_scv,
              covariates = rls_covariates,
              species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
              n.cores = 1,
-             base_dir = base_dir)
-
-# run gam
-print("gam biomass prediction")
-gam_function(biomass = biomass_scv,
-             covariates = rls_covariates,
-             species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")],
              base_dir = base_dir)

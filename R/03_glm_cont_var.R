@@ -1,9 +1,9 @@
 # function to fit glm and assess covariates relative importance
 
-biomass = biomass_contribution
-covariates = rls_covariates
-species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
-base_dir_cont = base_dir
+# biomass = biomass_contribution
+# covariates = rls_covariates
+# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
+# base_dir_cont = base_dir
 
 glm_function_cont <- function(biomass, 
                               covariates, 
@@ -158,15 +158,8 @@ glm_function_cont <- function(biomass,
     vip.25_glm <- vip.25_glm |> 
       dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
 
-    }, mc.cores = 10)
+    }, mc.cores = 15)
 
-  # extracted_contributions <- tibble(species_name = species_name, 
-  #                                   fitted_model = 'GLM', 
-  #                                   # estimate contribution
-  #                                   contributions = lapply(contribution, '[[', 2),
-  #                                   # standard-deviation contribution between permutations
-  #                                   sd_contributions = lapply(contribution, '[[', 3))
-  
   extracted_contributions <- dplyr::tibble(species_name = species_name, 
                                            fitted_model = "GLM", 
                                            # estimate contribution

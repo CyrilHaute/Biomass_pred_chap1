@@ -1,14 +1,14 @@
 # function to fit gam and assess covariates relative importance
 
-biomass = biomass_contribution
-covariates = rls_covariates
-species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
-base_dir_cont = base_dir
+# biomass = biomass_contribution
+# covariates = rls_covariates
+# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
+# base_dir_cont = base_dir
 
-gam_function_cont <- function(biomass = biomass, 
-                              covariates = covariates,
-                              species_name = species_name,
-                              base_dir_cont = base_dir_cont){
+gam_function_cont <- function(biomass, 
+                              covariates,
+                              species_name,
+                              base_dir_cont){
   
   # create raw biomass object and select cross validation set i
   raw_biomass <- biomass
@@ -120,13 +120,13 @@ gam_function_cont <- function(biomass = biomass,
     
     # Fit the model
 
-    if(length(unique(biomass_final$Effectiveness)) == 1){
+    if(length(unique(biomass_final$effectiveness)) == 1){
       
-      model_fit <- gam(model_formula2, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
+      model_fit <- mgcv::gam(model_formula2, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
       
     }else{
 
-      model_fit <- gam(model_formula, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
+      model_fit <- mgcv::gam(model_formula, data = biomass_final, family = gaussian, select = FALSE, method = 'ML')
       
     }
     
@@ -155,25 +155,20 @@ gam_function_cont <- function(biomass = biomass,
     vip.25_gam <- vip.25_gam |> 
       dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
 
-    }, mc.cores = 10)
+    }, mc.cores = 15)
   
-  extracted_contributions <- tibble(species_name = species_name, 
-                                    fitted_model = 'GAM', 
-                                    # estimate contribution
-                                    contributions = lapply(contribution, '[[', 2),
-                                    # standard-deviation contribution between permutations
-                                    sd_contributions = lapply(contribution, '[[', 3))
-
+  extracted_contributions <- dplyr::tibble(species_name = species_name, 
+                                           fitted_model = "GAM", 
+                                           # estimate contribution
+                                           contributions_and_sd = contribution)
+  
   # save contribution output in same file structure
   
-  extracted_contributions <- setNames(split(extracted_contributions, seq(nrow(extracted_contributions))), extracted_contributions$species_name)
-
-  model_dir <- 'gam'
-  dir.create(base_dir_cont, recursive = T)
-  names.list <- species_name
-  names(extracted_contributions) <- names.list
-  lapply(names(extracted_contributions), function(df)
-    saveRDS(extracted_contributions[[df]], file = paste0(base_dir_cont, '/', model_dir, '_', df, '.rds')))
+  model_dir <- "gam"
+  
+  dir.create(base_dir_cont)
+  
+  save(extracted_contributions, file = paste0(base_dir_cont, model_dir, "_extracted_contributions.RData"))
   
   rm(list=ls())
   gc()

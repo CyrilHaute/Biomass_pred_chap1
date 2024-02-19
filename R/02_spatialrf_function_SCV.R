@@ -29,7 +29,7 @@ spatialrf_function <- function(biomass,
     
     fmla <<- as.formula(paste0("Biomass ~ ", paste0(colnames(covariates)[!colnames(covariates) %in% "survey_id"], collapse = " + ")))
 
-    species_j[[i]] <- pbmcapply::pbmclapply(1:length(species_name), function(j){
+    contribution <- pbmcapply::pbmclapply(1:length(species_name), function(j){
       
       # select the jth species from the fitting set
       fitting <- raw_biomass$fitting[,c("survey_id", species_name[j])]

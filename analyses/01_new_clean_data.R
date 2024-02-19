@@ -138,8 +138,6 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::filter(count >= 50) |>
   dplyr::select(survey_id, species_name, biomass, latitude, longitude)
 
-length(unique(rls_coral_fish_mean_biomass_count$survey_id))
-
 # rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |>
 #   tidyr::spread(species_name, biomass, fill = 0)
 
