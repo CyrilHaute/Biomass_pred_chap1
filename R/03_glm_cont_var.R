@@ -1,9 +1,9 @@
 # function to fit glm and assess covariates relative importance
-
-# biomass = biomass_contribution
-# covariates = rls_covariates
-# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
-# base_dir_cont = base_dir
+# 
+biomass = biomass_contribution
+covariates = rls_covariates
+species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
+base_dir_cont = base_dir
 
 glm_function_cont <- function(biomass, 
                               covariates, 
@@ -57,7 +57,7 @@ glm_function_cont <- function(biomass,
     load("data/new_raw_data/00_rls_surveys.Rdata")
     rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
     
-    fitting <- dplyr::inner_join(fitting, rls_surveys)
+    fitting <- dplyr::inner_join(fitting, rls_surveys[!colnames(rls_surveys) %in% "depth"])
 
     zone_geo_fit <- fitting[which(fitting[,species_name[j]] > 0),]
     zone_geo_fit <- unique(zone_geo_fit$ecoregion)
