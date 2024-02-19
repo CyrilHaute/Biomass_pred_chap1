@@ -16,10 +16,10 @@ base_dir <- "outputs/biomass_contribution/"
 
 # run glm for covariates contribution
 print("glm biomass contribution")
-glm_function(biomass = biomass_contribution,
-             covariates = rls_covariates,
-             species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")],
-             base_dir_cont = base_dir)
+glm_function_cont(biomass = biomass_contribution,
+                  covariates = rls_covariates,
+                  species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")],
+                  base_dir_cont = base_dir)
 
 # run random Forest for covariates contribution
 print("rf biomass contribution")
