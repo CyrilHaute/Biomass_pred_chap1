@@ -234,6 +234,7 @@ names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", 
 rls_covariates <- rls_env_final |> 
   dplyr::inner_join(rls_soc_final) |> 
   dplyr::inner_join(rls_hab_final)
+rls_covariates <- scale(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
 
 save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
