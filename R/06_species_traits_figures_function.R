@@ -29,11 +29,6 @@ kruskal_test_function <- function(data,
   
 }
 
-plot_data = bind_files
-trait = "Trophic_guild_name"
-color = pal_sp_trait
-labs_title = "D"
-
 species_traits_function <- function(plot_data,
                                     trait,
                                     color,

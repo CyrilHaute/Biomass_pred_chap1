@@ -72,3 +72,4 @@ plot_trophic <- species_traits_function(plot_data = bind_files,
 plot_species_traits <- plot_max.length / plot_water.column / plot_habitat / plot_trophic
 
 ggsave("figures/plot_species_traits.pdf", plot_species_traits, height = 25, width = 19)
+ggsave("figures/plot_species_traits.png", plot_species_traits, height = 25, width = 19)
