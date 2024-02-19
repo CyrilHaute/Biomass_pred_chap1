@@ -1,5 +1,10 @@
 # function to fit glmm (SPAMM) and assess covariates relative importance
 
+# biomass = biomass_contribution
+# covariates = rls_covariates
+# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
+# base_dir_cont = base_dir
+
 spamm_function_cont <- function(biomass, 
                                 covariates,
                                 species_name,
@@ -32,9 +37,6 @@ spamm_function_cont <- function(biomass,
     # log10(x+1) transform biomass
     fitting[,species_name[j]] <- log10(fitting[,species_name[j]] + 1)
     
-    # get biomass data
-    biomass_only <- fitting[which(fitting[,species_name[j]] > 0),]
-    
     # keep only absences from species life area 
     # load rls surveys info, we need ecoregion 
     load("data/new_raw_data/00_rls_surveys.Rdata")
@@ -47,7 +49,12 @@ spamm_function_cont <- function(biomass,
     
     fitting <- fitting |>  
       dplyr::filter(ecoregion %in% zone_geo_fit) |> 
-      dplyr::select("survey_id", species_name[j], colnames(rls_covariates)[!colnames(rls_covariates) %in% c("survey_id")])
+      dplyr::select("survey_id", "longitude", "latitude", species_name[j], colnames(rls_covariates)[!colnames(rls_covariates) %in% c("survey_id")]) |> 
+      dplyr::rename(X = longitude,
+                    Y = latitude)
+    
+    # get biomass data
+    biomass_only <- fitting[which(fitting[,species_name[j]] > 0),]
     
     # keep only two times more absences than observation  
     # get absence
@@ -106,7 +113,7 @@ spamm_function_cont <- function(biomass,
     
     # Fit the model
     
-    if(length(unique(biomass_final$Effectiveness)) == 1){
+    if(length(unique(biomass_final$effectiveness)) == 1){
       
       model_fit <- spaMM::fitme(fmla2, data = biomass_final, method = "ML")
       
@@ -115,8 +122,8 @@ spamm_function_cont <- function(biomass,
       model_fit <- spaMM::fitme(fmla, data = biomass_final, method = "ML")
       
     }
-    
-    covnames_new_new <- colnames(covariates)[which(colnames(covariates) %in% "survey_id" == FALSE)]
+
+    covnames_new_new <- colnames(fitting)[which(colnames(fitting) %in% c("survey_id", species_name[j]) == FALSE)]
 
     # Use the package DALEX to assess covariates relative importance
     # First create an explain object (a representation of your model, depend on the structure of the algorithm used)

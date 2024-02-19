@@ -1,10 +1,10 @@
 # function to fit boosted regression tree and assess covariates relative importance
 
-biomass = biomass_contribution
-covariates = rls_covariates
-species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
-n.cores = 1
-base_dir_cont = base_dir
+# biomass = biomass_contribution
+# covariates = rls_covariates
+# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
+# n.cores = 1
+# base_dir_cont = base_dir
 
 brt_function_cont <- function(biomass, 
                               covariates, 

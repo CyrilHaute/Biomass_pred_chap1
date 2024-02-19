@@ -2,7 +2,7 @@
 
 # source functions ----
 
-source("R/05_model_performance_functions.R")
+source("R/04_model_performance_functions.R")
 
 # Set palette colors for performance figures
 
@@ -45,12 +45,10 @@ best_models_pr <- best_models |>
 library(ggplot2)
 
 best_model <- best_models_pr |> 
-  # mutate(best_model = fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "GBM", "SPRF")) %>%
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "SPAMM", "RF", "SPRF")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "GBM", "SPAMM", "RF", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
-  # scale_y_continuous(limits=c(0, 80)) +
   labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B") +
   theme(title = element_text(size = 20),
         axis.text=element_text(size = 15),
@@ -185,7 +183,7 @@ plot_slope <- performance_plot(performance_all_best,
                                slope = 0,
                                intercept = 0.30103,
                                color = pal_perf,
-                               ylim = c(-0.05, 0.1),
+                               ylim = c(-0.05, 0.4),
                                legend.position = "none",
                                plot_title = "")
 
@@ -201,4 +199,4 @@ plot_intercept <- performance_plot(performance_all_best,
 all_plots <- patchwork::wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
-ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 10, width = 10)
+ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 11)
