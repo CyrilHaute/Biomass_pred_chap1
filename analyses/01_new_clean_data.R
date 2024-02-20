@@ -221,11 +221,40 @@ rls_biomass <- rls_biomass |>
                 site_code, 
                 species_name)
 
-biomass_contribution <- rls_biomass |> 
-  dplyr::select(-site_code)
+# biomass_contribution <- rls_biomass |> 
+#   dplyr::select(-site_code)
 
 biomass_scv <- scv_function(dats = rls_biomass,
                             n.folds = 20)
+
+test_pos <- pbmcapply::pbmclapply(1:length(biomass_scv), function(i) {
+  
+  cv_i <- biomass_scv[[i]]
+  
+  species_name <- colnames(cv_i$fitting)[!colnames(cv_i$fitting) %in% c("survey_id", "latitude", "longitude")]
+  
+  test_for_pos_value <- sapply(1:length(species_name), function(j) {
+    
+    # select the jth species from the fitting set
+    fitting <- cv_i$fitting[,c("survey_id", species_name[j])]
+    
+    # select the jth species from the validation set
+    validation <- cv_i$validation[,c("survey_id", species_name[j])]
+    
+    biomass_only <- fitting[which(fitting[,species_name[j]] > 0),]
+    biomass_only_val <- validation[which(validation[,species_name[j]] > 0),]
+    
+    pos_value <- c(nrow(biomass_only), nrow(biomass_only_val))
+    
+    any(pos_value == 0)
+    
+  })
+  
+  any_true <- any(test_for_pos_value == TRUE)
+  
+}, mc.cores = parallel::detectCores() - 1)
+
+any_true <- any(test_pos == TRUE)
 
 names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", i)})
 
@@ -236,6 +265,6 @@ rls_covariates <- rls_env_final |>
   dplyr::inner_join(rls_hab_final)
 rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")] <- scale(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
 
-save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
+# save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(biomass_scv, file = "data/new_derived_data/biomass_scv.RData")

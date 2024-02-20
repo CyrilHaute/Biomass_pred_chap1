@@ -21,15 +21,16 @@ scv_function <- function(dats,
   # flexible object for storing folds
   folds <- list()
 
-  positive_indices <- which.min(unlist(lapply(dats[,species_name], function(col) length(which(col > 0))))) + 4
+  positive_indices_min <- which.min(unlist(lapply(dats[,species_name], function(col) length(which(col > 0))))) + 4
+  # positive_indices <- which(unlist(lapply(dats[,species_name], function(col) length(which(col > 0)))) %in% 51:52) + 4
   
   fold.size <- nrow(dats)/n.folds
-  fold.size.pos <- nrow(dats[which(dats[,positive_indices] > 0),])/n.folds
-  fold.size.zero <- nrow(dats[which(dats[,positive_indices] == 0),])/n.folds
+  fold.size.pos <- nrow(dats[which(dats[,positive_indices_min] > 0),])/n.folds
+  fold.size.zero <- nrow(dats[which(dats[,positive_indices_min] == 0),])/n.folds
   
   # all obs are in
-  remain.pos <- which(dats[,positive_indices] > 0)
-  remain.zero <- which(dats[,positive_indices] == 0)
+  remain.pos <- which(dats[,positive_indices_min] > 0)
+  remain.zero <- which(dats[,positive_indices_min] == 0)
 
   for(i in 1:n.folds) {
     
