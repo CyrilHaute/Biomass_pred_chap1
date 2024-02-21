@@ -13,6 +13,11 @@
 #'
 #' @examples
 
+# biomass = biomass_scv
+# covariates = rls_covariates
+# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+# base_dir = base_dir
+
 spatialrf_function <- function(biomass, 
                                covariates,
                                species_name,
@@ -122,7 +127,7 @@ spatialrf_function <- function(biomass,
       biomass_validation <- rbind(biomass_only_val, absence_val) |> 
         as.data.frame()
       
-      names(biomass_final)[names(biomass_final) == species_name[j]] <<- "Biomass"
+      names(biomass_final)[names(biomass_final) == species_name[j]] <- "Biomass"
       names(biomass_validation)[names(biomass_validation) == species_name[j]] <- "Biomass"
       
       # As some covariates are at the country level, it means you can have very few or even only one value for these covariates
