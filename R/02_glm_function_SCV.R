@@ -254,9 +254,9 @@ glm_function <- function(biomass,
           
           validation_obs_prd  <- NA
           
-          }
-        
-        }, mc.cores = parallel::detectCores() - 1)
+        }
+
+      }, mc.cores = parallel::detectCores() - 1)
     
     }
 
