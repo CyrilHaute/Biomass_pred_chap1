@@ -26,7 +26,7 @@ covariates_importance_GLM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,4.5),
+                                                            ylim = c(0,3),
                                                             legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = bind_files,
@@ -34,7 +34,7 @@ covariates_importance_GAM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,1.5),
+                                                            ylim = c(0,3),
                                                             legend.position = "none")
 
 covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_files,
@@ -42,7 +42,7 @@ covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_f
                                                               color = pal_contribution,
                                                               labs_y = "",
                                                               labs_fill = "",
-                                                              ylim = c(0,1.5),
+                                                              ylim = c(0,3),
                                                               legend.position = "none")
 
 covariates_importance_RF <- covariates_importance_function(plot_data = bind_files,

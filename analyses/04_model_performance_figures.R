@@ -45,7 +45,7 @@ best_models_pr <- best_models |>
   dplyr::mutate(pr = (n*100)/sum(n))
 
 best_model <- best_models_pr |> 
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "GBM", "SPAMM", "RF", "SPRF")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "GLM", "GAM", "SPAMM", "GBM", "RF", "SPRF")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +
