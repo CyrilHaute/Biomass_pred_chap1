@@ -90,3 +90,34 @@ performance_plot <- function(plot_data,
   print(plot_perf)
   
 }
+
+# data = best_trait
+# traits = "Water.column"
+# metrics = "Spearman"
+
+kruskal_test_function_perf <- function(data,
+                                       traits,
+                                       metrics){
+  
+  data$trait <- unlist(data[,traits])
+  data$metric <- unlist(data[,metrics])
+  
+  res.kruskal <- with(data, agricolae::kruskal(metric, trait, p.adj = "bonferroni", group = FALSE))
+  res.kruskal2 <- with(data, agricolae::kruskal(metric, trait, p.adj = "bonferroni", group = TRUE))
+  
+  res.kruskal2$groups <- data.frame(trait = stringr::word(row.names(res.kruskal2$groups), 1, sep = "_"),
+                                    value = res.kruskal2$groups$metric,
+                                    groups = res.kruskal2$groups$groups)
+  # names(res.kruskal2$groups)[1] <- trait
+  
+  n <- which(colnames(data) == traits)
+  
+  labs.position <- data |> 
+    dplyr::group_by(trait) |> 
+    dplyr::summarise(mean = mean(metric),
+                     quant = quantile(metric, probs = 0.75))
+
+  res.kruskal2$groups <- dplyr::inner_join(res.kruskal2$groups, labs.position, by = "trait")
+  res.kruskal2
+  
+}

@@ -205,6 +205,8 @@ ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13
 ################## Plot performance-traits relationship
 
 load("data/new_derived_data/species_count.Rdata")
+sp_count <- sp_count |> 
+  dplyr::rename(occurence = count)
 sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE)
 sp_car <- sp_car |> 
   dplyr::rename(species_name = Species)
@@ -228,19 +230,24 @@ sp_car[sp_car$Habitat == "Coral",]$Habitat <- "coral"
 sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
 
 best_count <- best_assessments_SCV |> 
-  dplyr::inner_join(sp_count)
+  dplyr::inner_join(sp_count) |> 
+  dplyr::inner_join(sp_car[,colnames(sp_car) %in% c("species_name", "MaxLength")])
 
-plot_spear_count <- ggplot(best_count, aes(x = log10(count), y = Spearman)) +
+plot_spear_count <- ggplot(best_count, aes(x = log10(occurence), y = Spearman)) +
   geom_point() +
   geom_smooth(method = "lm")
 
-summary(lm(formula = "Spearman ~ count", data = best_count))
+ggsave(plot_spear_count, file = "figures/spearman_occurence.png")
 
-plot_pear_count <- ggplot(best_count, aes(x = log10(count), y = Pearson)) +
+summary(lm(formula = "Spearman ~ occurence", data = best_count))
+
+plot_pear_count <- ggplot(best_count, aes(x = log10(occurence), y = Pearson)) +
   geom_point() +
   geom_smooth(method = "lm")
 
-summary(lm(formula = "Pearson ~ count", data = best_count))
+ggsave(plot_pear_count, file = "figures/pearson_occurence.png")
+
+summary(lm(formula = "Pearson ~ occurence", data = best_count))
 
 best_trait <- best_assessments_SCV |> 
   dplyr::inner_join(sp_car)
@@ -261,26 +268,90 @@ best_trait |>
   dplyr::group_by(Trophic_guild_name) |> 
   dplyr::summarise(n = dplyr::n())
 
-plot_ML_Spear <- ggplot(best_trait, aes(x = ML_cat, y = Spearman), group = ML_cat) +
-  geom_boxplot()
+kruskal_ML <- kruskal_test_function_perf(best_trait,
+                                         "ML_cat",
+                                         "Spearman")
 
-plot_ML_Pear <- ggplot(best_trait, aes(x = ML_cat, y = Pearson), group = ML_cat) +
-  geom_boxplot()
+if(kruskal_ML$statistics$p.chisq > 0.05){
+  
+  stop(print("No statistical differences among groups"))
+  
+}else{
+  
+  print("p.chisq < 0.05")
+  
+}
+
+plot_MLclass_Spear <- ggplot(best_trait, aes(x = ML_cat, y = Spearman), group = ML_cat) +
+  geom_boxplot() +
+  geom_text(data = kruskal_ML$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55) +
+  labs(x = "Size class")
+
+plot_ML_Spear <- ggplot(best_count, aes(x = MaxLength, y = Spearman), group = ML_cat) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(x = "Maximum length")
+
+ggsave(plot_MLclass_Spear, file = "figures/maximumlengthclass_spearman.png")
+ggsave(plot_ML_Spear, file = "figures/maximumlength_spearman.png")
+
+kruskal_WC <- kruskal_test_function_perf(best_trait,
+                                         "Water.column",
+                                         "Spearman")
+
+if(kruskal_WC$statistics$p.chisq > 0.05){
+  
+  stop(print("No statistical differences among groups"))
+  
+}else{
+  
+  print("p.chisq < 0.05")
+  
+}
 
 plot_WC_Spear <- ggplot(best_trait, aes(x = Water.column, y = Spearman), group = Water.column) +
-  geom_boxplot()
+  geom_boxplot() +
+  geom_text(data = kruskal_WC$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55) +
+  labs(x = "Water column")
 
-plot_WC_Pear <- ggplot(best_trait, aes(x = Water.column, y = Pearson), group = Water.column) +
-  geom_boxplot()
+ggsave(plot_WC_Spear, file = "figures/watercolumn_spearman.png")
+
+kruskal_HAB <- kruskal_test_function_perf(best_trait,
+                                         "Habitat",
+                                         "Spearman")
+
+if(kruskal_HAB$statistics$p.chisq > 0.05){
+  
+  stop(print("No statistical differences among groups"))
+  
+}else{
+  
+  print("p.chisq < 0.05")
+  
+}
 
 plot_HAB_Spear <- ggplot(best_trait, aes(x = Habitat, y = Spearman), group = Habitat) +
-  geom_boxplot()
+  geom_boxplot() +
+  geom_text(data = kruskal_HAB$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55)
 
-plot_HAB_Pear <- ggplot(best_trait, aes(x = Habitat, y = Pearson), group = Habitat) +
-  geom_boxplot()
+ggsave(plot_HAB_Spear, file = "figures/habitat_spearman.png")
+
+kruskal_TR <- kruskal_test_function_perf(best_trait,
+                                         "Trophic_guild_name",
+                                         "Spearman")
+
+if(kruskal_TR$statistics$p.chisq > 0.05){
+  
+  stop(print("No statistical differences among groups"))
+  
+}else{
+  
+  print("p.chisq < 0.05")
+  
+}
 
 plot_TR_Spear <- ggplot(best_trait, aes(x = Trophic_guild_name, y = Spearman), group = Trophic_guild_name) +
-  geom_boxplot()
+  geom_boxplot() +
+  geom_text(data = kruskal_TR$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55)
 
-plot_TR_Pear <- ggplot(best_trait, aes(x = Trophic_guild_name, y = Pearson), group = Trophic_guild_name) +
-  geom_boxplot()
+ggsave(plot_TR_Spear, file = "figures/trophicgroup_spearman.png", width = 10)

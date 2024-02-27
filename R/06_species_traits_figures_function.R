@@ -9,8 +9,8 @@ kruskal_test_function <- function(data,
   
   data$newvar <- paste0(data$var, '_', unlist(data[trait]))
   
-  res.kruskal <- with(data, agricolae::kruskal(value, newvar, p.adj="bonferroni", group=FALSE))
-  res.kruskal2 <- with(data, agricolae::kruskal(value, newvar, p.adj="bonferroni", group=TRUE))
+  res.kruskal <- with(data, agricolae::kruskal(value, newvar, p.adj = "bonferroni", group = FALSE))
+  res.kruskal2 <- with(data, agricolae::kruskal(value, newvar, p.adj = "bonferroni", group = TRUE))
   
   res.kruskal2$groups <- data.frame(var = stringr::word(row.names(res.kruskal2$groups), 1, sep = "_"),
                                     trait = stringr::word(row.names(res.kruskal2$groups), 2, sep = "_"),
