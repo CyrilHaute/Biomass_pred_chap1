@@ -201,3 +201,86 @@ all_plots <- all_plots / best_model
 
 ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
 ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)
+
+################## Plot performance-traits relationship
+
+load("data/new_derived_data/species_count.Rdata")
+sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE)
+sp_car <- sp_car |> 
+  dplyr::rename(species_name = Species)
+
+sp_car <- sp_car[which(is.na(sp_car$MaxLength) == FALSE),]
+sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
+
+sp_car$ML_cat <- NA
+sp_car[sp_car$MaxLength > 0 & sp_car$MaxLength <= 20,]$ML_cat <- "0-20 cm"
+sp_car[sp_car$MaxLength > 20 & sp_car$MaxLength <= 40,]$ML_cat <- "20-40 cm"
+sp_car[sp_car$MaxLength > 40 & sp_car$MaxLength <= 60,]$ML_cat <- "40-60 cm"
+sp_car[sp_car$MaxLength > 60 & sp_car$MaxLength <= 80,]$ML_cat <- "60-80 cm"
+sp_car[sp_car$MaxLength > 80 & sp_car$MaxLength <= 300,]$ML_cat <- "80-300 cm"
+
+sp_car[sp_car$Water.column == "Demersal",]$Water.column <- "demersal"
+sp_car[sp_car$Water.column == "pelagic non-site attached",]$Water.column <- "pelagic"
+sp_car[sp_car$Water.column == "pelagic site attached",]$Water.column <- "pelagic"
+
+sp_car[sp_car$Habitat == "Coral",]$Habitat <- "coral"
+
+sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
+
+best_count <- best_assessments_SCV |> 
+  dplyr::inner_join(sp_count)
+
+plot_spear_count <- ggplot(best_count, aes(x = log10(count), y = Spearman)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+summary(lm(formula = "Spearman ~ count", data = best_count))
+
+plot_pear_count <- ggplot(best_count, aes(x = log10(count), y = Pearson)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+summary(lm(formula = "Pearson ~ count", data = best_count))
+
+best_trait <- best_assessments_SCV |> 
+  dplyr::inner_join(sp_car)
+
+best_trait |> 
+  dplyr::group_by(ML_cat) |> 
+  dplyr::summarise(n = dplyr::n())
+
+best_trait |> 
+  dplyr::group_by(Water.column) |> 
+  dplyr::summarise(n = dplyr::n())
+
+best_trait |> 
+  dplyr::group_by(Habitat) |> 
+  dplyr::summarise(n = dplyr::n())
+
+best_trait |> 
+  dplyr::group_by(Trophic_guild_name) |> 
+  dplyr::summarise(n = dplyr::n())
+
+plot_ML_Spear <- ggplot(best_trait, aes(x = ML_cat, y = Spearman), group = ML_cat) +
+  geom_boxplot()
+
+plot_ML_Pear <- ggplot(best_trait, aes(x = ML_cat, y = Pearson), group = ML_cat) +
+  geom_boxplot()
+
+plot_WC_Spear <- ggplot(best_trait, aes(x = Water.column, y = Spearman), group = Water.column) +
+  geom_boxplot()
+
+plot_WC_Pear <- ggplot(best_trait, aes(x = Water.column, y = Pearson), group = Water.column) +
+  geom_boxplot()
+
+plot_HAB_Spear <- ggplot(best_trait, aes(x = Habitat, y = Spearman), group = Habitat) +
+  geom_boxplot()
+
+plot_HAB_Pear <- ggplot(best_trait, aes(x = Habitat, y = Pearson), group = Habitat) +
+  geom_boxplot()
+
+plot_TR_Spear <- ggplot(best_trait, aes(x = Trophic_guild_name, y = Spearman), group = Trophic_guild_name) +
+  geom_boxplot()
+
+plot_TR_Pear <- ggplot(best_trait, aes(x = Trophic_guild_name, y = Pearson), group = Trophic_guild_name) +
+  geom_boxplot()

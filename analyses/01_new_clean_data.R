@@ -138,6 +138,15 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::filter(count >= 50) |>
   dplyr::select(survey_id, species_name, biomass, latitude, longitude)
 
+sp_count <- rls_coral_fish_mean_biomass |>
+  dplyr::group_by(species_name, ) |>
+  dplyr::mutate(count = dplyr::n()) |>
+  dplyr::filter(count >= 50) |> 
+  dplyr::select(species_name, count) |> 
+  unique()
+
+save(sp_count, file = "data/new_derived_data/species_count.Rdata")
+
 # rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |>
 #   tidyr::spread(species_name, biomass, fill = 0)
 
@@ -268,9 +277,9 @@ rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")] 
 # save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(biomass_scv, file = "data/new_derived_data/biomass_scv.RData")
-# test <- sapply(1:ncol(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")]), function(i) { 
-#   
-#   sd(unlist(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")][,i]))
-#   
-#   })
-# names(test) <- colnames(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")])
+test <- sapply(1:ncol(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")]), function(i) {
+
+  sd(unlist(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")][,i]))
+
+  })
+names(test) <- colnames(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")])

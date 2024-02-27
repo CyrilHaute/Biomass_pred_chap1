@@ -22,6 +22,10 @@ biomass_assessment_metrics <- function(predictions, observations, scale = NULL){
                                                                     Scale = if(is.null(scale)){0}else{scale}, 
                                                                     Evaluation_message = 'warning: length of observations and predictions does not match locations'))}
 
+  # to_keep <- which(observations > 0)
+  # observations <- observations[to_keep]
+  # predictions <- predictions[to_keep]
+  
   # Linear model between values
   lm_test <- tryCatch(lm(predictions ~ observations), error = function(e) NA)
 

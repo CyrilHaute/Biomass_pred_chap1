@@ -31,14 +31,10 @@ sp_car$ML_cat <- NA
 sp_car <- sp_car[which(is.na(sp_car$MaxLength) == FALSE),]
 sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
 
-sp_car[sp_car$MaxLength > 0 & sp_car$MaxLength <= 10,]$ML_cat <- "0-10 cm"
-sp_car[sp_car$MaxLength > 10 & sp_car$MaxLength <= 20,]$ML_cat <- "10-20 cm"
-sp_car[sp_car$MaxLength > 20 & sp_car$MaxLength <= 30,]$ML_cat <- "20-30 cm"
-sp_car[sp_car$MaxLength > 30 & sp_car$MaxLength <= 40,]$ML_cat <- "30-40 cm"
-sp_car[sp_car$MaxLength > 40 & sp_car$MaxLength <= 50,]$ML_cat <- "40-50 cm"
-sp_car[sp_car$MaxLength > 50 & sp_car$MaxLength <= 60,]$ML_cat <- "50-60 cm"
-sp_car[sp_car$MaxLength > 60 & sp_car$MaxLength <= 70,]$ML_cat <- "60-70 cm"
-sp_car[sp_car$MaxLength > 70 & sp_car$MaxLength <= 80,]$ML_cat <- "70-80 cm"
+sp_car[sp_car$MaxLength > 0 & sp_car$MaxLength <= 20,]$ML_cat <- "0-20 cm"
+sp_car[sp_car$MaxLength > 20 & sp_car$MaxLength <= 40,]$ML_cat <- "20-40 cm"
+sp_car[sp_car$MaxLength > 40 & sp_car$MaxLength <= 60,]$ML_cat <- "40-60 cm"
+sp_car[sp_car$MaxLength > 60 & sp_car$MaxLength <= 80,]$ML_cat <- "60-80 cm"
 sp_car[sp_car$MaxLength > 80 & sp_car$MaxLength <= 300,]$ML_cat <- "80-300 cm"
 
 sp_car[sp_car$Water.column == "Demersal",]$Water.column <- "demersal"
