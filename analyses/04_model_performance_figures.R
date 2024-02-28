@@ -231,7 +231,7 @@ sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Troph
 
 best_count <- best_assessments_SCV |> 
   dplyr::inner_join(sp_count) |> 
-  dplyr::inner_join(sp_car[,colnames(sp_car) %in% c("species_name", "MaxLength")])
+  dplyr::inner_join(sp_car[,colnames(sp_car) %in% c("species_name", "MaxLength", "IUCN_status")])
 
 plot_spear_count <- ggplot(best_count, aes(x = log10(occurence), y = Spearman)) +
   geom_point() +
@@ -355,3 +355,17 @@ plot_TR_Spear <- ggplot(best_trait, aes(x = Trophic_guild_name, y = Spearman), g
   geom_text(data = kruskal_TR$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55)
 
 ggsave(plot_TR_Spear, file = "figures/trophicgroup_spearman.png", width = 10)
+
+
+occ_ml_sp <- ggplot(best_count, aes(x = log10(occurence), y = MaxLength, color = Spearman)) + 
+  geom_point() +
+  geom_point(data = best_count[best_count$IUCN_status %in% "Thr",], colour = "red", pch = 21, size = 4, stroke = 1) +
+  scale_colour_viridis_c()
+
+best_count_log <- best_count |> 
+  dplyr::mutate(occurence = log10(occurence))
+
+glm_occ_ml_sp <- glm(formula = "Spearman ~ occurence * MaxLength", data = best_count_log)
+summary(glm_occ_ml_sp)
+with(summary(glm_occ_ml_sp), 1 - deviance/null.deviance)
+visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength")
