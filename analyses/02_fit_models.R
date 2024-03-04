@@ -9,8 +9,8 @@ source("R/02_spatialrf_function_SCV.R")
 
 
 # load fish biomass data and covariates
-load("new_data/new_derived_data/biomass_scv.RData")
-load("new_data/new_derived_data/rls_covariates.RData")
+load("data/new_derived_data/biomass_scv.RData")
+load("data/new_derived_data/rls_covariates.RData")
 
 # set up base-directory for file saves
 base_dir <- 'outputs/biomass_prediction/'
