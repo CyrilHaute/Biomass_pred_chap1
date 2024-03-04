@@ -35,7 +35,7 @@ best_models <- all_assessments_SCV |>
   dplyr::do(best_model = .$fitted_model[which.max(.$discrimination)]) |> 
   tidyr::unnest(cols = c('best_model'))
 
-save(best_models, file = "outputs/best_models.Rdata")
+# save(best_models, file = "outputs/best_models.Rdata")
 
 #### Best Model plot ####
 
@@ -199,8 +199,8 @@ plot_intercept <- performance_plot(performance_all_best,
 all_plots <- patchwork::wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
-ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
-ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)
+# ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
+# ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)
 
 ################## Plot performance-traits relationship
 
@@ -373,15 +373,12 @@ vis_plot <- visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength", scale = "r
   geom_contour(aes(z = z), color = "black") +
   labs(title = "Spearman ~ occurence x maximum lenght", y = "Maximum length (cm)", x = "log10(Occurrence)", fill = "Spearman") +
   scale_fill_viridis_c(option = "viridis") +
-  theme(title = element_text(size = 20),
+  theme(title = element_text(size = 15),
         axis.text = element_text(size = 15),
-        axis.title = element_text(size = 25),
-        legend.text = element_text(size = 20), 
-        legend.title = element_text(size = 25),
-        legend.position = "none",
-        panel.background = element_rect(fill = "white", colour = "grey50",
-                                        size = 1, linetype = "solid"),
+        axis.title = element_text(size = 15),
+        legend.text = element_text(size = 15), 
+        legend.title = element_text(size = 15),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank())
 
-ggsave(vis_plot, file = "figures/visreg_occ_ml_sp.png", width = 6)
+ggsave(vis_plot, file = "figures/visreg_occ_ml_sp.png", width = 8)
