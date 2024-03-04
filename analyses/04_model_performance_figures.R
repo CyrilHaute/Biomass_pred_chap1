@@ -237,7 +237,7 @@ plot_spear_count <- ggplot(best_count, aes(x = log10(occurence), y = Spearman)) 
   geom_point() +
   geom_smooth(method = "lm")
 
-ggsave(plot_spear_count, file = "figures/spearman_occurence.png")
+# ggsave(plot_spear_count, file = "figures/spearman_occurence.png")
 
 summary(lm(formula = "Spearman ~ occurence", data = best_count))
 
@@ -245,7 +245,7 @@ plot_pear_count <- ggplot(best_count, aes(x = log10(occurence), y = Pearson)) +
   geom_point() +
   geom_smooth(method = "lm")
 
-ggsave(plot_pear_count, file = "figures/pearson_occurence.png")
+# ggsave(plot_pear_count, file = "figures/pearson_occurence.png")
 
 summary(lm(formula = "Pearson ~ occurence", data = best_count))
 
@@ -292,8 +292,8 @@ plot_ML_Spear <- ggplot(best_count, aes(x = MaxLength, y = Spearman), group = ML
   geom_smooth(method = "lm") +
   labs(x = "Maximum length")
 
-ggsave(plot_MLclass_Spear, file = "figures/maximumlengthclass_spearman.png")
-ggsave(plot_ML_Spear, file = "figures/maximumlength_spearman.png")
+# ggsave(plot_MLclass_Spear, file = "figures/maximumlengthclass_spearman.png")
+# ggsave(plot_ML_Spear, file = "figures/maximumlength_spearman.png")
 
 kruskal_WC <- kruskal_test_function_perf(best_trait,
                                          "Water.column",
@@ -314,7 +314,7 @@ plot_WC_Spear <- ggplot(best_trait, aes(x = Water.column, y = Spearman), group =
   geom_text(data = kruskal_WC$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55) +
   labs(x = "Water column")
 
-ggsave(plot_WC_Spear, file = "figures/watercolumn_spearman.png")
+# ggsave(plot_WC_Spear, file = "figures/watercolumn_spearman.png")
 
 kruskal_HAB <- kruskal_test_function_perf(best_trait,
                                          "Habitat",
@@ -334,7 +334,7 @@ plot_HAB_Spear <- ggplot(best_trait, aes(x = Habitat, y = Spearman), group = Hab
   geom_boxplot() +
   geom_text(data = kruskal_HAB$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55)
 
-ggsave(plot_HAB_Spear, file = "figures/habitat_spearman.png")
+# ggsave(plot_HAB_Spear, file = "figures/habitat_spearman.png")
 
 kruskal_TR <- kruskal_test_function_perf(best_trait,
                                          "Trophic_guild_name",
@@ -354,7 +354,7 @@ plot_TR_Spear <- ggplot(best_trait, aes(x = Trophic_guild_name, y = Spearman), g
   geom_boxplot() +
   geom_text(data = kruskal_TR$groups, aes_string(x = "trait", y = "quant", label = "groups"), size = 5, vjust = -0.5, hjust = -0.55)
 
-ggsave(plot_TR_Spear, file = "figures/trophicgroup_spearman.png", width = 10)
+# ggsave(plot_TR_Spear, file = "figures/trophicgroup_spearman.png", width = 10)
 
 
 occ_ml_sp <- ggplot(best_count, aes(x = log10(occurence), y = MaxLength, color = Spearman)) + 
@@ -368,4 +368,20 @@ best_count_log <- best_count |>
 glm_occ_ml_sp <- glm(formula = "Spearman ~ occurence * MaxLength", data = best_count_log)
 summary(glm_occ_ml_sp)
 with(summary(glm_occ_ml_sp), 1 - deviance/null.deviance)
-visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength")
+
+vis_plot <- visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength", scale = "response", plot.type = "gg") + 
+  geom_contour(aes(z = z), color = "black") +
+  labs(title = "Spearman ~ occurence x maximum lenght", y = "Maximum length (cm)", x = "log10(Occurrence)", fill = "Spearman") +
+  scale_fill_viridis_c(option = "viridis") +
+  theme(title = element_text(size = 20),
+        axis.text = element_text(size = 15),
+        axis.title = element_text(size = 25),
+        legend.text = element_text(size = 20), 
+        legend.title = element_text(size = 25),
+        legend.position = "none",
+        panel.background = element_rect(fill = "white", colour = "grey50",
+                                        size = 1, linetype = "solid"),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+ggsave(vis_plot, file = "figures/visreg_occ_ml_sp.png", width = 6)
