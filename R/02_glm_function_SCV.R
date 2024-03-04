@@ -78,11 +78,11 @@ glm_function <- function(biomass,
       
       # keep only absences from species life area 
       # load rls surveys info, we need ecoregion 
-      load("new_data/new_raw_data/00_rls_surveys.Rdata")
+      load("data/new_raw_data/00_rls_surveys.Rdata")
       rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
       
-      fitting <- dplyr::inner_join(fitting, rls_surveys)
-      validation <- dplyr::inner_join(validation, rls_surveys)
+      fitting <- dplyr::inner_join(fitting, rls_surveys[!colnames(rls_surveys) %in% "depth"])
+      validation <- dplyr::inner_join(validation, rls_surveys[!colnames(rls_surveys) %in% "depth"])
 
       zone_geo_fit <- fitting[which(fitting[,species_name[j]] > 0),]
       zone_geo_fit <- unique(zone_geo_fit$ecoregion)
@@ -209,23 +209,23 @@ glm_function <- function(biomass,
       # Fit the model
       
       if(length(unique(biomass_final$effectiveness)) == 1){
-        
+
         model_fit <- tryCatch(glm(formula = form2, family = gaussian, data = biomass_final), error = function(e) NA)
-        
+
         }else{
-          
+
           test <- unique(biomass_validation$effectiveness) %in% unique(biomass_final$effectiveness) # test if you have the same MPA effectivness factors in the fitting and validation set
-          
+
           if(any(test == FALSE)){
-            
+
             biomass_validation <- biomass_validation |>
-              
+
               dplyr::filter(effectiveness %in% unique(biomass_final$effectiveness))
-            
+
             }
-          
+
           model_fit <- tryCatch(glm(formula = form, family = gaussian, data = biomass_final), error = function(e) NA)
-          
+
         }
       
       if(!any(is.na(model_fit) == TRUE)){
@@ -254,9 +254,9 @@ glm_function <- function(biomass,
           
           validation_obs_prd  <- NA
           
-          }
-        
-        }, mc.cores = parallel::detectCores() - 1)
+        }
+
+      }, mc.cores = parallel::detectCores() - 1)
     
     }
 

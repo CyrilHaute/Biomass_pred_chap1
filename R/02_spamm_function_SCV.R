@@ -1,9 +1,10 @@
 # function to fit glmm (SPAMM)
 
-biomass = biomass_scv
-covariates = rls_covariates
-species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-base_dir = base_dir
+# biomass = biomass_scv
+# covariates = rls_covariates
+# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+# base_dir = base_dir
+
 # 
 #' Title spamm_function
 #' 
@@ -69,11 +70,11 @@ spamm_function <- function(biomass,
       
       # keep only absences from species life area 
       # load rls surveys info, we need ecoregion 
-      load("new_data/new_raw_data/00_rls_surveys.Rdata")
+      load("data/new_raw_data/00_rls_surveys.Rdata")
       rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
       
-      fitting <- dplyr::inner_join(fitting, rls_surveys)
-      validation <- dplyr::inner_join(validation, rls_surveys)
+      fitting <- dplyr::inner_join(fitting, rls_surveys[!colnames(rls_surveys) %in% "depth"])
+      validation <- dplyr::inner_join(validation, rls_surveys[!colnames(rls_surveys) %in% "depth"])
       
       zone_geo_fit <- fitting[which(fitting[,species_name[j]] > 0),]
       zone_geo_fit <- unique(zone_geo_fit$ecoregion)
@@ -258,8 +259,7 @@ spamm_function <- function(biomass,
 
   }, mc.cores = parallel::detectCores() - 1)
     
-    
-}
+  }
   
   validation_prediction <- parallel::mclapply(1:length(species_j[[1]]), function(i){
     

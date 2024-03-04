@@ -12,21 +12,25 @@
 #'
 #' @examples
 
+# dats = rls_biomass
+# n.folds = 20
+
 scv_function <- function(dats, 
                          n.folds){
   
   # flexible object for storing folds
   folds <- list()
 
-  positive_indices <- which.min(unlist(lapply(dats[,species_name], function(col) length(which(col > 0))))) + 4
+  positive_indices_min <- which.min(unlist(lapply(dats[,species_name], function(col) length(which(col > 0))))) + 4
+  # positive_indices <- which(unlist(lapply(dats[,species_name], function(col) length(which(col > 0)))) %in% 51:52) + 4
   
   fold.size <- nrow(dats)/n.folds
-  fold.size.pos <- nrow(dats[which(dats[,positive_indices] > 0),])/n.folds
-  fold.size.zero <- nrow(dats[which(dats[,positive_indices] == 0),])/n.folds
+  fold.size.pos <- nrow(dats[which(dats[,positive_indices_min] > 0),])/n.folds
+  fold.size.zero <- nrow(dats[which(dats[,positive_indices_min] == 0),])/n.folds
   
   # all obs are in
-  remain.pos <- which(dats[,positive_indices] > 0)
-  remain.zero <- which(dats[,positive_indices] == 0)
+  remain.pos <- which(dats[,positive_indices_min] > 0)
+  remain.zero <- which(dats[,positive_indices_min] == 0)
 
   for(i in 1:n.folds) {
     
@@ -65,7 +69,7 @@ scv_function <- function(dats,
     names(train_test[[i]]) <- c("fitting", "validation")
     
     # delete from the train set, transects that appears in the same site than the point in the validation set
-    train_test[[i]]$fitting <- train_test[[i]]$fitting |> 
+    train_test[[i]]$fitting <- train_test[[i]]$fitting |>
       dplyr::filter(!site_code %in% train_test[[i]]$validation$site_code)
     
     train_test[[i]]$fitting <- train_test[[i]]$fitting |> 

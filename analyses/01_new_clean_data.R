@@ -41,6 +41,8 @@ rls_env <- rls_env |>
 load("data/new_raw_data/habitat_covariates/final_habitat.Rdata")
 load("data/new_raw_data/habitat_covariates/Benthic_composition_inferred_tropical.Rdata")
 
+colnames(inferred_benthos) <- stringr::str_replace_all(colnames(inferred_benthos), pattern = " ", "_")
+
 # As the sum of habitats within a buffer do not always fit 100%, we converted percentage to relative in order to remove deep sea and land cover
 # and acount only for coral habitats. First we assessed the sum of all habitat (either benthic and geomorphologic), for both buffers (500m, 10km),
 # to keep the raw information of the sum of all habitat.
@@ -136,7 +138,14 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::filter(count >= 50) |>
   dplyr::select(survey_id, species_name, biomass, latitude, longitude)
 
-length(unique(rls_coral_fish_mean_biomass_count$survey_id))
+sp_count <- rls_coral_fish_mean_biomass |>
+  dplyr::group_by(species_name, ) |>
+  dplyr::mutate(count = dplyr::n()) |>
+  dplyr::filter(count >= 50) |> 
+  dplyr::select(species_name, count) |> 
+  unique()
+
+save(sp_count, file = "data/new_derived_data/species_count.Rdata")
 
 # rls_spread_coral_reef <- rls_coral_fish_mean_biomass_count |>
 #   tidyr::spread(species_name, biomass, fill = 0)
@@ -196,11 +205,11 @@ cor_hab <- stats::cor(rls_hab_selec[,-c(1)])
 corrplot::corrplot(cor_hab, type = "upper")
 
 colnames(inferred_benthos)[-c(1:3)]
-rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline algae")]
+rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
 corrplot::corrplot(cor_hab2, type = "upper")
 
-rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline algae")]
+rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
 
 
 #####################################################################
@@ -221,8 +230,40 @@ rls_biomass <- rls_biomass |>
                 site_code, 
                 species_name)
 
+# biomass_contribution <- rls_biomass |> 
+#   dplyr::select(-site_code)
+
 biomass_scv <- scv_function(dats = rls_biomass,
-                            n.folds = 10)
+                            n.folds = 20)
+
+test_pos <- pbmcapply::pbmclapply(1:length(biomass_scv), function(i) {
+  
+  cv_i <- biomass_scv[[i]]
+  
+  species_name <- colnames(cv_i$fitting)[!colnames(cv_i$fitting) %in% c("survey_id", "latitude", "longitude")]
+  
+  test_for_pos_value <- sapply(1:length(species_name), function(j) {
+    
+    # select the jth species from the fitting set
+    fitting <- cv_i$fitting[,c("survey_id", species_name[j])]
+    
+    # select the jth species from the validation set
+    validation <- cv_i$validation[,c("survey_id", species_name[j])]
+    
+    biomass_only <- fitting[which(fitting[,species_name[j]] > 0),]
+    biomass_only_val <- validation[which(validation[,species_name[j]] > 0),]
+    
+    pos_value <- c(nrow(biomass_only), nrow(biomass_only_val))
+    
+    any(pos_value == 0)
+    
+  })
+  
+  any_true <- any(test_for_pos_value == TRUE)
+  
+}, mc.cores = parallel::detectCores() - 1)
+
+any_true <- any(test_pos == TRUE)
 
 names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", i)})
 
@@ -231,6 +272,14 @@ names(biomass_scv) <- sapply(1:length(biomass_scv), function(i) { paste0("cv_", 
 rls_covariates <- rls_env_final |> 
   dplyr::inner_join(rls_soc_final) |> 
   dplyr::inner_join(rls_hab_final)
+rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")] <- scale(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
 
+# save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(biomass_scv, file = "data/new_derived_data/biomass_scv.RData")
+test <- sapply(1:ncol(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")]), function(i) {
+
+  sd(unlist(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")][,i]))
+
+  })
+names(test) <- colnames(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")])

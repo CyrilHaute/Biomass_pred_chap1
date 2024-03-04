@@ -1,10 +1,10 @@
 # function to fit boosted regression tree
 
-biomass = biomass_scv
-covariates = rls_covariates
-species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-n.cores = 1
-base_dir = base_dir
+# biomass = biomass_scv
+# covariates = rls_covariates
+# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
+# n.cores = 1
+# base_dir = base_dir
 
 #' Title brt_function
 #' 
@@ -24,7 +24,7 @@ base_dir = base_dir
 brt_function <- function(biomass, 
                          covariates, 
                          species_name,
-                         n.cores = 1,
+                         n.cores,
                          base_dir){
   
   species_j <- list()
@@ -67,11 +67,11 @@ brt_function <- function(biomass,
       
       # keep only absences from species life area 
       # load rls surveys info, we need ecoregion 
-      load("new_data/new_raw_data/00_rls_surveys.Rdata")
+      load("data/new_raw_data/00_rls_surveys.Rdata")
       rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
       
-      fitting <- dplyr::inner_join(fitting, rls_surveys)
-      validation <- dplyr::inner_join(validation, rls_surveys)
+      fitting <- dplyr::inner_join(fitting, rls_surveys[!colnames(rls_surveys) %in% "depth"])
+      validation <- dplyr::inner_join(validation, rls_surveys[!colnames(rls_surveys) %in% "depth"])
       
       zone_geo_fit <- fitting[which(fitting[,species_name[j]] > 0),]
       zone_geo_fit <- unique(zone_geo_fit$ecoregion)
@@ -203,100 +203,57 @@ brt_function <- function(biomass,
       
       model_fit <- tryCatch(gbm::gbm(formula = brt_formula,
                                      data = biomass_final, 
-                                     distribution = 'gaussian', 
+                                     distribution = "gaussian", 
                                      n.trees = 10000,
                                      interaction.depth = 3, 
                                      shrinkage = 0.001,
                                      bag.fraction = 0.8, 
                                      cv.folds = 10, 
                                      n.cores = n.cores), error = function(e) NA)
-        
-      # if(!is.na(model_fit[1])){
-      # 
-      # # selecting the best number of trees from cross validations
-      #   gbm.mod.perf <- gbm::gbm.perf(model_fit, method = "cv", plot.it = F)
-      # 
-      #   # fit model to all data
-      #   model_fit <- gbm::gbm(formula = brt_formula,
-      #                         data = biomass_final,
-      #                         distribution = 'gaussian',
-      #                         n.trees = gbm.mod.perf,
-      #                         bag.fraction = 0.8,
-      #                         interaction.depth = 3,
-      #                         shrinkage = 0.001)
-      # }else{ 
-      #   
-      #   # if the optimal number of trees cannot be identified in gbm
-      #   # find the best model using gbm
-      #   
-      #   times = 0
-      #   
-      #   gbm.mod.perf <- NULL
-      #   
-      #   while(is.null(gbm.mod.perf)){
-      #     # test <- biomass_final[,which(colnames(biomass_final) %in% c("survey_id", "Biomass") == FALSE)]
-      #     gbm.mod.perf <- tryCatch(dismo::gbm.step(data = data.frame(biomass_final),
-      #                                              gbm.x = 3:ncol(data.frame(biomass_final)),
-      #                                              gbm.y = 2,
-      #                                              family = 'gaussian', # cannot have multinomial in this package, but also cannot fit models with single covariate and cross validation in gbm
-      #                                              tree.complexity = 3,
-      #                                              learning.rate = 0.001-(0.0001*times),
-      #                                              n.folds = 10,
-      #                                              bag.fraction = 0.8,
-      #                                              plot.main = F)$n.trees, error = function(e) NULL)
-      #     times <- times + 1
-      #     
-      #     if(times == 500){stop()}
-      #     
-      #   }
-      #   
-      #   model_fit <- tryCatch(gbm(formula = brt_formula,
-      #                             data = biomass_final,
-      #                             distribution = 'gaussian',
-      #                             n.trees = gbm.mod.perf,
-      #                             bag.fraction = 0.8,
-      #                             interaction.depth = 3,
-      #                             shrinkage = 0.001), error = identity)
-      # 
-      #   if(class(model_fit)[1] == 'simpleError'){
-      #     verification_predict  <- NA
-      #     validation_predict <- NA
-      #     next
-      #   }
-      # 
-      # } # end of if the optimal number of trees cannot be identified in gbm
       
-      # if(!any(is.na(model_fit) == TRUE)){
-      #   
-      #   validation_predict <- predict(model_fit, biomass_validation, type = 'response')
-      #   
-      #   # back transform predictions
-      #   validation_predict <- 10^(validation_predict) - 1
-      #   
-      #   validation_predict <- data.frame(survey_id = biomass_validation$survey_id,
-      #                                    validation_predict = validation_predict)
-      #   
-      #   validation_observed <- biomass_validation[,c("survey_id", "Biomass")]
-      #   
-      #   validation_observed <- validation_observed |>
-      #     dplyr::rename(validation_observed = Biomass)
-      #   
-      #   validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
-      #   
-      #   validation_obs_prd <- validation_predict |>
-      #     dplyr::inner_join(validation_observed)
-      #   
-      #   validation_obs_prd
-      #   
-      # }else{
-      #   
-      #   validation_obs_prd  <- NA
-      #   
-      # }
+      # selecting the best number of trees from cross validations
+      gbm.mod.perf <- gbm::gbm.perf(model_fit, method = "cv", plot.it = F)
+
+      # fit model to all data
+      model_fit <- gbm::gbm(formula = brt_formula,
+                            data = biomass_final,
+                            distribution = "gaussian",
+                            n.trees = gbm.mod.perf,
+                            bag.fraction = 0.8,
+                            interaction.depth = 3,
+                            shrinkage = 0.001)
+      
+      if(!any(is.na(model_fit) == TRUE)){
+
+        validation_predict <- predict(model_fit, biomass_validation, type = "response")
+
+        # back transform predictions
+        validation_predict <- 10^(validation_predict) - 1
+
+        validation_predict <- data.frame(survey_id = biomass_validation$survey_id,
+                                         validation_predict = validation_predict)
+
+        validation_observed <- biomass_validation[,c("survey_id", "Biomass")]
+
+        validation_observed <- validation_observed |>
+          dplyr::rename(validation_observed = Biomass)
+
+        validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
+
+        validation_obs_prd <- validation_predict |>
+          dplyr::inner_join(validation_observed)
+
+        validation_obs_prd
+
+      }else{
+
+        validation_obs_prd  <- NA
+
+      }
       
     }, mc.cores = parallel::detectCores() - 1)
-      
-    }
+    
+  }
     
     validation_prediction <- parallel::mclapply(1:length(species_j[[1]]), function(i){
       
