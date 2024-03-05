@@ -368,4 +368,6 @@ best_count_log <- best_count |>
 glm_occ_ml_sp <- glm(formula = "Spearman ~ occurence * MaxLength", data = best_count_log)
 summary(glm_occ_ml_sp)
 with(summary(glm_occ_ml_sp), 1 - deviance/null.deviance)
-visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength")
+visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength", scale = "response")
+
+Anova(glm_occ_ml_sp)
