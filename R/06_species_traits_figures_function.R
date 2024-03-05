@@ -32,7 +32,9 @@ kruskal_test_function <- function(data,
 species_traits_function <- function(plot_data,
                                     trait,
                                     color,
-                                    labs_title
+                                    labs_title,
+                                    aes_string_x,
+                                    x_text_angle
                                     ){
   
   require(ggplot2)
@@ -88,8 +90,22 @@ species_traits_function <- function(plot_data,
   cont <- cont |> 
     dplyr::inner_join(sp_car, by = "species_name")
   
+  n_trait <- cont |>
+    dplyr::group_by(.dots = trait) |> 
+    dplyr::summarise(n = dplyr::n() / 3)
+
   kruskal_test_trait <- kruskal_test_function(cont,
                                               trait)
+  
+  cont[colnames(cont) %in% trait] <- sapply(1:nrow(cont[colnames(cont) %in% trait]), function(i) {
+    
+    row_i <- cont[colnames(cont) %in% trait][i,]
+    
+    which_row <- which(grepl(row_i, unlist(n_trait[colnames(n_trait) %in% trait])) == TRUE)
+    
+    paste0(row_i, " (n = ", n_trait$n[which_row], ")")
+    
+  })
   
   if(kruskal_test_trait$statistics$p.chisq > 0.05){
     
@@ -98,26 +114,26 @@ species_traits_function <- function(plot_data,
     }else{
       
       print("p.chisq < 0.05")
-      
-      plot_trait <- cont |> 
+
+        plot_trait <- cont |> 
         dplyr::mutate(var = forcats::fct_relevel(var, "ENV", "HAB", "HUM")) |> 
         ggplot(aes_string(x = trait, y = "value", fill = "var")) +
-        geom_boxplot(aes(fill = factor(var)), width=0.6, outlier.shape = NA) +
+        geom_boxplot(aes(fill = factor(var)), width=0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
         scale_fill_manual(values = c("ENV" = color[1],
                                      "HUM" = color[3],
                                      "HAB" = color[2])) +
         theme_bw() +
-        geom_text(data = kruskal_test_trait$groups, aes_string(x = trait, y = "quant", label = "groups"), size = 7, vjust=-0.5, hjust=-0.55, position = position_dodge(width = 0.65)) +
+        geom_text(data = kruskal_test_trait$groups, aes_string(x = aes_string_x, y = "quant", label = "groups"), vjust=-0.48, size = 6) +
         coord_cartesian(ylim = c(0,0.25)) +
-        labs(y = "Change in RMSE", x = "", title = labs_title) +
+        labs(y = "Relative importance (RMSE)", x = "", title = labs_title) +
         theme(legend.position = 'none',
-              title = element_text(size=20),
-              axis.text=element_text(size=20),
-              axis.text.x = element_text(size = 20),
+              title = element_text(size = 20),
+              axis.text = element_text(size = 20),
+              axis.text.x = element_text(size = 18),
               axis.text.y = element_text(size = 20),
-              axis.title=element_text(size=20),
-              legend.text=element_text(size=20),
-              legend.title=element_text(size=20),
+              axis.title = element_text(size = 20),
+              legend.text = element_text(size = 20),
+              legend.title = element_text(size = 20),
               strip.text.x = element_text(size = 20),
               strip.text.y = element_text(size = 20),
               strip.background = element_blank(),
@@ -126,5 +142,14 @@ species_traits_function <- function(plot_data,
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
       
+      if(!is.null(x_text_angle)) {
+        
+        plot_trait <- plot_trait +
+          theme(axis.text.x = element_text(angle = x_text_angle, hjust = 1))
+        
+      }
+        
     }
+  
+  return(plot_trait)
 }

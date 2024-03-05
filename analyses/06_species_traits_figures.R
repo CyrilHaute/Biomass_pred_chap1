@@ -48,22 +48,30 @@ sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Troph
 plot_max.length <- species_traits_function(plot_data = bind_files,
                                            trait = "ML_cat",
                                            color = pal_sp_trait,
-                                           labs_title = "A")
+                                           labs_title = "A",
+                                           aes_string_x = c(3.1, 4.85, 4.1, 2.9, 5.12, 2.12, 3.9, 1.9, 0.85, 1.12, 5.37, 4.37, 3.35, 2.3, 1.3),
+                                           x_text_angle = NULL)
 
 plot_water.column <- species_traits_function(plot_data = bind_files,
                                              trait = "Water.column",
                                              color = pal_sp_trait,
-                                             labs_title = "B")
+                                             labs_title = "B",
+                                             aes_string_x = c(3.05, 2.8, 2.05, 1.8, 1.05, 3.3, 0.8, 2.3, 1.3),
+                                             x_text_angle = NULL)
 
 plot_habitat <- species_traits_function(plot_data = bind_files,
                                         trait = "Habitat",
                                         color = pal_sp_trait,
-                                        labs_title = "C")
+                                        labs_title = "C",
+                                        aes_string_x = c(4.05, 3.85, 2.1, 3.1, 1.825, 0.85, 1.1, 2.85, 1.3, 4.3, 3.3, 2.3),
+                                        x_text_angle = NULL)
 
 plot_trophic <- species_traits_function(plot_data = bind_files,
                                         trait = "Trophic_guild_name",
                                         color = pal_sp_trait,
-                                        labs_title = "D")
+                                        labs_title = "D",
+                                        aes_string_x = c(5.82, 2.82, 6.1, 3.1, 2.1, 4.05, 8.15, 3.83, 1.85, 6.85, 1.1, 7.87, 4.87, 5.13, 0.88, 7.15, 3.4, 7.45, 4.45, 6.45, 2.35, 8.4, 5.4, 1.3),
+                                        x_text_angle = 65)
 
 plot_species_traits <- plot_max.length / plot_water.column / plot_habitat / plot_trophic
 

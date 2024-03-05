@@ -38,6 +38,7 @@ covariates_importance_function <- function(plot_data,
                        var = c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),
                        VAR = rep("HUM", 8),
                        plot_level = rep(plot_level, 8))
+  SOC[SOC$var == "n_fishing_vessels",3]$var <- "fishing_vessels_density"
     
   HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
   HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
@@ -68,7 +69,7 @@ covariates_importance_function <- function(plot_data,
     theme(title = element_text(size = 18),
           axis.text.x = element_text(size = 10),
           axis.text.y = element_text(size = 12),
-          axis.title = element_text(size = 18),
+          axis.title = element_text(size = 14),
           legend.text = element_text(size = 10),
           strip.text.x = element_text(size = 20),
           strip.text.y = element_text(size = 20),
@@ -235,11 +236,11 @@ merged_covariates_importance_function <- function(plot_data,
     facet_grid(~plot_level) +
     labs(y = labs_y, x = "", fill = labs_fill) +
     theme(legend.position = legend.position) +
-    theme(title = element_text(size=20),
-          axis.text.x=element_text(size=15),
-          axis.text.y=element_text(size=15),
-          axis.title=element_text(size=20),
-          legend.text=element_text(size=20),
+    theme(title = element_text(size = 18),
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 15),
+          legend.text = element_text(size = 10),
           strip.text.x = element_text(size = 20),
           strip.text.y = element_text(size = 20),
           strip.background = element_blank(),
