@@ -160,6 +160,10 @@ performance_all_best$cat <- NA
 performance_all_best[which(performance_all_best$model == performance_all_best$best_model),6] <- "Best models"
 performance_all_best[which(is.na(performance_all_best$cat) == TRUE),6] <- "All models"
 
+performance_all_best[performance_all_best$metrics == "Intercept",3] <- "log10(Intercept + 1)"
+
+performance_all_best[performance_all_best$metrics == "Slope",3] <- "log10(Slope + 1)"
+
 plot_pearson <- performance_plot(performance_all_best,
                                  metrics_sel = "Pearson",
                                  slope = 0,
@@ -179,7 +183,7 @@ plot_spearman <- performance_plot(performance_all_best,
                                   plot_title = "")
 
 plot_slope <- performance_plot(performance_all_best,
-                               metrics_sel = "Slope",
+                               metrics_sel = "log10(Slope + 1)",
                                slope = 0,
                                intercept = 0.30103,
                                color = pal_perf,
@@ -188,7 +192,7 @@ plot_slope <- performance_plot(performance_all_best,
                                plot_title = "")
 
 plot_intercept <- performance_plot(performance_all_best,
-                                   metrics_sel = "Intercept",
+                                   metrics_sel = "log10(Intercept + 1)",
                                    slope = 0,
                                    intercept = 0,
                                    color = pal_perf,
@@ -199,8 +203,8 @@ plot_intercept <- performance_plot(performance_all_best,
 all_plots <- patchwork::wrap_plots(plot_intercept, plot_slope, plot_pearson, plot_spearman)
 all_plots <- all_plots / best_model
 
-# ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
-# ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)
+ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
+ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)
 
 ################## Plot performance-traits relationship
 

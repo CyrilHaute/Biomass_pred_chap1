@@ -38,38 +38,37 @@ observed_predicted_plot <- function(input_data,
   require(patchwork)
   
   model_outputs <- input_data
-  
+  model_outputs <- lapply(1:nrow(model_outputs), function(i) {
+    
+    sp_i <- model_outputs[i,]
+    sp_i_dtf <- data.frame(predict = as.numeric(unlist(sp_i$validation_predict)),
+                           observe = as.numeric(unlist(sp_i$validation_observed)))
+    
+    sp_i_dtf <- sp_i_dtf[which(is.na(sp_i_dtf$predict) == FALSE),]
+    
+    sp_i_dtf <- sp_i_dtf[which(is.infinite(sp_i_dtf$predict) == FALSE),]
+    
+    sp_i_dtf[sp_i_dtf$predict == -1,] <- 0
+    
+    sp_i$validation_predict <- list(sp_i_dtf$predict)
+    sp_i$validation_observed <- list(sp_i_dtf$observe)
+    
+    return(sp_i)
+
+  })
+  model_outputs <- do.call(rbind, model_outputs)
+
   # remove turn values that are <0 to NAs
   # rescale predictions
   model_outputs$predicted <- pbapply::pblapply(model_outputs$validation_predict, function(x) return(ifelse(x < 0, x, x)))
-  model_outputs$predicted <- pbapply::pblapply(model_outputs$predicted, function(x) rescale_01(log10(x+1)))
+  model_outputs$predicted <- pbapply::pblapply(1:nrow(model_outputs), function(x) rescale_01(log10(unlist(model_outputs[x,]$predicted)+1)))
 
   # rescale observations
   model_outputs$observed <- pbapply::pblapply(model_outputs$validation_observed, function(x) rescale_01(log10(x+1)))
   
-  # unnest using data.table because dplyr is slow for this much data
-  if(nrow(model_outputs) > 10000){
-    
-    model_outputs_list <- list()
-    
-    # create sequence to unlist by
-    sample_seq <- c(seq(1, nrow(model_outputs), by = 1000), nrow(model_outputs))
-    
-    for(i in 1:(length(sample_seq)-1)){
-      print(i)
-      model_outputs_list[[i]] <- unnest_dt2(data.table(model_outputs[sample_seq[i]:sample_seq[i+1],] |> 
-                                                         dplyr::select(-validation_observed, -validation_predict)), 
-                                            predicted, 
-                                            observed)
-    }
-    model_outputs <- as_data_frame(rbindlist(model_outputs_list))
-  }else{
-    
-    # if fewer samples just unnest it directly
-    model_outputs <- dplyr::as_data_frame(unnest_dt2(data.table::data.table(model_outputs |>  dplyr::select(-validation_observed, -validation_predict)), predicted, observed))
-    
-  }
-  
+  # if fewer samples just unnest it directly
+  model_outputs <- dplyr::as_data_frame(unnest_dt2(data.table::data.table(model_outputs |>  dplyr::select(-validation_observed, -validation_predict)), predicted, observed))
+
   # create a transformations label
   model_outputs$transformation <- model_outputs$fitted_model
   

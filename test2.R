@@ -3,7 +3,7 @@
 load("vessels_rdata.RData")
 
 # Keep only fishing boat
-fishing_total <- boat_csv |> 
+fishing_total <- vessels_rdata |> 
   dplyr::mutate(category = ifelse(matched_category == "unmatched" & fishing_score >= 0.8, "unmatched_fishing",
                                   #If the match is unknown, we consider it as a fishing boat if fishing score > 0.8
                                   ifelse(matched_category == "matched_unknown" & fishing_score >= 0.8, "matched_fishing",
@@ -12,8 +12,8 @@ fishing_total <- boat_csv |>
   #Also if unmatched_fishing and length higher than 80% quantile then delete it
   dplyr::mutate(category = ifelse(category == "unmatched_fishing" & length_m > quantile(length_m, 0.8),"matched_unknown",category)) |>
   dplyr::filter(category %in% c("unmatched_fishing", "matched_fishing"),
-                lon > -15 & lon < 50,
-                lat > 5 & lat < 55)
+                lon > 135 & lon < 175,
+                lat > -35 & lat < 0)
 
 test <- terra::vect(fishing_total, geom = c("lon", "lat"), crs = "WGS84")
 
