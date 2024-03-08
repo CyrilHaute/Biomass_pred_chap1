@@ -5,7 +5,7 @@ Predict coral reef fish species-specific biomass and assess relative variables i
 
 Research compendium to reproduce analyses and figures of the following article:
 
-Hautecoeur C, Waldock C, Albouy C, Cramer K.L, Graham E.J, Loiseau N, McLean M, Mellin C, Pellissier L, Stuart-Smith R.D, Velez L, Mouillot D (2023), Satellite imagery and machine learning reveal the effects of environment, human and habitat influences on biomass of reef fish species. (Ecology Letters refused, new submission at Global Change Biology)
+Cyril Hautecoeur, Conor Waldock, Ulysse Flandrin, Camille Albouy, Katie L. Cramer, Graham J. Edgar, Nicolas Loiseau, Matthew McLean, Camille Mellin, Loïc Pellissier, Rick D. Stuart-Smith, Laure Velez, David Mouillot (2024), Satellite imagery and machine learning reveal the importance of environment, human and habitat for predicting fish species biomass on coral reefs. (Ecology Letters refused, new submission at Global Change Biology)
 
 ## General
 
