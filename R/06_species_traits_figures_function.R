@@ -34,7 +34,8 @@ species_traits_function <- function(plot_data,
                                     color,
                                     labs_title,
                                     aes_string_x,
-                                    x_text_angle
+                                    x_text_angle,
+                                    legend.position
                                     ){
   
   require(ggplot2)
@@ -125,14 +126,17 @@ species_traits_function <- function(plot_data,
         theme_bw() +
         geom_text(data = kruskal_test_trait$groups, aes_string(x = aes_string_x, y = "quant", label = "groups"), vjust=-0.48, size = 6) +
         coord_cartesian(ylim = c(0,0.25)) +
-        labs(y = "Relative importance (RMSE)", x = "", title = labs_title) +
-        theme(legend.position = 'none',
+        labs(y = "Relative importance (RMSE)", x = "", title = labs_title, fill = "") +
+        theme(legend.position = legend.position,
+              legend.direction = "horizontal",
+              legend.background = element_rect(fill = "white"),
+              legend.key = element_rect(fill = "white", color = NA),
               title = element_text(size = 20),
               axis.text = element_text(size = 20),
               axis.text.x = element_text(size = 18),
               axis.text.y = element_text(size = 20),
               axis.title = element_text(size = 20),
-              legend.text = element_text(size = 20),
+              legend.text = element_text(size = 25),
               legend.title = element_text(size = 20),
               strip.text.x = element_text(size = 20),
               strip.text.y = element_text(size = 20),
