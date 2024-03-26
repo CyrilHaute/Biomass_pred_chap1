@@ -18,8 +18,20 @@ bind_files <- lapply(1:length(list_files_path), function(i) {
   
 })
 bind_files <- do.call(rbind, bind_files)
+models <- unique(bind_files$fitted_model)
 
 ##### For bind_files
+
+covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
+                                                                title = "A.")
+
+merged_covariates_importance_all <- merged_covariates_importance_all_function(plot_data = bind_files,
+                                                                              title = "B.")
+
+covariates_importance_all_and_merged <- covariates_importance_all + merged_covariates_importance_all
+
+ggsave("figures/covariates_importance_all_and_merged.pdf", covariates_importance_all_and_merged, height = 7, width = 14)
+ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 14)
 
 covariates_importance_GLM <- covariates_importance_function(plot_data = bind_files,
                                                             fitted_model = "GLM",
@@ -126,4 +138,12 @@ merged_covariates_importance <- (merged_covariates_importance_GLM + merged_covar
 
 ggsave("figures/merged_covariates_importance.pdf", merged_covariates_importance, height = 15, width = 11)
 ggsave("figures/merged_covariates_importance.png", merged_covariates_importance, height = 15, width = 11)
+
+
+all_covariates_importance <- merged_covariates_importance_function(plot_data = bind_files,
+                                                                   color = pal_contribution,
+                                                                   labs_y = "Relative importance (RMSE)",
+                                                                   labs_fill = "",
+                                                                   legend.position = c(0.8, 0.18),
+                                                                   mul = 3)
 

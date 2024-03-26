@@ -128,6 +128,8 @@ perf_models_all_best <- best_assessments_SCV |>
 perf_models_all_best <- perf_models_all_best |> 
   dplyr::mutate(metric = rownames(perf_models_all_best)) |> 
   dplyr::select(metric, X1:X5)
+max(best_assessments_SCV$Pearson)
+max(best_assessments_SCV$Spearman)
 
 # Manage data for performance plot
 
@@ -375,7 +377,7 @@ with(summary(glm_occ_ml_sp), 1 - deviance/null.deviance)
 
 vis_plot <- visreg::visreg2d(glm_occ_ml_sp, "occurence", "MaxLength", scale = "response", plot.type = "gg") + 
   geom_contour(aes(z = z), color = "black") +
-  labs(title = "Spearman ~ occurence x maximum lenght", y = "Maximum length (cm)", x = "log10(Occurrence)", fill = "Spearman") +
+  labs(y = "Maximum length (cm)", x = "log10(Occurrence)", fill = "Spearman") +
   scale_fill_viridis_c(option = "viridis") +
   theme(title = element_text(size = 15),
         axis.text = element_text(size = 15),
