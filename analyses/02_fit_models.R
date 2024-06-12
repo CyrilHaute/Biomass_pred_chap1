@@ -19,8 +19,6 @@ rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 
 base_dir <- "outputs/biomass_prediction/"
 
-rls_biomass <- rls_biomass[,1:15]
-
 # run glm 
 print("glm biomass prediction")
 glm_function(biomass = rls_biomass,
@@ -35,12 +33,12 @@ rf_function(biomass = rls_biomass,
             species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
             base_dir = base_dir)
 
-# run spatial random forest
-print("sprf biomass prediction")
-spatialrf_function(biomass = rls_biomass,
-                   covariates = rls_covariates,
-                   species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                   base_dir = base_dir)
+# run boosted regression trees
+print("brt biomass prediction")
+brt_function(biomass = rls_biomass,
+             covariates = rls_covariates,
+             species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
+             base_dir = base_dir)
 
 # run gam
 print("gam biomass prediction")
@@ -56,9 +54,9 @@ spamm_function(biomass = rls_biomass,
                species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
                base_dir = base_dir)
 
-# run boosted regression trees
-print("brt biomass prediction")
-brt_function(biomass = rls_biomass,
-             covariates = rls_covariates,
-             species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-             base_dir = base_dir)
+# run spatial random forest
+print("sprf biomass prediction")
+spatialrf_function(biomass = rls_biomass,
+                   covariates = rls_covariates,
+                   species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
+                   base_dir = base_dir)
