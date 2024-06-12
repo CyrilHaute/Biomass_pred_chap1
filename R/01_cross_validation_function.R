@@ -12,48 +12,40 @@
 #'
 #' @examples
 
-# dats = rls_biomass
-# n.folds = 20
+# dats = sp
+# n.folds = 10
 
 scv_function <- function(dats, 
                          n.folds){
   
   # flexible object for storing folds
   folds <- list()
-
-  positive_indices_min <- which.min(unlist(lapply(dats[,species_name], function(col) length(which(col > 0))))) + 4
-  # positive_indices <- which(unlist(lapply(dats[,species_name], function(col) length(which(col > 0)))) %in% 51:52) + 4
   
   fold.size <- nrow(dats)/n.folds
-  fold.size.pos <- nrow(dats[which(dats[,positive_indices_min] > 0),])/n.folds
-  fold.size.zero <- nrow(dats[which(dats[,positive_indices_min] == 0),])/n.folds
   
   # all obs are in
-  remain.pos <- which(dats[,positive_indices_min] > 0)
-  remain.zero <- which(dats[,positive_indices_min] == 0)
-
+  remain <- 1:nrow(dats)
+  
   for(i in 1:n.folds) {
     
     # randomly sample “fold_size” from the ‘remaining observations’
-    select.pos <- sample(remain.pos, fold.size.pos, replace = FALSE)
-    select.zero <- sample(remain.zero, fold.size.zero, replace = FALSE)
+    select.val <- sample(remain, fold.size, replace = FALSE)
     
     # store indices
-    folds[[i]] <- c(select.pos, select.zero)
+    folds[[i]] <- select.val
     
     if (i == n.folds){
       
-      folds[[i]] <- c(remain.pos, remain.zero)
+      folds[[i]] <-  remain
       
     }
     
     # update remaining indices to reflect what was taken out
-    remain.pos <- setdiff(remain.pos, select.pos)
-    remain.zero <- setdiff(remain.zero, select.zero)
+    remain <- setdiff(remain, select.val)
     
   }
   
-  train_test <- list()
+  train_test_val <- list()
   
   for(i in 1:n.folds) {
     
@@ -61,25 +53,26 @@ scv_function <- function(dats,
     # unpack into a vector
     indis <- folds[[i]]
     
-    # split into train and test sets
     train <- dats[-indis,]
+    
     test <- dats[indis,]
-
-    train_test[[i]] <- list(train, test)
-    names(train_test[[i]]) <- c("fitting", "validation")
+    
+    train_test_val[[i]] <- list(train, test)
+    names(train_test_val[[i]]) <- c("train", "test")
     
     # delete from the train set, transects that appears in the same site than the point in the validation set
-    train_test[[i]]$fitting <- train_test[[i]]$fitting |>
-      dplyr::filter(!site_code %in% train_test[[i]]$validation$site_code)
+    train_test_val[[i]]$train <- train_test_val[[i]]$train |>
+      dplyr::filter(!site_code %in% unique(train_test_val[[i]]$test$site_code))
     
-    train_test[[i]]$fitting <- train_test[[i]]$fitting |> 
+    train_test_val[[i]]$train <- train_test_val[[i]]$train |> 
       dplyr::select(-site_code)
     
-    train_test[[i]]$validation <- train_test[[i]]$validation |> 
+    train_test_val[[i]]$test <- train_test_val[[i]]$test |> 
       dplyr::select(-site_code)
-
+    
+    
   }
   
-  return(train_test)
+  return(train_test_val)
   
 }

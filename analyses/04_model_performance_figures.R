@@ -24,7 +24,7 @@ all_assessments_SCV <- do.call(rbind, all_assessments_SCV)
 # select only the columns to be used later 
 all_assessments_SCV <- all_assessments_SCV |> 
   
-  dplyr::select(fitted_model, species_name, metrics)
+  dplyr::select(model, species_name, metrics)
 
 # estimate for each species the best model based on performance metrics  
 best_models <- all_assessments_SCV |> 
@@ -32,7 +32,7 @@ best_models <- all_assessments_SCV |>
                     metrics = c("Intercept", "Slope", "Pearson", "Spearman")) |>
   # find the best fitting model for each species within each fitted_model
   dplyr::group_by(species_name) |> 
-  dplyr::do(best_model = .$fitted_model[which.max(.$discrimination)]) |> 
+  dplyr::do(best_model = .$model[which.max(.$discrimination)]) |> 
   tidyr::unnest(cols = c('best_model'))
 
 # save(best_models, file = "outputs/best_models.Rdata")
@@ -63,10 +63,10 @@ best_model <- best_models_pr |>
 
 # produce histograms of model performance for best models ----
 
-p_level <- unique(all_assessments_SCV$fitted_model)
+p_level <- unique(all_assessments_SCV$model)
 
 perf_models_all <- all_assessments_SCV |> 
-  dplyr::summarise_at(vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
+  dplyr::summarise_at(dplyr::vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
                                                                          IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
                                                                          median  = round(median(x, na.rm = T), 2),
                                                                          IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
@@ -82,13 +82,13 @@ perf_models_all <- perf_models_all |>
   dplyr::mutate(metric = rownames(perf_models_all)) |>
   dplyr::select(metric, X1:X5)
 
-perf_models_details <- parallel::mclapply(1:length(unique(all_assessments_SCV$fitted_model)), function(i) {
+perf_models_details <- parallel::mclapply(1:length(unique(all_assessments_SCV$model)), function(i) {
   
   p_level <- p_level[i]
   
   perf_models <- all_assessments_SCV |> 
-    dplyr::filter(fitted_model == p_level) |> 
-    dplyr::summarise_at(vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
+    dplyr::filter(model == p_level) |> 
+    dplyr::summarise_at(dplyr::vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
                                                                            IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
                                                                            median  = round(median(x, na.rm = T), 2),
                                                                            IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
@@ -110,10 +110,10 @@ names(perf_models_details) <- p_level
 # Select only the best model for each species
 
 best_assessments_SCV <- dplyr::inner_join(all_assessments_SCV, best_models, by = "species_name")
-best_assessments_SCV <- best_assessments_SCV[best_assessments_SCV$fitted_model == best_assessments_SCV$best_model,]
+best_assessments_SCV <- best_assessments_SCV[best_assessments_SCV$model == best_assessments_SCV$best_model,]
 
 perf_models_all_best <- best_assessments_SCV |> 
-  dplyr::summarise_at(vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
+  dplyr::summarise_at(dplyr::vars(Intercept:Spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
                                                                   IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
                                                                   median  = round(median(x, na.rm = T), 2),
                                                                   IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
@@ -140,7 +140,7 @@ performance_all <- dplyr::tibble(species_name = rep(all_assessments_SCV$species_
                                       rep("Slope", nrow(all_assessments_SCV)),
                                       rep("Pearson", nrow(all_assessments_SCV)), 
                                       rep("Spearman", nrow(all_assessments_SCV))),
-                          model = rep(all_assessments_SCV$fitted_model, 4))
+                          model = rep(all_assessments_SCV$model, 4))
 
 performance_all[performance_all$metrics == "Intercept",2] <- log10(performance_all[performance_all$metrics == "Intercept",2]$value + 1)
 performance_all[performance_all$metrics == "Slope",2] <- log10(performance_all[performance_all$metrics == "Slope",2]$value + 1)
@@ -151,7 +151,7 @@ performance_best <- dplyr::tibble(species_name = rep(best_assessments_SCV$specie
                                       rep("Slope", nrow(best_assessments_SCV)),
                                       rep("Pearson", nrow(best_assessments_SCV)), 
                                       rep("Spearman", nrow(best_assessments_SCV))),
-                          best_model = rep(best_assessments_SCV$fitted_model, 4))
+                          best_model = rep(best_assessments_SCV$model, 4))
 
 performance_best[performance_best$metrics == "Intercept",2] <- log10(performance_best[performance_best$metrics == "Intercept",2]$value + 1)
 performance_best[performance_best$metrics == "Slope",2] <- log10(performance_best[performance_best$metrics == "Slope",2]$value + 1)

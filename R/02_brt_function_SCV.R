@@ -21,263 +21,138 @@
 #'
 #' @examples
 
+# biomass = rls_biomass
+# covariates = rls_covariates
+# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+# base_dir = base_dir
+
 brt_function <- function(biomass, 
                          covariates, 
                          species_name,
                          n.cores,
                          base_dir){
   
-  species_j <- list()
+  brt_formula <- as.formula(paste0("biomass ~ ", paste0(colnames(covariates)[!colnames(covariates) %in% "survey_id"], collapse = " + ")))
   
-  for(i in 1:length(biomass)) {
+  sp_i <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
     
-    print(paste0("cv ", i))
-      
-    # create raw biomass object and select cross validation set i
-    raw_biomass <- biomass[[i]]
+    sp <- biomass[colnames(biomass) %in% c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
+    colnames(sp)[colnames(sp) %in% species_name[i]] <- "biomass"
+    sp$latitude_arr <- round(sp$latitude, 1)
     
-    # response variable name
-    response <- "Biomass ~ "
+    pres <- sp |> 
+      dplyr::filter(biomass != 0)
+    abs <- sp |> 
+      dplyr::filter(biomass == 0) |> 
+      dplyr::filter(latitude_arr %in% unique(pres$latitude_arr))
     
-    brt_formula <- as.formula(paste0(response, paste0(colnames(covariates)[!colnames(covariates) %in% "survey_id"], collapse = " + ")))
+    sp <- rbind(pres, abs) |> 
+      dplyr::select(! latitude_arr)
     
-    species_j[[i]] <- pbmcapply::pbmclapply(1:length(species_name), function(j){
+    biomass_only <- sp[which(sp[, "biomass"] > 0),]
+    
+    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+    
+    absence <- sp[which(sp[, "biomass"] == 0),]
+    
+    if(nrow(absence) > 0) {
       
-      # select the jth species from the fitting set
-      fitting <- raw_biomass$fitting[,c("survey_id", species_name[j])]
+      replacement <- ifelse(length(which(sp[, "biomass"] == 0)) < n_subsample, T, F)
       
-      # add covariates
-      fitting <- dplyr::inner_join(fitting, covariates, by = "survey_id")
+      absence <- absence[sample(which(absence[, "biomass"] == 0), n_subsample, replace = replacement),]
       
-      # log10(x+1) transform biomass
-      fitting[,species_name[j]] <- log10(fitting[,species_name[j]] + 1)
+    }
+    
+    # combine absence and presence
+    sp <- rbind(biomass_only, absence)
+    
+    sp$biomass <- as.numeric(sp$biomass)
+    
+    biomass_scv <- scv_function(sp,
+                                10)
+    
+    cv_j <- pbmcapply::pbmclapply(1:length(biomass_scv), function(j) {
+      
+      # select the jth species from the training set
+      training <- biomass_scv[[j]]$train[,c("survey_id", "biomass")]
       
       # select the jth species from the validation set
-      validation <- raw_biomass$validation[,c("survey_id", species_name[j])]
+      testing <- biomass_scv[[j]]$test[,c("survey_id", "biomass")]
       
-      # add covariates
-      validation <- dplyr::inner_join(validation, covariates, by = "survey_id")
+      training <- training |> 
+        dplyr::inner_join(rls_surveys[,colnames(rls_surveys) %in% c("survey_id", "latitude", "longitude")]) |> 
+        dplyr::rename(X = longitude, Y = latitude)
       
-      # log10(x+1) transform biomass
-      validation[,species_name[j]] <- log10(validation[,species_name[j]]  + 1) 
-      
-      # get biomass data
-      biomass_only <- fitting[which(fitting[,species_name[j]] > 0),]
-      biomass_only_val <- validation[which(validation[,species_name[j]] > 0),]
-      
-      # keep only absences from species life area 
-      # load rls surveys info, we need ecoregion 
-      load("data/new_raw_data/00_rls_surveys.Rdata")
-      rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
-      
-      fitting <- dplyr::inner_join(fitting, rls_surveys[!colnames(rls_surveys) %in% "depth"])
-      validation <- dplyr::inner_join(validation, rls_surveys[!colnames(rls_surveys) %in% "depth"])
-      
-      zone_geo_fit <- fitting[which(fitting[,species_name[j]] > 0),]
-      zone_geo_fit <- unique(zone_geo_fit$ecoregion)
-      
-      zone_geo_val <- validation[which(validation[,species_name[j]] > 0),]
-      zone_geo_val <- unique(zone_geo_val$ecoregion)
-      
-      if(sjmisc::is_empty(zone_geo_val)){
-        
-        zone_geo_val <- zone_geo_fit
-        
-      }
-      
-      fitting <- fitting |>  
-        dplyr::filter(ecoregion %in% zone_geo_fit) |> 
-        dplyr::select("survey_id", species_name[j], colnames(rls_covariates)[!colnames(rls_covariates) %in% c("survey_id")])
-      
-      validation <- validation |>  
-        dplyr::filter(ecoregion %in% zone_geo_val) |> 
-        dplyr::select("survey_id", species_name[j], colnames(rls_covariates)[!colnames(rls_covariates) %in% c("survey_id")])
-      
-      if(nrow(biomass_only_val) == 0){
-        
-        biomass_only_val <- validation
-        
-      }
-      
-      # keep only two times more absences than observation  
-      # get absence
-      
-      n_subsample_fit <- nrow(fitting[which(fitting[, species_name[j]] > 0),]) * 2
-      n_subsample_val <- nrow(validation[which(validation[, species_name[j]] > 0),]) * 2
-      
-      absence_fit <- fitting[which(fitting[, species_name[j]] == 0),]
-      absence_val <- validation[which(validation[, species_name[j]] == 0),]
-      
-      if(nrow(absence_fit) > 0) {
-        
-        replacement_fit <- ifelse(length(which(fitting[, species_name[j]] == 0)) < n_subsample_fit, T, F)
-        
-        absence_fit <- absence_fit[sample(which(absence_fit[, species_name[j]] == 0), n_subsample_fit, replace = replacement_fit),]
-        
-      }
-      
-      if(nrow(absence_val) > 0) {
-        
-        replacement_val <- ifelse(length(which(validation[, species_name[j]] == 0)) < n_subsample_val, T, F)
-        
-        absence_val <- absence_val[sample(which(absence_val[, species_name[j]] == 0), n_subsample_val, replace = replacement_val),]
-        
-      }
-      
-      # combine absence and presence
-      biomass_final <- rbind(biomass_only, absence_fit)
-      biomass_validation <- rbind(biomass_only_val, absence_val)
-      
-      names(biomass_final)[names(biomass_final) == species_name[j]] <- "Biomass"
-      names(biomass_validation)[names(biomass_validation) == species_name[j]] <- "Biomass"
+      testing <- testing |> 
+        dplyr::inner_join(rls_surveys[,colnames(rls_surveys) %in% c("survey_id", "latitude", "longitude")]) |> 
+        dplyr::rename(X = longitude, Y = latitude)
       
       # As some covariates are at the country level, it means you can have very few or even only one value for these covariates
       # Check for the number of values in each covariates and add noise if < 6 values
       
-      n_values <- lapply(1:ncol(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
-      n_values_val <- lapply(1:ncol(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
+      train_covariates <- covariates |> 
+        dplyr::filter(survey_id %in% training$survey_id) |> 
+        noise_function(avoid = c("survey_id", "effectiveness"),
+                       limit = 6,
+                       size = 0.01)
+      test_covariates <- covariates |> 
+        dplyr::filter(survey_id %in% testing$survey_id) |> 
+        noise_function(avoid = c("survey_id", "effectiveness"),
+                       limit = 6,
+                       size = 0.01)
       
-      names(n_values) <- colnames(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")])
-      names(n_values_val) <- colnames(biomass_validation[,!colnames(biomass_validation) %in% c("survey_id", "Biomass", "effectiveness")])
+      # add covariates
+      training <- dplyr::inner_join(training, train_covariates, by = "survey_id")
       
-      little_cov <- names(n_values[which(sapply(1:length(n_values), function(i) {length(n_values[[i]])}) <= 6)])
-      little_cov_val <- names(n_values_val[which(sapply(1:length(n_values_val), function(i) {length(n_values_val[[i]])}) <= 6)])
-      
-      if(sjmisc::is_empty(little_cov) == TRUE){
-        
-        biomass_final <- biomass_final
-        
-      }else{
-        
-        n_cov <- which(names(biomass_final) %in% little_cov)
-        
-        noise <- lapply(1:length(n_cov), function(i) {
-          
-          abs(rnorm(nrow(biomass_final), 0.01, 0.01))
-          
-        })
-        
-        if(length(noise) == 1){
-          
-          biomass_final[,n_cov] <- biomass_final[,n_cov] + unlist(noise)
-          
-        }else{
-          
-          biomass_final[,n_cov] <- biomass_final[,n_cov] + noise
-          
-        }
-        
-      }
-      
-      if(sjmisc::is_empty(little_cov_val) == TRUE){
-        
-        biomass_validation <- biomass_validation
-        
-      }else{
-        
-        n_cov_val <- which(names(biomass_validation) %in% little_cov_val)
-        
-        noise_val <- lapply(1:length(n_cov_val), function(i) {
-          
-          abs(rnorm(nrow(biomass_validation), 0.01, 0.01))
-          
-        })
-        
-        if(length(noise_val) == 1){
-          
-          biomass_validation[,n_cov_val] <- biomass_validation[,n_cov_val] + unlist(noise_val)
-          
-        }else{
-          
-          biomass_validation[,n_cov_val] <- biomass_validation[,n_cov_val] + noise_val
-          
-        }
-        
-      }
+      # add covariates
+      testing <- dplyr::inner_join(testing, test_covariates, by = "survey_id")
       
       ### FITTING BOOSTED REGRESSION TREES
-      
-      # boosted regression tree modelling in 'gbm'
-      # fit models with gbm packages
-      # fit boosted regression tree with stochastic gradient boosting (i.e., bag.fraction != 1)
-      
-      model_fit <- tryCatch(gbm::gbm(formula = brt_formula,
-                                     data = biomass_final, 
-                                     distribution = "gaussian", 
-                                     n.trees = 10000,
-                                     interaction.depth = 3, 
-                                     shrinkage = 0.001,
-                                     bag.fraction = 0.8, 
-                                     cv.folds = 10, 
-                                     n.cores = n.cores), error = function(e) NA)
-      
-      # selecting the best number of trees from cross validations
-      gbm.mod.perf <- gbm::gbm.perf(model_fit, method = "cv", plot.it = F)
 
-      # fit model to all data
       model_fit <- gbm::gbm(formula = brt_formula,
-                            data = biomass_final,
-                            distribution = "gaussian",
-                            n.trees = gbm.mod.perf,
+                            data = training, 
+                            distribution = "gaussian", 
+                            n.trees = 10000,
+                            interaction.depth = 3, 
+                            shrinkage = 0.001,
                             bag.fraction = 0.8,
-                            interaction.depth = 3,
-                            shrinkage = 0.001)
+                            n.cores = 1)
       
-      if(!any(is.na(model_fit) == TRUE)){
-
-        validation_predict <- predict(model_fit, biomass_validation, type = "response")
-
-        # back transform predictions
-        validation_predict <- 10^(validation_predict) - 1
-
-        validation_predict <- data.frame(survey_id = biomass_validation$survey_id,
-                                         validation_predict = validation_predict)
-
-        validation_observed <- biomass_validation[,c("survey_id", "Biomass")]
-
-        validation_observed <- validation_observed |>
-          dplyr::rename(validation_observed = Biomass)
-
-        validation_observed$validation_observed <- 10^(validation_observed$validation_observed) - 1
-
-        validation_obs_prd <- validation_predict |>
-          dplyr::inner_join(validation_observed)
-
-        validation_obs_prd
-
-      }else{
-
-        validation_obs_prd  <- NA
-
-      }
+      validation_predict  <- predict(object = model_fit, testing)
       
-    }, mc.cores = parallel::detectCores() - 1)
-    
-  }
-    
-    validation_prediction <- parallel::mclapply(1:length(species_j[[1]]), function(i){
+      validation_predict <- data.frame(survey_id = testing$survey_id,
+                                       validation_predict = validation_predict)
       
-      species_i <- lapply(species_j, `[[`, i)
+      validation_observed <- testing[,c("survey_id", "biomass")]
       
-      species_i_bind <- do.call(rbind, species_i)
+      validation_obs_prd <- validation_predict |>
+        dplyr::inner_join(validation_observed, multiple = "first") |> 
+        dplyr::mutate(species_name = species_name[i],
+                      cv = j,
+                      model = "gbm")
       
-    }, mc.cores = 10)
+      colnames(validation_obs_prd)[colnames(validation_obs_prd) == "biomass"] <- "validation_observed"
+      
+      validation_obs_prd$validation_predict <- 10^validation_obs_prd$validation_predict - 1
+      validation_obs_prd$validation_observed <- 10^validation_obs_prd$validation_observed - 1
+      
+      return(validation_obs_prd)
+      
+    }, mc.cores = 1)
     
+    cv_j_bind <- do.call(rbind, cv_j)
     
-    extracted_predictions <- dplyr::tibble(species_name = species_name, 
-                                           fitted_model = "GBM", 
-                                           validation_observed = lapply(validation_prediction, '[[', "validation_observed"),
-                                           validation_predict = lapply(validation_prediction, '[[', "validation_predict"))
-    
-    # save prediciton output in same file structure
-    
-    model_dir <- "gbm"
-    
-    dir.create(base_dir, recursive = T)
-    
-    save(extracted_predictions, file = paste0(base_dir, model_dir, "_extracted_predictions.RData"))
-    
-    rm(list=ls())
-    gc()
+  }, mc.cores = parallel::detectCores() - 1)
   
-} # end of function
+  # save prediciton output in same file structure
+  
+  model_dir <- "gbm"
+  
+  dir.create(base_dir, recursive = T)
+  
+  save(sp_i, file = paste0(base_dir, model_dir, "_extracted_predictions.RData"))
+  
+  rm(list=ls())
+  gc()
+  
+}

@@ -1,12 +1,12 @@
 # function for evaluating metrics
 
-# predictions <- model_i$validation_predict
+# predictions <- sp[sp$cv == unique(sp$cv)[k],]$validation_predict
 # predictions <- predictions[[1]]
-# observations <- model_i$validation_observed
+# observations <- sp[sp$cv == unique(sp$cv)[k],]$validation_observed
 # observations <- observations[[1]]
 # scale <- NULL
 
-biomass_assessment_metrics <- function(predictions, observations, scale = NULL){
+biomass_assessment_metrics <- function(predictions, observations){
   
   # check lengths are the same
   if(length(observations) != length(predictions)){return(data.frame(Armse = NA, 
@@ -56,10 +56,7 @@ biomass_assessment_metrics <- function(predictions, observations, scale = NULL){
   metric_summary <- data.frame(Intercept = Intercept, 
                                Slope = Slope, 
                                Pearson = Pearson, 
-                               Spearman = Spearman, 
-                               Evaluation_number = length(observations), 
-                               Scale = if(is.null(scale)){0}else{scale}, 
-                               Evaluation_message = 'none')
+                               Spearman = Spearman)
   
   return(metric_summary)
   
