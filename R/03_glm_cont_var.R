@@ -1,20 +1,17 @@
 # function to fit glm and assess covariates relative importance
 # 
-# biomass = biomass_contribution
-# covariates = rls_covariates
-# species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")]
-# base_dir_cont = base_dir
+biomass = rls_biomass
+covariates = rls_covariates
+species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+base_dir_cont = base_dir
 
 glm_function_cont <- function(biomass, 
                               covariates, 
                               species_name, 
                               base_dir_cont){
 
-  # create raw biomass object and select cross validation set i
-  raw_biomass <- biomass
-  
   # response variable name
-  response <- 'Biomass~'
+  response <- "biomass ~ "
   
   # rename covariates
   covnames_new <- names(covariates)
@@ -32,104 +29,58 @@ glm_function_cont <- function(biomass,
   model_formula <- as.formula(paste0(response, covnames_combined))
   model_formula2 <- as.formula(paste0(response, covnames_combined2))
   
-  terms <- buildmer::tabulate.formula(model_formula) ################# peut-être à enlever
-  terms2 <- buildmer::tabulate.formula(model_formula2) #
-  
-  form <- buildmer::build.formula(dep = "Biomass", terms) #
-  form2 <- buildmer::build.formula(dep = "Biomass", terms2) #
-
-  contribution <- pbmcapply::pbmclapply(1:length(species_name), function(j){
+  sp_i <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
     
-    # select the jth species from the fitting set
-    fitting <- raw_biomass[,c("survey_id", species_name[j])]
+    sp <- biomass[colnames(biomass) %in% c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
+    colnames(sp)[colnames(sp) %in% species_name[i]] <- "biomass"
+    sp$latitude_arr <- round(sp$latitude, 1)
+    
+    pres <- sp |> 
+      dplyr::filter(biomass != 0)
+    abs <- sp |> 
+      dplyr::filter(biomass == 0) |> 
+      dplyr::filter(latitude_arr %in% unique(pres$latitude_arr))
+    
+    sp <- rbind(pres, abs) |> 
+      dplyr::select(! latitude_arr)
+    
+    biomass_only <- sp[which(sp[, "biomass"] > 0),]
+    
+    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+    
+    absence <- sp[which(sp[, "biomass"] == 0),]
+    
+    if(nrow(absence) > 0) {
+      
+      replacement <- ifelse(length(which(sp[, "biomass"] == 0)) < n_subsample, T, F)
+      
+      absence <- absence[sample(which(absence[, "biomass"] == 0), n_subsample, replace = replacement),]
+      
+    }
+    
+    # combine absence and presence
+    sp <- rbind(biomass_only, absence)
+    
+    sp$biomass <- as.numeric(sp$biomass)
+    
+    covariates <- covariates |> 
+      dplyr::filter(survey_id %in% sp$survey_id) |> 
+      noise_function(avoid = c("survey_id", "effectiveness"),
+                     limit = 6,
+                     size = 0.01)
     
     # add covariates
-    fitting <- dplyr::inner_join(fitting, covariates, by = "survey_id")
-    
-    # log10(x+1) transform biomass
-    fitting[,species_name[j]] <- log10(fitting[,species_name[j]] + 1)
-    
-    # get biomass data
-    biomass_only <- fitting[which(fitting[,species_name[j]] > 0),]
-
-    # keep only absences from species life area 
-    # load rls surveys info, we need ecoregion 
-    load("data/new_raw_data/00_rls_surveys.Rdata")
-    rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
-    
-    fitting <- dplyr::inner_join(fitting, rls_surveys[!colnames(rls_surveys) %in% "depth"])
-
-    zone_geo_fit <- fitting[which(fitting[,species_name[j]] > 0),]
-    zone_geo_fit <- unique(zone_geo_fit$ecoregion)
-
-    fitting <- fitting |>  
-      dplyr::filter(ecoregion %in% zone_geo_fit) |> 
-      dplyr::select("survey_id", species_name[j], colnames(rls_covariates)[!colnames(rls_covariates) %in% c("survey_id")])
-
-    # keep only two times more absences than observation  
-    # get absence
-    
-    n_subsample_fit <- nrow(fitting[which(fitting[, species_name[j]] > 0),]) * 2
-
-    absence_fit <- fitting[which(fitting[, species_name[j]] == 0),]
-
-    if(nrow(absence_fit) > 0) {
-      
-      replacement_fit <- ifelse(length(which(fitting[, species_name[j]] == 0)) < n_subsample_fit, T, F)
-      
-      absence_fit <- absence_fit[sample(which(absence_fit[, species_name[j]] == 0), n_subsample_fit, replace = replacement_fit),]
-      
-    }
-
-    # combine absence and presence
-    biomass_final <- rbind(biomass_only, absence_fit)
-
-    names(biomass_final)[names(biomass_final) == species_name[j]] <- "Biomass"
-
-    # As some covariates are at the country level, it means you can have very few or even only one value for these covariates
-    # Check for the number of values in each covariates and add noise if < 6 values
-    
-    n_values <- lapply(1:ncol(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")]), function(i) {unique(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")][,i])})
-
-    names(n_values) <- colnames(biomass_final[,!colnames(biomass_final) %in% c("survey_id", "Biomass", "effectiveness")])
-
-    little_cov <- names(n_values[which(sapply(1:length(n_values), function(i) {nrow(n_values[[i]])}) <= 6)])
-
-    if(sjmisc::is_empty(little_cov) == TRUE){
-      
-      biomass_final <- biomass_final
-      
-    }else{
-      
-      n_cov <- which(names(biomass_final) %in% little_cov)
-      
-      noise <- lapply(1:length(n_cov), function(i) {
-        
-        abs(rnorm(nrow(biomass_final), 0.01, 0.01))
-        
-      })
-      
-      if(length(noise) == 1){
-        
-        biomass_final[,n_cov] <- biomass_final[,n_cov] + unlist(noise)
-        
-      }else{
-        
-        biomass_final[,n_cov] <- biomass_final[,n_cov] + noise
-        
-      }
-      
-    }
+    sp <- dplyr::inner_join(sp, covariates, by = "survey_id")
     
     # Fit the model
     
-    if(length(unique(biomass_final$effectiveness)) == 1){
+    if(length(unique(sp$effectiveness)) == 1){
       
-      model_fit <- tryCatch(glm(formula = form2, family = gaussian, data = biomass_final), error = function(e) NA)
+      model_fit <- tryCatch(glm(formula = model_formula2, family = gaussian, data = sp), error = function(e) NA)
       
     }else{
       
-      model_fit <- tryCatch(glm(formula = form, family = gaussian, data = biomass_final), error = function(e) NA)
+      model_fit <- tryCatch(glm(formula = model_formula, family = gaussian, data = sp), error = function(e) NA)
       
     }
       
@@ -137,9 +88,9 @@ glm_function_cont <- function(biomass,
 
     # Use the package DALEX to assess covariates relative importance
     # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
-    explainer_glm <- DALEX::explain(model = model_fit, 
-                                    data = biomass_final[covnames_new_new], 
-                                    y = biomass_final[,"Biomass"],
+    explainer_glm <- DALEX::explain(model = model_fit,
+                                    data = sp[covnames_new_new],
+                                    y = sp[,"biomass"],
                                     label = "glm")
     
     # Compute a 25-permutation-based value of the RMSE for all explanatory variables  
@@ -158,12 +109,12 @@ glm_function_cont <- function(biomass,
     vip.25_glm <- vip.25_glm |> 
       dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
 
-    }, mc.cores = 15)
+    }, mc.cores = parallel::detectCores() - 1)
 
   extracted_contributions <- dplyr::tibble(species_name = species_name, 
-                                           fitted_model = "GLM", 
+                                           fitted_model = "glm", 
                                            # estimate contribution
-                                           contributions_and_sd = contribution)
+                                           contributions_and_sd = sp_i)
 
   # save contribution output in same file structure
 

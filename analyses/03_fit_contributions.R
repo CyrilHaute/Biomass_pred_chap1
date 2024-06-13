@@ -1,5 +1,6 @@
 # This script run the six biomass contribution models (glm, gam, rf, sprf, spamm and brt)
 
+source("R/01_noise_function.R")
 source("R/03_glm_cont_var.R")
 source("R/03_rf_cont_var.R")
 source("R/03_gam_cont_var.R")
@@ -9,16 +10,17 @@ source("R/03_brt_cont_var.R")
 
 
 # load fish biomass data and covariates
-load("data/new_derived_data/biomass_contribution.RData")
+load("data/new_derived_data/rls_biomass.RData")
 load("data/new_derived_data/rls_covariates.RData")
+load("data/new_raw_data/00_rls_surveys.Rdata")
 
 base_dir <- "outputs/biomass_contribution/"
 
 # run glm for covariates contribution
 print("glm biomass contribution")
-glm_function_cont(biomass = biomass_contribution,
+glm_function_cont(biomass = rls_biomass,
                   covariates = rls_covariates,
-                  species_name = colnames(biomass_contribution)[!colnames(biomass_contribution) %in% c("survey_id", "latitude", "longitude")],
+                  species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
                   base_dir_cont = base_dir)
 
 # run random Forest for covariates contribution
