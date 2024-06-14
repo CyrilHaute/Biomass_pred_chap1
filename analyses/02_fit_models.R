@@ -1,8 +1,10 @@
 # This script run the six biomass prediction models (glm, gam, rf, sprf, spamm and brt)
 
+# General functions to run models
 source("R/01_cross_validation_function.R")
 source("R/01_noise_function.R")
 
+# Model functions
 source("R/02_glm_function_SCV.R")
 source("R/02_gam_function_SCV.R")
 source("R/02_rf_function_SCV.R")
@@ -18,8 +20,6 @@ load("data/new_raw_data/00_rls_surveys.Rdata")
 rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 
 base_dir <- "outputs/biomass_prediction/"
-
-rls_biomass <- rls_biomass[,1:15]
 
 # run glm 
 print("glm biomass prediction")

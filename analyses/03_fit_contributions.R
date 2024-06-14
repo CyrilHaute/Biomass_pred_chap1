@@ -1,13 +1,16 @@
 # This script run the six biomass contribution models (glm, gam, rf, sprf, spamm and brt)
 
+# General functions to run models contribution
 source("R/01_noise_function.R")
+source("R/01_average_dataframe.R")
+
+# Contribution functions
 source("R/03_glm_cont_var.R")
 source("R/03_rf_cont_var.R")
 source("R/03_gam_cont_var.R")
 source("R/03_sprf_cont_var.R")
 source("R/03_spamm_cont_var.R")
 source("R/03_brt_cont_var.R")
-
 
 # load fish biomass data and covariates
 load("data/new_derived_data/rls_biomass.RData")

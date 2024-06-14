@@ -1,9 +1,9 @@
 # function to fit glm and assess covariates relative importance
 # 
-biomass = rls_biomass
-covariates = rls_covariates
-species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-base_dir_cont = base_dir
+# biomass = rls_biomass
+# covariates = rls_covariates
+# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+# base_dir_cont = base_dir
 
 glm_function_cont <- function(biomass, 
                               covariates, 

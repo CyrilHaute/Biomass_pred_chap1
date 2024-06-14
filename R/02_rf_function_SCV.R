@@ -13,10 +13,10 @@
 #'
 #' @examples
 
-biomass = rls_biomass
-covariates = rls_covariates
-species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-base_dir = base_dir
+# biomass = rls_biomass
+# covariates = rls_covariates
+# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+# base_dir = base_dir
 
 rf_function <- function(biomass, 
                         covariates, 
