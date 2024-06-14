@@ -102,28 +102,23 @@ spatialrf_function <- function(biomass,
         dplyr::select(X, Y) |> 
         as.data.frame()
       
-      path_forest <- "outputs/biomass_prediction/sprf_local"
-      
-      dir.create(path_forest, showWarnings = FALSE)
-      
       ### FITTING MODELS 
       # fit the spatial random forests
       
-      model_fit <- grf(formula = fmla,
-                       dframe = training,
-                       bw = 100,
-                       kernel = "fixed",
-                       coords = coords,
-                       ntree = 100,
-                       geo.weighted = FALSE,
-                       path_forest = path_forest)
+      model_fit <- SpatialML::grf(formula = fmla,
+                                  dframe = training,
+                                  bw = 100,
+                                  kernel = "fixed",
+                                  coords = coords,
+                                  ntree = 100,
+                                  geo.weighted = FALSE)
       
-      validation_predict  <- predict.grf(object = model_fit,
-                                         new.data = testing,
-                                         x.var.name = "X",
-                                         y.var.name = "Y",
-                                         local.w = 0.5,
-                                         global.w = 0.5)
+      validation_predict  <- SpatialML::predict.grf(object = model_fit,
+                                                    new.data = testing,
+                                                    x.var.name = "X",
+                                                    y.var.name = "Y",
+                                                    local.w = 0.5,
+                                                    global.w = 0.5)
       
       validation_predict <- data.frame(survey_id = testing$survey_id,
                                        validation_predict = validation_predict)
@@ -140,16 +135,14 @@ spatialrf_function <- function(biomass,
       
       validation_obs_prd$validation_predict <- 10^validation_obs_prd$validation_predict - 1
       validation_obs_prd$validation_observed <- 10^validation_obs_prd$validation_observed - 1
-      
-      unlink(list.files(path_forest, full.names = TRUE), recursive = TRUE)
-      
+
       return(validation_obs_prd)
       
     }, mc.cores = 1)
     
     cv_j_bind <- do.call(rbind, cv_j)
 
-  }, mc.cores = 1)
+  }, mc.cores = parallel::detectCores() - 1)
   
   # save prediciton output in same file structure
   
