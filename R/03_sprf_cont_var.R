@@ -1,9 +1,9 @@
 # function to fit spatial Random Forest and assess covariates relative importance
 
-# biomass = rls_biomass
-# covariates = rls_covariates
-# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-# base_dir_cont = base_dir
+biomass = rls_biomass
+covariates = rls_covariates
+species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+base_dir_cont = base_dir
 
 spatialrf_function_cont <- function(biomass,
                                     covariates,
@@ -55,11 +55,15 @@ spatialrf_function_cont <- function(biomass,
     # add covariates
     sp <- dplyr::inner_join(sp, covariates, by = "survey_id")
     
-    coords <- sp |> 
-      dplyr::select(latitude, longitude) |>
+    coords <<- sp |>
       dplyr::rename(Y = latitude,
                     X = longitude) |> 
+      dplyr::select(Y, X) |>
       as.data.frame()
+    
+    sp <<- sp |>
+      dplyr::rename(Y = latitude,
+                    X = longitude)
     
     ### FITTING MODELS 
     # fit the spatial random forests
