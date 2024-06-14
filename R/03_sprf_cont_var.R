@@ -1,9 +1,9 @@
 # function to fit spatial Random Forest and assess covariates relative importance
 
-biomass = rls_biomass
-covariates = rls_covariates
-species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-base_dir_cont = base_dir
+# biomass = rls_biomass
+# covariates = rls_covariates
+# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+# base_dir_cont = base_dir
 
 spatialrf_function_cont <- function(biomass,
                                     covariates,
@@ -101,9 +101,11 @@ spatialrf_function_cont <- function(biomass,
     global_vip.10_sprf <- global_vip.10_sprf |> 
       dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
     
-    local_importance <- pbmcapply::pbmclapply(1:length(model_fit$Forests), function(j) {
+    which_local_model <- sample(1:length(model_fit$Forests), round(0.2 * length(model_fit$Forests)))
+    
+    local_importance <- pbmcapply::pbmclapply(1:length(which_local_model), function(j) {
       
-      explainer_sprf <- DALEX::explain(model = model_fit$Forests[[j]],
+      explainer_sprf <- DALEX::explain(model = model_fit$Forests[[which_local_model[j]]],
                                        data = sp[covnames_new_new],
                                        y = sp[,"biomass"],
                                        label = "ranger")
@@ -127,7 +129,9 @@ spatialrf_function_cont <- function(biomass,
       
     }, mc.cores = parallel::detectCores() - 1)
     
-    local_importance_mean <- average_dfs(local_importance)
+    local_importance_mean <- dplyr::bind_rows(local_importance) |>  
+      dplyr::group_by(variable) |> 
+      dplyr::summarize(dplyr::across(where(is.numeric), \(x) mean(x, na.rm = TRUE)), .groups = 'drop') 
     
   }, mc.cores = 1)
   

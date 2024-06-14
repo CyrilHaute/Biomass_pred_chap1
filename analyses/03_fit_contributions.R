@@ -2,7 +2,6 @@
 
 # General functions to run models contribution
 source("R/01_noise_function.R")
-source("R/01_average_dataframe.R")
 
 # Contribution functions
 source("R/03_glm_cont_var.R")
@@ -19,7 +18,7 @@ load("data/new_raw_data/00_rls_surveys.Rdata")
 
 base_dir <- "outputs/biomass_contribution/"
 
-rls_biomass <- rls_biomass[,1:10]
+rls_biomass <- rls_biomass[,1:6]
 
 # run glm for covariates contribution
 print("glm biomass contribution")
