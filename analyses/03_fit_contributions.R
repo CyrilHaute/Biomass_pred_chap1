@@ -16,7 +16,7 @@ load("data/new_derived_data/rls_biomass.RData")
 load("data/new_derived_data/rls_covariates.RData")
 load("data/new_raw_data/00_rls_surveys.Rdata")
 
-base_dir <- "outputs/biomass_contribution/"
+base_dir_contribution <- "outputs/biomass_contribution/"
 
 # run glm for covariates contribution
 print("glm biomass contribution")
@@ -58,12 +58,12 @@ print("sprf biomass contribution")
 
 species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
 
-pbmcapply::pbmclapply(1:length(species_name), function(i) {
+pbmcapply::pbmclapply(121:length(species_name), function(i) {
   
   rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
   
   spatialrf_function_cont(biomass = rls_biomass_i,
                           covariates = rls_covariates,
-                          base_dir_cont = base_dir)
+                          base_dir_cont = base_dir_contribution)
   
 }, mc.cores = 1)

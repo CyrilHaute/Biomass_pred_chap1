@@ -58,7 +58,15 @@ spamm_function(biomass = rls_biomass,
 
 # run spatial random forest
 print("sprf biomass prediction")
-spatialrf_function(biomass = rls_biomass,
-                   covariates = rls_covariates,
-                   species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                   base_dir = base_dir)
+
+species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
+  
+  spatialrf_function(biomass = rls_biomass_i,
+                     covariates = rls_covariates,
+                     base_dir = base_dir)
+  
+}, mc.cores = parallel::detectCores() - 1)
