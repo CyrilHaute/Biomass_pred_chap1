@@ -34,31 +34,31 @@ ggsave("figures/covariates_importance_all_and_merged.pdf", covariates_importance
 ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 14)
 
 covariates_importance_GLM <- covariates_importance_function(plot_data = bind_files,
-                                                            fitted_model = "GLM",
+                                                            fitted_model = "glm",
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,3),
+                                                            ylim = c(0,1.1),
                                                             legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = bind_files,
-                                                            fitted_model = "GAM",
+                                                            fitted_model = "gam",
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,3),
+                                                            ylim = c(0,0.8),
                                                             legend.position = "none")
 
 covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_files,
-                                                              fitted_model = "SPAMM",
+                                                              fitted_model = "spamm",
                                                               color = pal_contribution,
                                                               labs_y = "",
                                                               labs_fill = "",
-                                                              ylim = c(0,3),
+                                                              ylim = c(0,2),
                                                               legend.position = "none")
 
 covariates_importance_RF <- covariates_importance_function(plot_data = bind_files,
-                                                           fitted_model = "RF",
+                                                           fitted_model = "rf",
                                                            color = pal_contribution,
                                                            labs_y = "",
                                                            labs_fill = "",
@@ -66,7 +66,7 @@ covariates_importance_RF <- covariates_importance_function(plot_data = bind_file
                                                            legend.position = "none")
 
 covariates_importance_GBM <- covariates_importance_function(plot_data = bind_files,
-                                                            fitted_model = "GBM",
+                                                            fitted_model = "gbm",
                                                             color = pal_contribution,
                                                             labs_y = "Relative importance (RMSE)",
                                                             labs_fill = "",

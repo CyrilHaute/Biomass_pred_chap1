@@ -59,13 +59,13 @@ covariates_importance_all_function <- function(plot_data,
   
   
   
-  HAB <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-  HAB_sd <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
+  HAB <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$Dropout_loss})
+  HAB_sd <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$sd_dropout_loss})
   HAB <- do.call(rbind, HAB)
   HAB_sd <- do.call(rbind, HAB_sd)
   HAB <- dplyr::tibble(value = matrixStats::colMedians(HAB),
                        sd = matrixStats::colMedians(HAB_sd),
-                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),
+                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),
                        VAR = rep("HAB", 8))
   # HAB[HAB$var == "Rock_500m",3]$var <- "%_of_rock"
   # HAB[HAB$var == "Sand_500m",3]$var <- "%_of_sand"
@@ -79,7 +79,7 @@ covariates_importance_all_function <- function(plot_data,
   HAB[HAB$var == "coral_algae_500m",3]$var <- "Coral/Algae (%)"
   HAB[HAB$var == "Rubble_500m",3]$var <- "Rubble (%)"
   HAB[HAB$var == "coral",3]$var <- "Coral (RLS)"
-  HAB[HAB$var == "coralline_algae",3]$var <- "Coralline algae (RLS)"
+  HAB[HAB$var == "seagrass",3]$var <- "Seagrass (RLS)"
   HAB[HAB$var == "depth",3]$var <- "Depth"
   HAB[HAB$var == "reef_extent",3]$var <- "Reef extent"
   
@@ -217,13 +217,13 @@ merged_covariates_importance_all_function <- function(plot_data,
                        var = c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),
                        VAR = rep("HUM", 8))
   
-  HAB <- lapply(1:nrow(only_model_best_best), function(i) { only_model_best_best$contributions_and_sd[[i]][only_model_best_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-  HAB_sd <- lapply(1:nrow(only_model_best_best), function(i) { only_model_best_best$contributions_and_sd[[i]][only_model_best_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
+  HAB <- lapply(1:nrow(only_model_best_best), function(i) { only_model_best_best$contributions_and_sd[[i]][only_model_best_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$Dropout_loss})
+  HAB_sd <- lapply(1:nrow(only_model_best_best), function(i) { only_model_best_best$contributions_and_sd[[i]][only_model_best_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$sd_dropout_loss})
   HAB <- do.call(rbind, HAB)
   HAB_sd <- do.call(rbind, HAB_sd)
   HAB <- dplyr::tibble(value = matrixStats::colMedians(HAB),
                        sd = matrixStats::colMedians(HAB_sd),
-                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),
+                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),
                        VAR = rep("HAB", 8))
   
   cont <- ENV |>  
@@ -312,13 +312,13 @@ covariates_importance_function <- function(plot_data,
                        plot_level = rep(plot_level, 8))
   SOC[SOC$var == "n_fishing_vessels",3]$var <- "fishing_vessels_density"
     
-  HAB <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-  HAB_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
+  HAB <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$Dropout_loss})
+  HAB_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$sd_dropout_loss})
   HAB <- do.call(rbind, HAB)
   HAB_sd <- do.call(rbind, HAB_sd)
   HAB <- dplyr::tibble(value = colMeans(HAB),
                        sd = colMeans(HAB_sd),
-                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),
+                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),
                        VAR = rep("HAB", 8),
                        plot_level = rep(plot_level, 8))
     
@@ -384,8 +384,8 @@ var_max_function <- function(plot_data,
                        var = rep("HUM",nrow(SOC)),
                        plot_level = rep(plot_level, nrow(SOC)))
   
-  HAB <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-  HAB_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
+  HAB <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$Dropout_loss})
+  HAB_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),]$sd_dropout_loss})
   HAB <- do.call(rbind, HAB)
   HAB_sd <- do.call(rbind, HAB_sd)
   HAB <- dplyr::tibble(species_name = plot_data$species_name,
@@ -475,7 +475,7 @@ merged_covariates_importance_function <- function(plot_data,
   HAB_sd <- do.call(rbind, HAB_sd)
   HAB <- dplyr::tibble(value = colMeans(HAB),
                        sd = colMeans(HAB_sd),
-                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),
+                       var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent"),
                        VAR = rep("HAB", 8),
                        plot_level = rep(plot_level, 8))
   

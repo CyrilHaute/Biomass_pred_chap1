@@ -22,23 +22,36 @@ model_assessment <- pbmcapply::pbmclapply(1:length(load_outputs), function(i){
     
     sp <- model_i[[j]]
     
-    cv_k <- lapply(1:length(unique(sp$cv)), function(k) {
-    
-    sp[sp$cv == unique(sp$cv)[k],] |>
-      dplyr::do(metrics = biomass_assessment_metrics(predictions   = .$validation_predict, 
-                                                     observations  = .$validation_observed)) |> 
-      tidyr::unnest(metrics) |> 
-      dplyr::mutate(species_name = unique(sp$species_name),
-                    cv = k,
-                    model = unique(sp$model))
+    if(is.null(sp)){
       
-    })
-    
-    cv_k_bind <- do.call(rbind, cv_k)
-    
-    cv_k_bind_mean <- cv_k_bind |> 
-      dplyr::group_by(species_name, model) |> 
-      dplyr::summarise(dplyr::across("Intercept":"Spearman", mean))
+      cv_k_bind_mean <- data.frame(species_name = NA,
+                                   model = NA,
+                                   Intercept = NA, 
+                                   Slope = NA,
+                                   Pearson = NA,
+                                   Spearman = NA)
+      
+    }else{
+        
+      cv_k <- lapply(1:length(unique(sp$cv)), function(k) {
+        
+        sp[sp$cv == unique(sp$cv)[k],] |>
+          dplyr::do(metrics = biomass_assessment_metrics(predictions   = .$validation_predict, 
+                                                         observations  = .$validation_observed)) |> 
+          tidyr::unnest(metrics) |> 
+          dplyr::mutate(species_name = unique(sp$species_name),
+                        cv = k,
+                        model = unique(sp$model))
+        
+      })
+      
+      cv_k_bind <- do.call(rbind, cv_k)
+      
+      cv_k_bind_mean <- cv_k_bind |> 
+        dplyr::group_by(species_name, model) |> 
+        dplyr::summarise(dplyr::across("Intercept":"Spearman", mean))
+      
+      }
 
   }, mc.cores = parallel::detectCores() - 1)
   

@@ -18,8 +18,6 @@ load("data/new_raw_data/00_rls_surveys.Rdata")
 
 base_dir <- "outputs/biomass_contribution/"
 
-rls_biomass <- rls_biomass[,1:6]
-
 # run glm for covariates contribution
 print("glm biomass contribution")
 glm_function_cont(biomass = rls_biomass,
@@ -57,7 +55,15 @@ brt_function_cont(biomass = rls_biomass,
 
 # run spatial Random Forest for covariates contribution
 print("sprf biomass contribution")
-spatialrf_function_cont(biomass = rls_biomass,
-                        covariates = rls_covariates,
-                        species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                        base_dir_cont = base_dir)
+
+species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
+  
+  spatialrf_function_cont(biomass = rls_biomass_i,
+                          covariates = rls_covariates,
+                          base_dir_cont = base_dir)
+  
+}, mc.cores = 1)

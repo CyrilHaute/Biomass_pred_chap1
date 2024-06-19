@@ -21,8 +21,6 @@ rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 
 base_dir <- "outputs/biomass_prediction/"
 
-rls_biomass <- rls_biomass[,1:10]
-
 # run glm 
 print("glm biomass prediction")
 glm_function(biomass = rls_biomass,

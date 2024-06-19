@@ -20,11 +20,13 @@ metrics <- c("Intercept", "Slope", "Pearson", "Spearman")
 load("outputs/model_assessment_validation/validation.Rdata")
 all_assessments_SCV <- model_assessment
 all_assessments_SCV <- do.call(rbind, all_assessments_SCV)
+all_assessments_SCV <- all_assessments_SCV[which(is.na(all_assessments_SCV$model) == FALSE),]
 
 # select only the columns to be used later 
 all_assessments_SCV <- all_assessments_SCV |> 
   
-  dplyr::select(model, species_name, metrics)
+  dplyr::select(model, species_name, metrics) |> 
+  dplyr::filter(model != "sprf")
 
 # estimate for each species the best model based on performance metrics  
 best_models <- all_assessments_SCV |> 
@@ -198,7 +200,7 @@ plot_intercept <- performance_plot(performance_all_best,
                                    slope = 0,
                                    intercept = 0,
                                    color = pal_perf,
-                                   ylim = c(-1,10),
+                                   ylim = c(-1, 10),
                                    legend.position = 'none',
                                    plot_title = "A")
 
@@ -206,7 +208,6 @@ all_plots <- patchwork::wrap_plots(plot_intercept, plot_slope, plot_pearson, plo
 all_plots <- all_plots / best_model
 
 ggplot2::ggsave("figures/plot_perf_best.pdf", all_plots, height = 18, width = 13)
-ggplot2::ggsave("figures/plot_perf_best.png", all_plots, height = 18, width = 13)
 
 ################## Plot performance-traits relationship
 
