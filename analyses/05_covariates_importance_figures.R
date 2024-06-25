@@ -10,13 +10,30 @@ load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
-list_files_path <- list.files("outputs/biomass_contribution", full.names = T)
-bind_files <- lapply(1:length(list_files_path), function(i) {
+sprf <- list.files("outputs/biomass_contribution/sprf", full.names = T)
+
+bind_files_sprf <- lapply(1:length(sprf), function(i) {
   
-  load(list_files_path[i])
+  load(sprf[i])
   assign(paste0("model_", i), extracted_contributions)
   
 })
+bind_files_sprf <- do.call(rbind, bind_files_sprf)
+bind_files_sprf$contributions_and_sd <- lapply(1:nrow(bind_files_sprf), function(i) { bind_files_sprf$contributions_and_sd[[i]] |> 
+    dplyr::rename(Dropout_loss = dropout_loss)
+  })
+bind_files_sprf <- list(bind_files_sprf)
+
+list_files_path <- list.files("outputs/biomass_contribution", full.names = T)
+list_files_path <- list_files_path[which(grepl(pattern = "sprf", list_files_path) == FALSE)]
+bind_files <- lapply(1:length(list_files_path), function(i) {
+  
+  load(list_files_path[i])
+  extracted_contributions <- extracted_contributions[1:171,]
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+bind_files <- c(bind_files, bind_files_sprf)
 bind_files <- do.call(rbind, bind_files)
 models <- unique(bind_files$fitted_model)
 
@@ -38,7 +55,7 @@ covariates_importance_GLM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,1.1),
+                                                            ylim = c(0,0.3),
                                                             legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = bind_files,
@@ -46,7 +63,7 @@ covariates_importance_GAM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,0.8),
+                                                            ylim = c(0,1.1),
                                                             legend.position = "none")
 
 covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_files,
@@ -54,7 +71,7 @@ covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_f
                                                               color = pal_contribution,
                                                               labs_y = "",
                                                               labs_fill = "",
-                                                              ylim = c(0,2),
+                                                              ylim = c(0,3.5),
                                                               legend.position = "none")
 
 covariates_importance_RF <- covariates_importance_function(plot_data = bind_files,
@@ -74,7 +91,7 @@ covariates_importance_GBM <- covariates_importance_function(plot_data = bind_fil
                                                             legend.position = "none")
 
 covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_files,
-                                                             fitted_model = "SPRF",
+                                                             fitted_model = "sprf",
                                                              color = pal_contribution,
                                                              labs_y = "Relative importance (RMSE)",
                                                              labs_fill = "",

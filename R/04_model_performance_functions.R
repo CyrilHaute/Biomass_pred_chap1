@@ -63,7 +63,7 @@ performance_plot <- function(plot_data,
   
   plot_perf <- plot_data |> 
     dplyr::filter(metrics == metrics_sel) |> 
-    dplyr::mutate(model = forcats::fct_relevel(model, "glm", "gam", "spamm","rf", "gbm", "sprf")) |> 
+    dplyr::mutate(model = forcats::fct_relevel(model, "glm", "gam", "spamm", "gbm", "sprf", "rf")) |> 
     ggplot(aes(x = model, y = value, fill = cat)) +
     geom_boxplot(outlier.shape = NA) +
     geom_abline(slope = slope, intercept = intercept, linetype = 2, size = 1.25, color = "red") +

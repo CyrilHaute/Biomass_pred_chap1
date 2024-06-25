@@ -85,7 +85,7 @@ spatialrf_function_cont <- function(biomass,
       # Compute a 10-permutation-based value of the RMSE for all explanatory variables
       global_vip.10_sprf <- DALEX::model_parts(explainer = global_explainer_sprf,
                                                loss_function = DALEX::loss_root_mean_square, # Here we used the RMSE as our loss function
-                                               B = 10, # Number of permutation
+                                               B = 25, # Number of permutation
                                                type = "difference")
       
       # From the model_parts function you get 10 RMSE values for each covariates.
@@ -98,42 +98,42 @@ spatialrf_function_cont <- function(biomass,
       global_vip.10_sprf <- global_vip.10_sprf |>
         dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
       
-      which_local_model <- sample(1:length(model_fit$Forests), round(0.2 * length(model_fit$Forests)))
-      
-      local_importance <- pbmcapply::pbmclapply(1:length(which_local_model), function(j) {
-        
-        explainer_sprf <- DALEX::explain(model = model_fit$Forests[[which_local_model[j]]],
-                                         data = sp[covnames_new_new],
-                                         y = sp[,"biomass"],
-                                         label = "ranger")
-        
-        vip.10_sprf <- DALEX::model_parts(explainer = explainer_sprf,
-                                          loss_function = DALEX::loss_root_mean_square,
-                                          B = 10,
-                                          type = "difference")
-        
-        vip.10_sprf <- vip.10_sprf |> 
-          dplyr::group_by(variable) |> 
-          dplyr::summarise(local_dropout_loss = mean(dropout_loss),
-                           local_sd_dropout_loss = sd(dropout_loss)) |> 
-          dplyr::inner_join(global_vip.10_sprf)
-        
-        vip.10_sprf <- vip.10_sprf |> 
-          dplyr::mutate(dropout_loss = global_dropout_loss * 0.5 + local_dropout_loss * 0.5,
-                        sd_dropout_loss = global_sd_dropout_loss * 0.5 + local_sd_dropout_loss * 0.5) |> 
-          dplyr::select(variable, dropout_loss, sd_dropout_loss)
-        
-        
-      }, mc.cores = parallel::detectCores() - 1)
-      
-      local_importance_mean <- dplyr::bind_rows(local_importance) |>  
-        dplyr::group_by(variable) |> 
-        dplyr::summarize(dplyr::across(where(is.numeric), \(x) mean(x, na.rm = TRUE)), .groups = 'drop')
+      # which_local_model <- sample(1:length(model_fit$Forests), round(0.2 * length(model_fit$Forests)))
+      # 
+      # local_importance <- pbmcapply::pbmclapply(1:length(which_local_model), function(j) {
+      #   
+      #   explainer_sprf <- DALEX::explain(model = model_fit$Forests[[which_local_model[j]]],
+      #                                    data = sp[covnames_new_new],
+      #                                    y = sp[,"biomass"],
+      #                                    label = "ranger")
+      #   
+      #   vip.10_sprf <- DALEX::model_parts(explainer = explainer_sprf,
+      #                                     loss_function = DALEX::loss_root_mean_square,
+      #                                     B = 10,
+      #                                     type = "difference")
+      #   
+      #   vip.10_sprf <- vip.10_sprf |> 
+      #     dplyr::group_by(variable) |> 
+      #     dplyr::summarise(local_dropout_loss = mean(dropout_loss),
+      #                      local_sd_dropout_loss = sd(dropout_loss)) |> 
+      #     dplyr::inner_join(global_vip.10_sprf)
+      #   
+      #   vip.10_sprf <- vip.10_sprf |> 
+      #     dplyr::mutate(Dropout_loss = global_dropout_loss * 0.5 + local_dropout_loss * 0.5,
+      #                   sd_dropout_loss = global_sd_dropout_loss * 0.5 + local_sd_dropout_loss * 0.5) |> 
+      #     dplyr::select(variable, Dropout_loss, sd_dropout_loss)
+      #   
+      #   
+      # }, mc.cores = parallel::detectCores() - 1)
+      # 
+      # local_importance_mean <- dplyr::bind_rows(local_importance) |>  
+      #   dplyr::group_by(variable) |> 
+      #   dplyr::summarize(dplyr::across(where(is.numeric), \(x) mean(x, na.rm = TRUE)), .groups = 'drop')
       
       extracted_contributions <- dplyr::tibble(species_name = sp_name, 
                                                fitted_model = "sprf", 
                                                # estimate contribution
-                                               contributions_and_sd = list(local_importance_mean))
+                                               contributions_and_sd = list(global_vip.10_sprf))
       
       model_dir <- "sprf/"
       

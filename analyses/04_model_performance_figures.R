@@ -25,8 +25,7 @@ all_assessments_SCV <- all_assessments_SCV[which(is.na(all_assessments_SCV$model
 # select only the columns to be used later 
 all_assessments_SCV <- all_assessments_SCV |> 
   
-  dplyr::select(model, species_name, metrics) |> 
-  dplyr::filter(model != "sprf")
+  dplyr::select(model, species_name, metrics)
 
 # estimate for each species the best model based on performance metrics  
 best_models <- all_assessments_SCV |> 
@@ -37,7 +36,7 @@ best_models <- all_assessments_SCV |>
   dplyr::do(best_model = .$model[which.max(.$discrimination)]) |> 
   tidyr::unnest(cols = c('best_model'))
 
-# save(best_models, file = "outputs/best_models.Rdata")
+save(best_models, file = "outputs/best_models.Rdata")
 
 #### Best Model plot ####
 
@@ -47,7 +46,7 @@ best_models_pr <- best_models |>
   dplyr::mutate(pr = (n*100)/sum(n))
 
 best_model <- best_models_pr |> 
-  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "glm", "gam", "spamm", "gbm", "rf", "sprf")) |> 
+  dplyr::mutate(best_model = forcats::fct_relevel(best_model, "glm", "gam", "spamm", "gbm", "sprf", "rf")) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
   scale_fill_manual(values = pal_best) +

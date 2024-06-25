@@ -69,4 +69,4 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
                      covariates = rls_covariates,
                      base_dir = base_dir)
   
-}, mc.cores = parallel::detectCores() - 1)
+}, mc.cores = 1)

@@ -3,7 +3,17 @@
 # all functions for evaluating outputs
 source("R/04_models_evaluation_functions.R")
 
+sprf <- list.files("outputs/biomass_prediction/sprf", full.names = T)
+
+load_outputs_sprf <- list(lapply(1:length(sprf), function(i) {
+  
+  load(sprf[i])
+  assign(paste0("model_", i), cv_j_bind)
+  
+}))
+
 output_files <- list.files("outputs/biomass_prediction", full.names = T)
+output_files <- output_files[which(grepl(pattern = "sprf", output_files) == FALSE)]
 
 load_outputs <- lapply(1:length(output_files), function(i) {
   
@@ -11,6 +21,7 @@ load_outputs <- lapply(1:length(output_files), function(i) {
   assign(paste0("model_", i), sp_i)
   
 })
+load_outputs <- c(load_outputs, load_outputs_sprf)
 
 # perform validation (out the bag)
 

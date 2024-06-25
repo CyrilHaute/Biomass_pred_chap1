@@ -135,7 +135,7 @@ spatialrf_function <- function(biomass,
     
     return(validation_obs_prd)
     
-  }, mc.cores = 1)
+  }, mc.cores = parallel::detectCores() - 1)
   
   cv_j_bind <- do.call(rbind, cv_j)
   
