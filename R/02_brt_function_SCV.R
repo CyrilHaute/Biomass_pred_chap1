@@ -51,7 +51,7 @@ brt_function <- function(biomass,
     
     biomass_only <- sp[which(sp[, "biomass"] > 0),]
     
-    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),]) * 2
+    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
     
     absence <- sp[which(sp[, "biomass"] == 0),]
     
