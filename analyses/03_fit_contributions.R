@@ -229,7 +229,7 @@ pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
 # run sprf per realm
 print("sprf per realm")
 
-pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
+for(i in 1:length(rls_biomass_realm)) {
   
   realm <- rls_biomass_realm[[i]]
   
@@ -255,4 +255,4 @@ pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
     
   }, mc.cores = 1)
   
-})
+}
