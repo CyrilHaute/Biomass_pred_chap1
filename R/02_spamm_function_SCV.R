@@ -21,8 +21,8 @@
 #'
 #' @examples
 
-# biomass = ecoregion
-# covariates = rls_covariates
+# biomass = realm
+# covariates = rls_covariates_eco
 # species_name = new_species_name
 # base_dir = eco_base_dir
 
@@ -61,7 +61,7 @@ spamm_function <- function(biomass,
     
     biomass_only <- sp[which(sp[, "biomass"] > 0),]
     
-    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),]) * 2
     
     absence <- sp[which(sp[, "biomass"] == 0),]
     
