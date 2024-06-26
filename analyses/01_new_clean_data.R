@@ -159,7 +159,7 @@ rls_fish_cov <- rls_spread_coral_reef_biomass |>
 
 # Select environmental covariates
 rls_env_selec <- rls_fish_cov[,colnames(rls_env)]
-rls_env_selec <- rls_env_selec[,which(grepl(pattern = paste0(c("max", "min", "mean"), collapse = "|"), x = colnames(rls_env_selec)) == TRUE)]
+rls_env_selec <- rls_env_selec[,which(grepl(pattern = paste0(c("survey_id", "max", "min", "mean"), collapse = "|"), x = colnames(rls_env_selec)) == TRUE)]
 
 cor_env <- stats::cor(rls_env_selec[!colnames(rls_env_selec) %in% c("survey_id", "longitude", "latitude")]) #Look at correlation between covariates
 corrplot::corrplot(cor_env, type = "upper") 
@@ -198,11 +198,11 @@ cor_hab <- stats::cor(rls_hab_selec[!colnames(rls_hab_selec) %in% c("survey_id",
 corrplot::corrplot(cor_hab, type = "upper")
 
 colnames(inferred_benthos)[-c(1:3)]
-rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
+rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
 corrplot::corrplot(cor_hab2, type = "upper")
 
-rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
+rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
 
 
 #####################################################################

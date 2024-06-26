@@ -60,7 +60,7 @@ print("sprf biomass contribution")
 
 species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
 
-pbmcapply::pbmclapply(121:length(species_name), function(i) {
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
   rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
   
