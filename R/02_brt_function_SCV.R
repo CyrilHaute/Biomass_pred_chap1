@@ -21,10 +21,10 @@
 #'
 #' @examples
 
-# biomass = rls_biomass
+# biomass = realm
 # covariates = rls_covariates
-# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-# base_dir = base_dir
+# species_name = new_species_name
+# base_dir = eco_base_dir
 
 brt_function <- function(biomass, 
                          covariates, 
@@ -34,7 +34,7 @@ brt_function <- function(biomass,
   
   brt_formula <- as.formula(paste0("biomass ~ ", paste0(colnames(covariates)[!colnames(covariates) %in% "survey_id"], collapse = " + ")))
   
-  sp_i <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  sp_i <- pbmcapply::pbmclapply(14:20, function(i) {
     
     sp <- biomass[colnames(biomass) %in% c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
     colnames(sp)[colnames(sp) %in% species_name[i]] <- "biomass"
@@ -51,7 +51,7 @@ brt_function <- function(biomass,
     
     biomass_only <- sp[which(sp[, "biomass"] > 0),]
     
-    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),]) * 2
     
     absence <- sp[which(sp[, "biomass"] == 0),]
     

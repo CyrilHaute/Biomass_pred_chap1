@@ -13,10 +13,10 @@
 #'
 #' @examples
 
-# biomass = rls_biomass
+# biomass = ecoregion
 # covariates = rls_covariates
-# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-# base_dir = base_dir
+# species_name = new_species_name
+# base_dir = eco_base_dir
 
 gam_function <- function(biomass, 
                          covariates,
@@ -122,7 +122,7 @@ gam_function <- function(biomass,
 
       if(length(unique(training$effectiveness)) == 1){
         
-        model_fit <- tryCatch(mgcv::gam(model_formula2, data = training, family = gaussian, select = FALSE, method = 'ML'), error = function(e) NA)
+        model_fit <- tryCatch(mgcv::gam(model_formula2, data = training[!colnames(training) %in% "effectiveness"], family = gaussian, select = FALSE, method = 'ML'), error = function(e) NA)
           
       }else{
         

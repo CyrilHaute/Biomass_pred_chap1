@@ -15,7 +15,7 @@
 
 # biomass = rls_biomass_i
 # covariates = rls_covariates
-# base_dir = base_dir
+# base_dir = eco_base_dir
 
 spatialrf_function <- function(biomass, 
                                covariates,
@@ -39,7 +39,7 @@ spatialrf_function <- function(biomass,
   
   biomass_only <- sp[which(sp[, "biomass"] > 0),]
   
-  n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+  n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),]) * 2
   
   absence <- sp[which(sp[, "biomass"] == 0),]
   
