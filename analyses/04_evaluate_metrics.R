@@ -128,7 +128,7 @@ model_assessment <- lapply(1:length(load_outputs), function(i){
       
       sp <- model_j[[k]]
       
-      if(is.null(sp)){
+      if(!is.data.frame(sp)){
         
         cv_k_bind_mean <- data.frame(species_name = NA,
                                      model = NA,
@@ -172,12 +172,12 @@ model_assessment <- lapply(1:length(load_outputs), function(i){
   
 })
 
-model_assessment <- do.call(rbind, model_assessment)
+model_assessment_realm <- do.call(rbind, model_assessment)
 
-model_assessment <- model_assessment |> 
+model_assessment_realm <- model_assessment_realm |> 
   dplyr::group_split(species_name)
 
 dir.create("outputs/model_assessment_validation", recursive = T)
 
-save(model_assessment, file = "outputs/model_assessment_validation/validation.Rdata")
+save(model_assessment_realm, file = "outputs/model_assessment_validation/validation_realm.Rdata")
 
