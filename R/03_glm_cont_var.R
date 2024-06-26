@@ -1,9 +1,9 @@
 # function to fit glm and assess covariates relative importance
 
-# biomass = ecoregion
+# biomass = realm
 # covariates = rls_covariates
-# species_name = species_name
-# base_dir_cont = base_dir_contribution
+# species_name = new_species_name
+# base_dir_cont = eco_base_dir
 
 glm_function_cont <- function(biomass, 
                               covariates, 

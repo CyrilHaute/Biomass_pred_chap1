@@ -34,7 +34,7 @@ brt_function <- function(biomass,
   
   brt_formula <- as.formula(paste0("biomass ~ ", paste0(colnames(covariates)[!colnames(covariates) %in% "survey_id"], collapse = " + ")))
   
-  sp_i <- pbmcapply::pbmclapply(14:20, function(i) {
+  sp_i <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
     
     sp <- biomass[colnames(biomass) %in% c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
     colnames(sp)[colnames(sp) %in% species_name[i]] <- "biomass"

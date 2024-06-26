@@ -71,187 +71,188 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 }, mc.cores = 1)
 
 
-########### Variable contribution per ecoregion ###########
+########### Species-specific biomass models per realm ###########
 
-rls_biomass_ecoregion <- rls_biomass |> 
-  dplyr::inner_join(rls_surveys[, c("survey_id", "ecoregion")]) |> 
-  dplyr::group_split(ecoregion)
+rls_biomass_realm <- rls_biomass |> 
+  dplyr::inner_join(rls_surveys[, c("survey_id", "realm")]) |> 
+  dplyr::group_split(realm)
 
 # Remove ecoregion with less than 50 transects
-nrow_ecoregion <- sapply(1:length(rls_biomass_ecoregion), function(i) {
+nrow_realm <- sapply(1:length(rls_biomass_realm), function(i) {
   
-  nrow(rls_biomass_ecoregion[[i]]) < 50
+  nrow(rls_biomass_realm[[i]]) < 100
   
 })
 
-rls_biomass_ecoregion <- rls_biomass_ecoregion[which(nrow_ecoregion == FALSE)]
+rls_biomass_realm <- rls_biomass_realm[which(nrow_realm == FALSE)]
 
-base_dir_contribution <- "outputs/biomass_contribution_ecoregion/"
+base_dir_contribution <- "outputs/biomass_contribution_realm/"
 
-# run glm for covariates contribution per ecoregion
-print("glm biomass contribution per ecoregion")
+# run glm per realm
+print("glm per realm")
 
-pbmcapply::pbmclapply(1:length(rls_biomass_ecoregion), function(i) {
+pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
   
-  ecoregion <- rls_biomass_ecoregion[[i]]
+  realm <- rls_biomass_realm[[i]]
   
-  species_name <- colnames(ecoregion)[!colnames(ecoregion) %in% c("survey_id", "latitude", "longitude", "site_code", "ecoregion")]
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(ecoregion[, species_name[j]])) < round(nrow(ecoregion) / 5) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
-  ecoregion <- ecoregion[, c("survey_id", "latitude", "longitude", "site_code", "ecoregion", new_species_name)]
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
   
   dir.create(base_dir_contribution)
   
-  eco_base_dir_contribution <- paste0(base_dir_contribution, stringr::str_replace_all(unique(ecoregion$ecoregion), " ", "_"), "/")
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
   
-  glm_function_cont(biomass = ecoregion,
+  glm_function_cont(biomass = realm,
                     covariates = rls_covariates,
                     species_name = new_species_name,
-                    base_dir_cont = eco_base_dir_contribution)
+                    base_dir_cont = eco_base_dir)
   
 })
 
 
-# run random Forest for covariates contribution per ecoregion
-print("rf biomass contribution per ecoregion")
+# run random forest per realm
+print("rf per realm")
 
-pbmcapply::pbmclapply(1:length(rls_biomass_ecoregion), function(i) {
+pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
   
-  ecoregion <- rls_biomass_ecoregion[[i]]
+  realm <- rls_biomass_realm[[i]]
   
-  species_name <- colnames(ecoregion)[!colnames(ecoregion) %in% c("survey_id", "latitude", "longitude", "site_code", "ecoregion")]
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(ecoregion[, species_name[j]])) < round(nrow(ecoregion) / 5) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
-  ecoregion <- ecoregion[, c("survey_id", "latitude", "longitude", "site_code", "ecoregion", new_species_name)]
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
   
   dir.create(base_dir_contribution)
   
-  eco_base_dir_contribution <- paste0(base_dir_contribution, stringr::str_replace_all(unique(ecoregion$ecoregion), " ", "_"), "/")
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
   
-  rf_function_cont(biomass = ecoregion,
+  rf_function_cont(biomass = realm,
                    covariates = rls_covariates,
                    species_name = new_species_name,
-                   base_dir_cont = eco_base_dir_contribution)
+                   base_dir_cont = eco_base_dir)
   
 })
 
 
-# run gam for covariates contribution per ecoregion
-print("gam biomass contribution per ecoregion")
+# run gbm per realm
+print("gbm per realm")
 
-pbmcapply::pbmclapply(1:length(rls_biomass_ecoregion), function(i) {
+pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
   
-  ecoregion <- rls_biomass_ecoregion[[i]]
+  realm <- rls_biomass_realm[[i]]
   
-  species_name <- colnames(ecoregion)[!colnames(ecoregion) %in% c("survey_id", "latitude", "longitude", "site_code", "ecoregion")]
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(ecoregion[, species_name[j]])) < round(nrow(ecoregion) / 5) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
-  ecoregion <- ecoregion[, c("survey_id", "latitude", "longitude", "site_code", "ecoregion", new_species_name)]
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
   
   dir.create(base_dir_contribution)
   
-  eco_base_dir_contribution <- paste0(base_dir_contribution, stringr::str_replace_all(unique(ecoregion$ecoregion), " ", "_"), "/")
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
   
-  gam_function_cont(biomass = ecoregion,
+  brt_function_cont(biomass = realm,
                     covariates = rls_covariates,
                     species_name = new_species_name,
-                    base_dir_cont = eco_base_dir_contribution)
+                    base_dir_cont = eco_base_dir)
   
 })
 
 
-# run spamm for covariates contribution per ecoregion
-print("spamm biomass contribution per ecoregion")
+# run gam per realm
+print("gam per realm")
 
-pbmcapply::pbmclapply(1:length(rls_biomass_ecoregion), function(i) {
+pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
   
-  ecoregion <- rls_biomass_ecoregion[[i]]
+  realm <- rls_biomass_realm[[i]]
   
-  species_name <- colnames(ecoregion)[!colnames(ecoregion) %in% c("survey_id", "latitude", "longitude", "site_code", "ecoregion")]
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(ecoregion[, species_name[j]])) < round(nrow(ecoregion) / 5) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
-  ecoregion <- ecoregion[, c("survey_id", "latitude", "longitude", "site_code", "ecoregion", new_species_name)]
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
   
   dir.create(base_dir_contribution)
   
-  eco_base_dir_contribution <- paste0(base_dir_contribution, stringr::str_replace_all(unique(ecoregion$ecoregion), " ", "_"), "/")
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
   
-  spamm_function_cont(biomass = ecoregion,
-                      covariates = rls_covariates,
+  gam_function_cont(biomass = realm,
+                    covariates = rls_covariates,
+                    species_name = new_species_name,
+                    base_dir_cont = eco_base_dir)
+  
+})
+
+
+# run spamm per realm
+print("spamm per realm")
+
+pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
+  
+  realm <- rls_biomass_realm[[i]]
+  
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
+  
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
+  
+  new_species_name <- species_name[which(new_sp == FALSE)]
+  
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
+  
+  rls_covariates_eco <- rls_covariates |> 
+    dplyr::filter(survey_id %in% realm$survey_id)
+  
+  dir.create(base_dir_contribution)
+  
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
+  
+  spamm_function_cont(biomass = realm,
+                      covariates = rls_covariates_eco,
                       species_name = new_species_name,
-                      base_dir_cont = eco_base_dir_contribution)
+                      base_dir = eco_base_dir)
   
 })
 
 
-# run gbm for covariates contribution per ecoregion
-print("gbm biomass contribution per ecoregion")
+# run sprf per realm
+print("sprf per realm")
 
-pbmcapply::pbmclapply(1:length(rls_biomass_ecoregion), function(i) {
+pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
   
-  ecoregion <- rls_biomass_ecoregion[[i]]
+  realm <- rls_biomass_realm[[i]]
   
-  species_name <- colnames(ecoregion)[!colnames(ecoregion) %in% c("survey_id", "latitude", "longitude", "site_code", "ecoregion")]
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(ecoregion[, species_name[j]])) < round(nrow(ecoregion) / 5) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
-  ecoregion <- ecoregion[, c("survey_id", "latitude", "longitude", "site_code", "ecoregion", new_species_name)]
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
   
   dir.create(base_dir_contribution)
   
-  eco_base_dir_contribution <- paste0(base_dir_contribution, stringr::str_replace_all(unique(ecoregion$ecoregion), " ", "_"), "/")
-
-  brt_function_cont(biomass = ecoregion,
-                    covariates = rls_covariates,
-                    species_name = new_species_name,
-                    base_dir_cont = eco_base_dir_contribution)
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
   
-})
-
-
-# run sprf for covariates contribution per ecoregion
-print("sprf biomass contribution per ecoregion")
-
-pbmcapply::pbmclapply(1:length(rls_biomass_ecoregion), function(i) {
-  
-  ecoregion <- rls_biomass_ecoregion[[i]]
-  
-  species_name <- colnames(ecoregion)[!colnames(ecoregion) %in% c("survey_id", "latitude", "longitude", "site_code", "ecoregion")]
-  
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(ecoregion[, species_name[j]])) < round(nrow(ecoregion) / 5) })
-  
-  new_species_name <- species_name[which(new_sp == FALSE)]
-  
-  ecoregion <- ecoregion[, c("survey_id", "latitude", "longitude", "site_code", "ecoregion", new_species_name)]
-  
-  dir.create(base_dir_contribution)
-  
-  eco_base_dir_contribution <- paste0(base_dir_contribution, stringr::str_replace_all(unique(ecoregion$ecoregion), " ", "_"), "/")
-  
-  pbmcapply::pbmclapply(1:length(new_species_name), function(i) {
+  pbmcapply::pbmclapply(1:length(new_species_name), function(k) {
     
-    rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", new_species_name[i])]
+    rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", new_species_name[k])]
     
     spatialrf_function_cont(biomass = rls_biomass_i,
                             covariates = rls_covariates,
-                            base_dir_cont = eco_base_dir_contribution)
+                            base_dir = eco_base_dir)
     
   }, mc.cores = 1)
   
 })
-
-

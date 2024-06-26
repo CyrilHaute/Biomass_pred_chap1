@@ -1,9 +1,9 @@
 # function to fit glmm (SPAMM) and assess covariates relative importance
 
-# biomass = rls_biomass
-# covariates = rls_covariates
-# species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-# base_dir_cont = base_dir
+# biomass = realm
+# covariates = rls_covariates_eco
+# species_name = new_species_name
+# base_dir = eco_base_dir
 
 spamm_function_cont <- function(biomass, 
                                 covariates,
