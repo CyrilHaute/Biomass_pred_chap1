@@ -23,42 +23,42 @@ print("glm biomass contribution")
 glm_function_cont(biomass = rls_biomass,
                   covariates = rls_covariates,
                   species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                  base_dir_cont = base_dir)
+                  base_dir_cont = base_dir_contribution)
 
 # run random Forest for covariates contribution
 print("rf biomass contribution")
 rf_function_cont(biomass = rls_biomass,
                  covariates = rls_covariates,
                  species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                 base_dir_cont = base_dir)
+                 base_dir_cont = base_dir_contribution)
 
 # run gam for covariates contribution
 print("gam biomass contribution")
 gam_function_cont(biomass = rls_biomass,
                   covariates = rls_covariates,
                   species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                  base_dir_cont = base_dir)
+                  base_dir_cont = base_dir_contribution)
 
 # run spamm for covariates contribution
 print("spamm biomass contribution")
 spamm_function_cont(biomass = rls_biomass,
                     covariates = rls_covariates,
                     species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                    base_dir_cont = base_dir)
+                    base_dir_cont = base_dir_contribution)
 
 # run gbm for covariates contribution
 print("gbm biomass contribution")
 brt_function_cont(biomass = rls_biomass,
                   covariates = rls_covariates,
                   species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                  base_dir_cont = base_dir)
+                  base_dir_cont = base_dir_contribution)
 
 # run spatial Random Forest for covariates contribution
 print("sprf biomass contribution")
 
 species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
 
-pbmcapply::pbmclapply(121:length(species_name), function(i) {
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
   rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
   
