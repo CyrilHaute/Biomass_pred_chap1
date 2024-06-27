@@ -253,6 +253,28 @@ best_models_pr <- best_models_realm |>
   dplyr::summarise(n = dplyr::n()) |> 
   dplyr::mutate(pr = (n*100)/sum(n))
 
+model_vec <- unique(best_models_pr$best_model)
+realm_vec <- unique(best_models_pr$realm)
+
+add_missing_model <- lapply(1:length(realm_vec), function(i) {
+  
+  realm_i <- best_models_pr |> 
+    dplyr::filter(realm == realm_vec[i])
+  
+  model_i <- realm_i$best_model
+  missing_model <- setdiff(model_vec, model_i)
+  
+  missing_model_dtf <- dplyr::tibble(realm = rep(unique(realm_i$realm), length(missing_model)),
+                                     best_model = missing_model,
+                                     n = rep(0, length(missing_model)),
+                                     pr = rep(0, length(missing_model)))
+  
+  realm_i_new <- dplyr::full_join(realm_i, missing_model_dtf)
+  
+})
+
+best_models_pr <- do.call(rbind, add_missing_model)
+
 # produce histograms of model performance for best models ----
 
 
@@ -312,13 +334,14 @@ plot_perf_spearman_realm <- lapply(1:length(unique(performance_all_best$realm)),
   scale_fill_manual(values = c("Best models" = pal_perf[6],
                                "All models" = pal_perf[2])) +
   theme_minimal() +
-  theme(title = element_text(size = 9),
+  theme(title = element_text(size = 12),
         axis.text.x = element_text(angle = 35, hjust = 1),
         axis.title = element_text(size = 13),
         axis.text = element_text(size = 11)) +
   coord_cartesian(ylim = c(-0.5, 1)) + 
   theme(legend.position = 'none',
-        legend.direction = "horizontal")
+        legend.direction = "horizontal",
+        legend.title = element_text(size = 0))
   
 })
 
@@ -334,13 +357,14 @@ plot_perf_pearson_realm <- lapply(1:length(unique(performance_all_best$realm)), 
     scale_fill_manual(values = c("Best models" = pal_perf[6],
                                  "All models" = pal_perf[2])) +
     theme_minimal() +
-    theme(title = element_text(size = 9),
+    theme(title = element_text(size = 12),
           axis.text.x = element_text(angle = 35, hjust = 1),
           axis.title = element_text(size = 13),
           axis.text = element_text(size = 11)) +
     coord_cartesian(ylim = c(-0.5, 1)) + 
     theme(legend.position = 'none',
-          legend.direction = "horizontal")
+          legend.direction = "horizontal",
+          legend.title = element_text(size = 0))
   
 })
 
@@ -360,11 +384,12 @@ best_model <- lapply(1:length(unique(best_models_pr$realm)), function(i) {
                                  "rf" = pal_best[6])) +
     labs(x = "", y = "Best model (%)", fill = "", title = stringr::str_replace_all(unique(performance_all_best$realm)[i], c("_" = " ", "-" = " "))) +
     theme_minimal() +
-    theme(title = element_text(size = 9),
+    theme(title = element_text(size = 12),
           axis.text.x = element_text(angle = 35, hjust = 1),
           axis.title = element_text(size = 13),
           axis.text = element_text(size = 11),
-          legend.position = "none")
+          legend.position = "none",
+          legend.title = element_text(size = 0))
   
 })
 
@@ -373,19 +398,23 @@ world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
 rls_map <- ggplot(data = world) +
   geom_sf() +
   scale_x_continuous(limits=c(-180, 180)) +
-  scale_y_continuous(limits=c(-70, 70)) +
-  geom_sf(fill = "white", color = "gray90", size = 0.01) +
+  scale_y_continuous(limits=c(-60, 60)) +
+  geom_sf(data = sf::st_union(world), fill = "white", color = "gray90", size = 0.01) +
   theme_classic() +
   coord_sf(expand = FALSE) +
   theme(legend.position = "none",
         axis.text = element_text(size = 15))
 
 map_perf_spearman_realm <- rls_map + 
-  patchwork::inset_element(plot_perf_spearman_realm[[1]], left = 0.29, bottom = 0.62, right = 0.48, top = 0.92) +
-  patchwork::inset_element(plot_perf_spearman_realm[[2]], left = 0.34, bottom = 0.30, right = 0.53, top = 0.60) +
-  patchwork::inset_element(plot_perf_spearman_realm[[3]], left = 0.81, bottom = 0.43, right = 1, top = 0.74) +
-  patchwork::inset_element(plot_perf_spearman_realm[[4]], left = 0.62, bottom = 0.20, right = 0.81, top = 0.50) +
-  patchwork::inset_element(plot_perf_spearman_realm[[5]], left = 0.07, bottom = 0.31, right = 0.26, top = 0.61)
+  patchwork::inset_element(plot_perf_spearman_realm[[1]], left = 0.29, bottom = 0.64, right = 0.48, top = 1) +
+  patchwork::inset_element(plot_perf_spearman_realm[[2]], left = 0.34, bottom = 0.24, right = 0.53, top = 0.60) +
+  patchwork::inset_element(plot_perf_spearman_realm[[3]], left = 0.81, bottom = 0.37, right = 1, top = 0.74) +
+  patchwork::inset_element(plot_perf_spearman_realm[[4]], left = 0.62, bottom = 0.12, right = 0.81, top = 0.48) +
+  patchwork::inset_element(plot_perf_spearman_realm[[5]], left = 0.07, bottom = 0.25, right = 0.26, top = 0.61) +
+  patchwork::plot_layout(guides = "collect") &
+  theme(legend.position = "right",
+        legend.direction = "vertical",
+        legend.box = "vertical")
 
 
 ggplot2::ggsave("figures/map_perf_spearman_realm.pdf", map_perf_spearman_realm, height = 10, width = 20)
@@ -393,28 +422,37 @@ ggplot2::ggsave("figures/map_perf_spearman_realm.png", map_perf_spearman_realm, 
 
 
 map_perf_pearson_realm <- rls_map + 
-  patchwork::inset_element(plot_perf_pearson_realm[[1]], left = 0.29, bottom = 0.62, right = 0.48, top = 0.92) +
-  patchwork::inset_element(plot_perf_pearson_realm[[2]], left = 0.34, bottom = 0.30, right = 0.53, top = 0.60) +
-  patchwork::inset_element(plot_perf_pearson_realm[[3]], left = 0.81, bottom = 0.43, right = 1, top = 0.74) +
-  patchwork::inset_element(plot_perf_pearson_realm[[4]], left = 0.62, bottom = 0.20, right = 0.81, top = 0.50) +
-  patchwork::inset_element(plot_perf_pearson_realm[[5]], left = 0.07, bottom = 0.31, right = 0.26, top = 0.61)
+  patchwork::inset_element(plot_perf_pearson_realm[[1]], left = 0.29, bottom = 0.64, right = 0.48, top = 1) +
+  patchwork::inset_element(plot_perf_pearson_realm[[2]], left = 0.34, bottom = 0.24, right = 0.53, top = 0.60) +
+  patchwork::inset_element(plot_perf_pearson_realm[[3]], left = 0.81, bottom = 0.37, right = 1, top = 0.74) +
+  patchwork::inset_element(plot_perf_pearson_realm[[4]], left = 0.62, bottom = 0.12, right = 0.81, top = 0.48) +
+  patchwork::inset_element(plot_perf_pearson_realm[[5]], left = 0.07, bottom = 0.25, right = 0.26, top = 0.61) +
+  patchwork::plot_layout(guides = "collect") &
+  theme(legend.position = "right",
+        legend.direction = "vertical",
+        legend.box = "vertical")
 
 
 ggplot2::ggsave("figures/map_perf_pearson_realm.pdf", map_perf_pearson_realm, height = 10, width = 20)
 ggplot2::ggsave("figures/map_perf_pearson_realm.png", map_perf_pearson_realm, height = 10, width = 20)
 
 
+legend <- cowplot::get_legend(best_model[[5]] + theme(legend.position = "right"))
 
 map_best_model_realm <- rls_map + 
-  patchwork::inset_element(best_model[[1]], left = 0.29, bottom = 0.62, right = 0.48, top = 0.92) +
-  patchwork::inset_element(best_model[[2]], left = 0.34, bottom = 0.30, right = 0.53, top = 0.60) +
-  patchwork::inset_element(best_model[[3]], left = 0.81, bottom = 0.43, right = 1, top = 0.74) +
-  patchwork::inset_element(best_model[[4]], left = 0.62, bottom = 0.20, right = 0.81, top = 0.50) +
-  patchwork::inset_element(best_model[[5]], left = 0.07, bottom = 0.31, right = 0.26, top = 0.61)
+  patchwork::inset_element(best_model[[1]], left = 0.29, bottom = 0.64, right = 0.48, top = 1) +
+  patchwork::inset_element(best_model[[2]], left = 0.34, bottom = 0.24, right = 0.53, top = 0.60) +
+  patchwork::inset_element(best_model[[3]], left = 0.81, bottom = 0.37, right = 1, top = 0.74) +
+  patchwork::inset_element(best_model[[4]], left = 0.62, bottom = 0.12, right = 0.81, top = 0.48) +
+  patchwork::inset_element(best_model[[5]], left = 0.07, bottom = 0.25, right = 0.26, top = 0.61) +
+  patchwork::plot_layout(guides = "collect") &
+  theme(legend.position = "none")
+
+map_best_model_realm_final <- cowplot::plot_grid(map_best_model_realm, legend, ncol = 2, rel_widths = c(8, 1))
 
 
-ggplot2::ggsave("figures/map_best_model_realm.pdf", map_best_model_realm, height = 10, width = 20)
-ggplot2::ggsave("figures/map_best_model_realm.png", map_best_model_realm, height = 10, width = 20)
+ggplot2::ggsave("figures/map_best_model_realm.pdf", map_best_model_realm_final, height = 10, width = 20)
+ggplot2::ggsave("figures/map_best_model_realm.png", map_best_model_realm_final, height = 10, width = 20)
 
 
 
