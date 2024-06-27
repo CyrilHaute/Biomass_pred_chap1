@@ -251,7 +251,7 @@ for(i in 1:length(rls_biomass_realm)) {
     
     spatialrf_function_cont(biomass = rls_biomass_i,
                             covariates = rls_covariates,
-                            base_dir = eco_base_dir)
+                            base_dir_cont = eco_base_dir)
     
   }, mc.cores = 1)
   

@@ -1,8 +1,8 @@
 # function to fit spatial Random Forest and assess covariates relative importance
 
-# biomass = rls_biomass_i
-# covariates = rls_covariates
-# base_dir_cont = base_dir
+biomass = rls_biomass_i
+covariates = rls_covariates
+base_dir_cont = eco_base_dir
 
 spatialrf_function_cont <- function(biomass,
                                     covariates,
