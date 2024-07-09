@@ -1,9 +1,9 @@
 # function to fit glmm (SPAMM) and assess covariates relative importance
 
-# biomass = realm
-# covariates = rls_covariates_eco
-# species_name = new_species_name
-# base_dir = eco_base_dir
+biomass = rls_biomass
+covariates = rls_covariates
+species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+base_dir_cont = base_dir_contribution
 
 spamm_function_cont <- function(biomass, 
                                 covariates,
@@ -80,7 +80,7 @@ spamm_function_cont <- function(biomass,
       
     }
 
-    covnames_new_new <- colnames(sp)[which(colnames(sp) %in% c("survey_id", species_name[i]) == FALSE)]
+    covnames_new_new <- colnames(sp)[which(colnames(sp) %in% c("survey_id", "Y", "X", "site_code", "biomass", species_name[i]) == FALSE)]
 
     # Use the package DALEX to assess covariates relative importance
     # First create an explain object (a representation of your model, depend on the structure of the algorithm used)

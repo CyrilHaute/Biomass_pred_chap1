@@ -75,8 +75,8 @@ performance_plot <- function(plot_data,
           legend.direction = "horizontal") +
     labs(y = metrics_sel, x = "", title = plot_title, fill = "") +
     theme(title = element_text(size=20),
-          axis.text=element_text(size=15),
-          axis.title=element_text(size=25),
+          axis.text=element_text(size=25),
+          axis.title=element_text(size=30),
           legend.text=element_text(size=20), 
           legend.title=element_text(size=25),
           strip.text.x = element_text(size = 20),
@@ -85,7 +85,8 @@ performance_plot <- function(plot_data,
           panel.background = element_rect(fill = "white", colour = "grey50",
                                           size = 1, linetype = "solid"),
           panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank())
+          panel.grid.minor = element_blank(),
+          axis.text.x = element_text(angle = 35, hjust = 1))
   
   print(plot_perf)
   
