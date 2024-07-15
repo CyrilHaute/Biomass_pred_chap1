@@ -185,19 +185,15 @@ bind_files_acp_bind_traits <- bind_files_acp_bind_traits |>
 
 
 
-pca <- FactoMineR::FAMD(bind_files_acp_bind_traits[c(27:42)], graph = FALSE)
+pca <- FactoMineR::FAMD(bind_files_acp_bind_traits[,c("Trophic.Level", "Water.column", "Habitat", "Trophic_guild", "Trophic_guild_name", "MaxLength")], graph = FALSE)
 
 # bind_files_acp_bind_traits$ <- 
 
-factoextra::fviz_famd(pca,
+factoextra::fviz_famd_ind(pca,
                       geom = c("point"),
                       repel = TRUE,
-                      fill.ind = as.factor(bind_files_acp_bind_traits$varmax),
-                      col.ind = as.factor(bind_files_acp_bind_traits$varmax),
-                      palette = PNWColors::pnw_palette("Bay", 3, type = "discrete")
-                      # pointshape = 21,
-                      # pointsize = 3
-                      )
+                      # col.ind = as.factor(bind_files_acp_bind_traits$varmax),
+                      palette = "jco")
 
 
 
@@ -274,18 +270,18 @@ cont <- cont |>
   dplyr::inner_join(phylo, by = "species_name")
 
 n_trait <- cont |>
-  dplyr::group_by(order) |> 
+  dplyr::group_by(family) |> 
   dplyr::summarise(n = dplyr::n() / 3)
 
 cont <- cont |> 
-  dplyr::inner_join(n_trait, by = "order") |> 
+  dplyr::inner_join(n_trait, by = "family") |> 
   dplyr::filter(n >= 10)
 
-cont[colnames(cont) %in% "order"] <- sapply(1:nrow(cont[colnames(cont) %in% "order"]), function(i) {
+cont[colnames(cont) %in% "family"] <- sapply(1:nrow(cont[colnames(cont) %in% "family"]), function(i) {
   
-  row_i <- cont[colnames(cont) %in% "order"][i,]
+  row_i <- cont[colnames(cont) %in% "family"][i,]
   
-  which_row <- which(grepl(row_i, unlist(n_trait[colnames(n_trait) %in% "order"])) == TRUE)
+  which_row <- which(grepl(row_i, unlist(n_trait[colnames(n_trait) %in% "family"])) == TRUE)
   
   paste0(row_i, " (n = ", n_trait$n[which_row], ")")
   
@@ -294,8 +290,8 @@ cont[colnames(cont) %in% "order"] <- sapply(1:nrow(cont[colnames(cont) %in% "ord
 library(ggplot2)
 
 plot_trait <- cont |> 
-  dplyr::mutate(var = forcats::fct_relevel(var, "ENV", "HAB", "HUM")) |> 
-  ggplot(aes_string(x = "order", y = "value", fill = "var")) +
+  dplyr::mutate(var = forcats::fct_relevel(var, "ENV", "HAB", "HUM")) |>
+  ggplot(aes_string(x = "family", y = "value", fill = "var")) +
   geom_boxplot(aes(fill = factor(var)), width=0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
   scale_fill_manual(values = c("ENV" = pal_sp_trait[1],
                                "HUM" = pal_sp_trait[3],
