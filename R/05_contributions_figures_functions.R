@@ -25,7 +25,7 @@ covariates_importance_all_function <- function(plot_data,
   
   # only_model_best$contributions_and_sd[[]]
   
-  ENV <- lapply(1:nrow(only_model_best), function(i) { as.vector(scale(only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss, center = T, scale = T))})
+  ENV <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
   ENV_sd <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
   ENV <- do.call(rbind, ENV)
   ENV_sd <- do.call(rbind, ENV_sd)

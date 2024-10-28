@@ -1,8 +1,11 @@
+# data = scenario_l
+# avoid = c("survey_id", "scenario", "effectiveness", "biomass", "y", "x", "year")
+# limit = 6
+
 noise_function <- function(data,
                            avoid,
-                           limit,
-                           size){
-  
+                           limit){
+
   n_values <- lapply(1:ncol(data[,!colnames(data) %in% avoid]), function(i) {unique(data[,!colnames(data) %in% avoid][,i])})
   
   names(n_values) <- colnames(data[,!colnames(data) %in% avoid])
@@ -15,11 +18,21 @@ noise_function <- function(data,
     
   }else{
     
+    mean_value <- sapply(1:length(little_cov), function(i) { mean(unlist(data[,little_cov[i]]))})
+    
     n_cov <- which(names(data) %in% little_cov)
     
     noise <- lapply(1:length(n_cov), function(i) {
       
-      abs(rnorm(nrow(data), size, size))
+      if(mean_value[i] != 0){
+      
+      abs(rnorm(nrow(data), abs(mean_value[i]) * 0.001, abs(mean_value[i]) * 0.001))
+        
+      }else{
+        
+        abs(rnorm(nrow(data), 0.001, 0.001))
+        
+      }
       
     })
     
@@ -35,6 +48,8 @@ noise_function <- function(data,
     
   }
   
-  return(data)
+  print(little_cov)
   
+  return(data)
+
 }

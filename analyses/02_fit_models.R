@@ -19,54 +19,100 @@ load("data/new_raw_data/00_rls_surveys.Rdata")
 
 rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 
-base_dir <- "outputs/biomass_prediction/"
+species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "site_code", "latitude", "longitude")]
 
 # run glm 
 print("glm biomass prediction")
-glm_function(biomass = rls_biomass,
-             covariates = rls_covariates,
-             species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-             base_dir = base_dir)
+
+base_dir <- "outputs/glm_prediction/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  glm_function(biomass = rls_biomass_i,
+               covariates = rls_covariates,
+               species_name = species_name[i],
+               base_dir = base_dir)
+  
+}, mc.cores = parallel::detectCores() - 1)
 
 # run random forest
 print("rf biomass prediction")
-rf_function(biomass = rls_biomass,
-            covariates = rls_covariates,
-            species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-            base_dir = base_dir)
+
+base_dir <- "outputs/rf_prediction/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  rf_function(biomass = rls_biomass_i,
+              covariates = rls_covariates,
+              species_name = species_name[i],
+              base_dir = base_dir)
+  
+}, mc.cores = parallel::detectCores() - 1)
 
 # run boosted regression trees
 print("brt biomass prediction")
-brt_function(biomass = rls_biomass,
-             covariates = rls_covariates,
-             species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-             base_dir = base_dir)
+
+base_dir <- "outputs/brt_prediction/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  brt_function(biomass = rls_biomass_i,
+               covariates = rls_covariates,
+               species_name = species_name[i],
+               base_dir = base_dir)
+  
+}, mc.cores = parallel::detectCores() - 1)
 
 # run gam
 print("gam biomass prediction")
-gam_function(biomass = rls_biomass,
-             covariates = rls_covariates,
-             species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-             base_dir = base_dir)
+
+base_dir <- "outputs/gam_prediction/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  gam_function(biomass = rls_biomass,
+               covariates = rls_covariates,
+               species_name = species_name[i],
+               base_dir = base_dir)
+  
+}, mc.cores = 1)
 
 # run spamm (GLMM)
 print("spamm biomass prediction")
-spamm_function(biomass = rls_biomass,
-               covariates = rls_covariates,
-               species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-               base_dir = base_dir)
+
+base_dir <- "outputs/spamm_prediction/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  spamm_function(biomass = rls_biomass_i,
+                 covariates = rls_covariates,
+                 species_name = species_name[i],
+                 base_dir = base_dir)
+  
+}, mc.cores = 1)
 
 # run spatial random forest
 print("sprf biomass prediction")
 
-species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+base_dir <- "outputs/sprf_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
-  rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
   
   spatialrf_function(biomass = rls_biomass_i,
                      covariates = rls_covariates,
+                     species_name = species_name[i],
                      base_dir = base_dir)
   
 }, mc.cores = 1)

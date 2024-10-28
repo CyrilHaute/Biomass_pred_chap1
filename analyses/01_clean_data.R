@@ -65,10 +65,10 @@ rls_habitat <- rls_habitat |>
   dplyr::rename(reef_extent = sum_geo_10)
 
 rls_habitat$survey_id <- as.character(rls_habitat$survey_id)
-rls_habitat <- rls_habitat |> 
+rls_habitat_inferred_benthos <- rls_habitat |> 
   dplyr::inner_join(inferred_benthos)
 
-rls_habitat <- rls_habitat |> 
+rls_habitat_inferred_benthos <- rls_habitat_inferred_benthos |> 
   dplyr::select(-c(longitude, latitude))
 
 ##################################################
@@ -105,11 +105,11 @@ rls_soc <- corruption |>
 
 rls_soc$effectiveness <- as.factor(rls_soc$effectiveness)
 
-rls_habitat$survey_id <- as.integer(rls_habitat$survey_id)
+rls_habitat_inferred_benthos$survey_id <- as.integer(rls_habitat_inferred_benthos$survey_id)
 
 rls_covariates <- rls_env |> 
   dplyr::inner_join(rls_soc) |> 
-  dplyr::inner_join(rls_habitat)
+  dplyr::inner_join(rls_habitat_inferred_benthos)
 
 rls_covariates$survey_id <- as.character(rls_covariates$survey_id)
 
@@ -164,11 +164,12 @@ rls_env_selec <- rls_env_selec[,which(grepl(pattern = paste0(c("survey_id", "max
 cor_env <- stats::cor(rls_env_selec[!colnames(rls_env_selec) %in% c("survey_id", "longitude", "latitude")]) #Look at correlation between covariates
 corrplot::corrplot(cor_env, type = "upper") 
 
-rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_7days_chl", "mean_7days_analysed_sst")]
+# rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_7days_chl", "mean_7days_analysed_sst")]
+rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "min_7days_o2")]
 cor_env2 <- stats::cor(rls_env_selec2)
 corrplot::corrplot(cor_env2, type = "upper")
 
-rls_env_final <- rls_env_selec[,c("survey_id", "min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_7days_chl", "mean_7days_analysed_sst")]
+rls_env_final <- rls_env_selec[,c("survey_id", "min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "min_7days_o2")]
 
 
 # Select social covariates
@@ -181,16 +182,17 @@ rls_soc_selec$gravtot2 <- log10(rls_soc_selec$gravtot2 + mean(rls_soc_selec$grav
 cor_soc <- stats::cor(rls_soc_selec[!colnames(rls_soc_selec) %in% c("survey_id", "longitude", "latitude", "effectiveness")])
 corrplot::corrplot(cor_soc, type = "upper")
 
-rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "n_fishing_vessels", "ngo")]
+# rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "n_fishing_vessels", "ngo")]
+rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "natural_ressource_rent")]
 
 cor_soc2 <- stats::cor(rls_soc_selec2)
-corrplot::corrplot(cor_soc2)
+corrplot::corrplot(cor_soc2, type = "upper")
 
-rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "n_fishing_vessels", "ngo", "effectiveness")]
+rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "natural_ressource_rent", "effectiveness")]
 
 
 # Select habitat covariates
-rls_hab_selec <- rls_fish_cov[, colnames(rls_habitat)]
+rls_hab_selec <- rls_fish_cov[, colnames(rls_habitat_inferred_benthos)]
 rls_hab_selec <- rls_hab_selec |> 
   dplyr::inner_join(rls_surveys[,c("survey_id", "depth")])
 
@@ -198,21 +200,22 @@ cor_hab <- stats::cor(rls_hab_selec[!colnames(rls_hab_selec) %in% c("survey_id",
 corrplot::corrplot(cor_hab, type = "upper")
 
 colnames(inferred_benthos)[-c(1:3)]
-rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
+# rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
+rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
 corrplot::corrplot(cor_hab2, type = "upper")
 
-rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
+rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
 
 
 #####################################################################
-############# Create a spatial cross validation dataset #############
+##############  Create biomass and covariates dataset  ##############
 #####################################################################
 
 species_name <- colnames(rls_spread_coral_reef_biomass)[!colnames(rls_spread_coral_reef_biomass) %in% c("survey_id", "latitude", "longitude")]
 
 rls_biomass <- rls_fish_cov |> 
-  dplyr::inner_join(rls_surveys[,c("survey_id", "site_code", "depth")])
+  dplyr::inner_join(rls_surveys[,c("survey_id", "site_code")])
 
 rls_biomass <- rls_biomass |>
   dplyr::select(survey_id, 
@@ -226,8 +229,7 @@ rls_biomass <- rls_biomass |>
 rls_covariates <- rls_env_final |> 
   dplyr::inner_join(rls_soc_final) |> 
   dplyr::inner_join(rls_hab_final)
-rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")] <- scale(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+# rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")] <- scale(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
 
-# save(biomass_contribution, file = "data/new_derived_data/biomass_contribution.RData")
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(rls_biomass, file = "data/new_derived_data/rls_biomass.RData")

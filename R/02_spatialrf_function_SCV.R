@@ -15,18 +15,22 @@
 
 # biomass = rls_biomass_i
 # covariates = rls_covariates
-# base_dir = eco_base_dir
+# species_name = species_name[i]
+# base_dir = base_dir
 
 spatialrf_function <- function(biomass, 
                                covariates,
+                               species_name,
                                base_dir){
   
   fmla <<- as.formula(paste0("biomass ~ ", paste0(colnames(covariates)[!colnames(covariates) %in% "survey_id"], collapse = " + ")))
   
+  # First, select only zero within the living area of the species considered
+  
   sp <- biomass
-  sp_name <- colnames(sp)[5]
-  colnames(sp)[colnames(sp) %in% sp_name] <- "biomass"
-  sp$latitude_arr <- round(sp$latitude, 1)
+  colnames(sp)[colnames(sp) %in% species_name] <- "biomass" # Rename the species name for consistency
+  sp$biomass <- as.numeric(sp$biomass)
+  sp$latitude_arr <- round(sp$latitude, 1) # Do so by considering only 0 where presences are recorded within degree of latitude
   
   pres <- sp |> 
     dplyr::filter(biomass != 0)
@@ -35,7 +39,10 @@ spatialrf_function <- function(biomass,
     dplyr::filter(latitude_arr %in% unique(pres$latitude_arr))
   
   sp <- rbind(pres, abs) |> 
-    dplyr::select(! latitude_arr)
+    dplyr::select(! latitude_arr) # merge presences and selected absences
+  
+  # Even with the absences selection above, it can still result in to much absences in the dataset resulting in zero inflation.
+  # Thus, select randomly as much absences as presences
   
   biomass_only <- sp[which(sp[, "biomass"] > 0),]
   
@@ -51,13 +58,19 @@ spatialrf_function <- function(biomass,
     
   }
   
-  # combine absence and presence
+  # Combine absences and presences
   sp <- rbind(biomass_only, absence)
   
-  sp$biomass <- as.numeric(sp$biomass)
+  covariates_sp <- covariates |> 
+    dplyr::filter(survey_id %in% sp$survey_id) |> 
+    noise_function(avoid = c("survey_id", "effectiveness"),
+                   limit = 6)
   
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  
+  # Create spatial k-fold cross-validation dataset, here with 5 fold, each fold being splited in 80% for training and 20% for testing. The spatial compenent can resulting in less than 80% of data in the training set
   biomass_scv <- scv_function(sp,
-                              10)
+                              5)
   
   cv_j <- pbmcapply::pbmclapply(1:length(biomass_scv), function(j) {
     
@@ -78,16 +91,14 @@ spatialrf_function <- function(biomass,
     # As some covariates are at the country level, it means you can have very few or even only one value for these covariates
     # Check for the number of values in each covariates and add noise if < 6 values
     
-    train_covariates <- covariates |> 
+    train_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% training$survey_id) |> 
       noise_function(avoid = c("survey_id", "effectiveness"),
-                     limit = 6,
-                     size = 0.01)
-    test_covariates <- covariates |> 
+                     limit = 6)
+    test_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% testing$survey_id) |> 
       noise_function(avoid = c("survey_id", "effectiveness"),
-                     limit = 6,
-                     size = 0.01)
+                     limit = 6)
     
     # add covariates
     training <<- dplyr::inner_join(training, train_covariates, by = "survey_id")
@@ -99,17 +110,19 @@ spatialrf_function <- function(biomass,
       dplyr::select(X, Y) |> 
       as.data.frame()
     
+    max_dist <- max(as.matrix(dist(coords)))
+
     ### FITTING MODELS 
     # fit the spatial random forests
     
     model_fit <- SpatialML::grf(formula = fmla,
                                 dframe = training,
-                                bw = 100,
+                                bw = round(max_dist * 0.1),
                                 kernel = "fixed",
                                 coords = coords,
-                                ntree = 100,
+                                ntree = nrow(training) * 10,
                                 geo.weighted = FALSE)
-    
+
     validation_predict  <- SpatialML::predict.grf(object = model_fit,
                                                   new.data = testing,
                                                   x.var.name = "X",
@@ -124,7 +137,7 @@ spatialrf_function <- function(biomass,
     
     validation_obs_prd <- validation_predict |>
       dplyr::inner_join(validation_observed, multiple = "first") |> 
-      dplyr::mutate(species_name = sp_name,
+      dplyr::mutate(species_name = species_name,
                     cv = j,
                     model = "sprf")
     
@@ -135,15 +148,14 @@ spatialrf_function <- function(biomass,
     
     return(validation_obs_prd)
     
-  }, mc.cores = parallel::detectCores() - 1)
+  }, mc.cores = 5)
   
   cv_j_bind <- do.call(rbind, cv_j)
   
-  model_dir <- "sprf/"
+  model_dir <- "sprf"
   
   dir.create(base_dir)
-  dir.create(paste0(base_dir, model_dir))
   
-  save(cv_j_bind, file = paste0(base_dir, model_dir, stringr::str_replace_all(sp_name, " ", "_"), "_extracted_predictions.RData"))
+  save(cv_j_bind, file = paste0(base_dir, stringr::str_replace_all(species_name, " ", "_"), ".Rdata"))
   
 }
