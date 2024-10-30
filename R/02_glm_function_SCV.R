@@ -87,7 +87,7 @@ glm_function <- function(biomass,
     
     # Create spatial k-fold cross-validation dataset, here with 5 fold, each fold being splited in 80% for training and 20% for testing. The spatial compenent can resulting in less than 80% of data in the training set
     biomass_scv <- scv_function(sp,
-                                10)
+                                5)
     
     cv_j <- pbmcapply::pbmclapply(1:length(biomass_scv), function(j) {
       

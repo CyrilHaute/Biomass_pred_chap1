@@ -146,7 +146,7 @@ brt_function <- function(biomass,
     
     return(validation_obs_prd)
     
-  }, mc.cores = 1)
+  }, mc.cores = 5)
   
   cv_j_bind <- do.call(rbind, cv_j)
   

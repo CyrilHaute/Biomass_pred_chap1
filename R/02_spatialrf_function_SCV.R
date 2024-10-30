@@ -120,7 +120,7 @@ spatialrf_function <- function(biomass,
                                 bw = round(max_dist * 0.1),
                                 kernel = "fixed",
                                 coords = coords,
-                                ntree = nrow(training) * 10,
+                                ntree = ncol(training[!colnames(training) %in% c("survey_id", "biomass", "X", "Y")]) * 10,
                                 geo.weighted = FALSE)
 
     validation_predict  <- SpatialML::predict.grf(object = model_fit,
@@ -148,7 +148,7 @@ spatialrf_function <- function(biomass,
     
     return(validation_obs_prd)
     
-  }, mc.cores = 5)
+  }, mc.cores = 1)
   
   cv_j_bind <- do.call(rbind, cv_j)
   

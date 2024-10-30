@@ -2,17 +2,13 @@
 ################## extract evaluation model global ##################
 
 glm <- list.files("outputs/glm_prediction", full.names = TRUE)
-glm <- glm[1:30]
 rf <- list.files("outputs/rf_prediction", full.names = TRUE)
-rf <- rf[1:30]
 brt <- list.files("outputs/brt_prediction", full.names = TRUE)
-brt <- brt[1:30]
 gam <- list.files("outputs/gam_prediction", full.names = TRUE)
-gam <- gam[1:30]
 spamm <- list.files("outputs/spamm_prediction", full.names = TRUE)
-spamm <- spamm[1:30]
+sprf <- list.files("outputs/sprf_prediction", full.names = TRUE)
 
-file_model <- c(glm, rf, brt, gam, spamm)
+file_model <- c(glm, rf, brt, gam, spamm, sprf)
 
 read_sp_eco <- lapply(1:length(file_model), function(i) {
   
@@ -26,15 +22,29 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
   sp <- read_sp_eco[[i]]
   sp$survey_id <- as.numeric(sp$survey_id)
   
-  to_remove <- which(sapply(sp$validation_predict, is.infinite))
+  remove_na <- which(sapply(sp$survey_id, is.na))
   
-  if(length(to_remove) == 0){
+  if(length(remove_na) == 0){
     
     sp <- sp
     
   }else{
     
-    sp <- sp[-to_remove,]
+    sp <- sp[-remove_na,]
+    
+  }
+  
+  sp$validation_predict <- as.numeric(sp$validation_predict)
+  
+  remove_infinite <- which(sapply(sp$validation_predict, is.infinite))
+  
+  if(length(remove_infinite) == 0){
+    
+    sp <- sp
+    
+  }else{
+    
+    sp <- sp[-remove_infinite,]
     
   }
   
@@ -97,8 +107,6 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
 }, mc.cores = parallel::detectCores() - 1)
 
 performance_bind <- do.call(rbind, performance)
-
-# performance_bind$scenario <- as.factor(performance_bind$scenario)
 
 perf_model <- performance_bind |> 
   dplyr::group_by(model) |> 

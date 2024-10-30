@@ -1,15 +1,15 @@
 # function to fit glmm (SPAMM) and assess covariates relative importance
 
-biomass = rls_biomass
-covariates = rls_covariates
-species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
-base_dir_cont = base_dir_contribution
+# biomass = rls_biomass_i
+# covariates = rls_covariates
+# species_name = species_name[i]
+# base_dir_cont = base_dir
 
 spamm_function_cont <- function(biomass, 
                                 covariates,
                                 species_name,
                                 base_dir_cont){
-
+  
   # response variable name
   response <- "biomass ~ "
   
@@ -22,105 +22,101 @@ spamm_function_cont <- function(biomass,
   # create formula with new covariate names
   fmla <- as.formula(paste(response, paste(covnames_new, collapse = " + ")))
   fmla2 <- as.formula(paste(response, paste(covnames_new_bis, collapse = " + ")))
-
-  sp_i <- pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  # First, select only zero within the living area of the species considered
+  
+  sp <- biomass
+  colnames(sp)[colnames(sp) %in% species_name] <- "biomass" # Rename the species name for consistency
+  sp$biomass <- as.numeric(sp$biomass)
+  sp$latitude_arr <- round(sp$latitude, 1) # Do so by considering only 0 where presences are recorded within degree of latitude
+  
+  pres <- sp |> 
+    dplyr::filter(biomass != 0)
+  abs <- sp |> 
+    dplyr::filter(biomass == 0) |> 
+    dplyr::filter(latitude_arr %in% unique(pres$latitude_arr))
+  
+  sp <- rbind(pres, abs) |> 
+    dplyr::select(! latitude_arr) # merge presences and selected absences
+  
+  # Even with the absences selection above, it can still result in to much absences in the dataset resulting in zero inflation.
+  # Thus, select randomly as much absences as presences
+  
+  biomass_only <- sp[which(sp[, "biomass"] > 0),]
+  
+  n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+  
+  absence <- sp[which(sp[, "biomass"] == 0),]
+  
+  if(nrow(absence) > 0) {
     
-    sp <- biomass[colnames(biomass) %in% c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
-    colnames(sp)[colnames(sp) %in% species_name[i]] <- "biomass"
-    sp$latitude_arr <- round(sp$latitude, 1)
+    replacement <- ifelse(length(which(sp[, "biomass"] == 0)) < n_subsample, T, F)
     
-    pres <- sp |> 
-      dplyr::filter(biomass != 0)
-    abs <- sp |> 
-      dplyr::filter(biomass == 0) |> 
-      dplyr::filter(latitude_arr %in% unique(pres$latitude_arr))
+    absence <- absence[sample(which(absence[, "biomass"] == 0), n_subsample, replace = replacement),]
     
-    sp <- rbind(pres, abs) |> 
-      dplyr::select(! latitude_arr)
+  }
+  
+  # Combine absences and presences
+  sp <- rbind(biomass_only, absence)
+  
+  covariates_sp <- covariates |> 
+    dplyr::filter(survey_id %in% sp$survey_id) |> 
+    noise_function(avoid = c("survey_id", "effectiveness"),
+                   limit = 6)
+  
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  
+  # add covariates
+  sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id") |> 
+    dplyr::rename(X = longitude,
+                  Y = latitude)
+  
+  # Fit the model
+  
+  if(length(unique(sp$effectiveness)) == 1){
     
-    biomass_only <- sp[which(sp[, "biomass"] > 0),]
+    model_fit <- spaMM::fitme(fmla2, data = sp, method = "ML")
     
-    n_subsample <- nrow(sp[which(sp[, "biomass"] > 0),])
+  }else{
     
-    absence <- sp[which(sp[, "biomass"] == 0),]
+    model_fit <- spaMM::fitme(fmla, data = sp, method = "ML")
     
-    if(nrow(absence) > 0) {
-      
-      replacement <- ifelse(length(which(sp[, "biomass"] == 0)) < n_subsample, T, F)
-      
-      absence <- absence[sample(which(absence[, "biomass"] == 0), n_subsample, replace = replacement),]
-      
-    }
-    
-    # combine absence and presence
-    sp <- rbind(biomass_only, absence)
-    
-    sp$biomass <- as.numeric(sp$biomass)
-    
-    covariates <- covariates |> 
-      dplyr::filter(survey_id %in% sp$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
-                     limit = 6,
-                     size = 0.01)
-    
-    # add covariates
-    sp <- dplyr::inner_join(sp, covariates, by = "survey_id") |> 
-      dplyr::rename(X = longitude,
-                    Y = latitude)
-    
-    # Fit the model
-    
-    if(length(unique(sp$effectiveness)) == 1){
-      
-      model_fit <- spaMM::fitme(fmla2, data = sp, method = "ML")
-      
-    }else{
-      
-      model_fit <- spaMM::fitme(fmla, data = sp, method = "ML")
-      
-    }
-
-    covnames_new_new <- colnames(sp)[which(colnames(sp) %in% c("survey_id", "Y", "X", "site_code", "biomass", species_name[i]) == FALSE)]
-
-    # Use the package DALEX to assess covariates relative importance
-    # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
-    explainer_spamm <- DALEX::explain(model = model_fit, 
-                                      data = sp[covnames_new_new], 
-                                      y = sp[,"biomass"],
-                                      label = "HLfit")
-         
-    # Compute a 25-permutation-based value of the RMSE for all explanatory variables 
-    vip.25_spamm <- DALEX::model_parts(explainer = explainer_spamm, 
-                                       loss_function = DALEX::loss_root_mean_square, # Here we used the RMSE as our loss function
-                                       B = 25, # Number of permutation
-                                       type = "difference")
-          
-    # From the model_parts function you get 25 RMSE values for each covariates. 
-    # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
-    vip.25_spamm <- vip.25_spamm |> 
-      dplyr::group_by(variable) |> 
-      dplyr::summarise(Dropout_loss = mean(dropout_loss),
-                       sd_dropout_loss = sd(dropout_loss))
-          
-    vip.25_spamm <- vip.25_spamm |> 
-      dplyr::filter(!variable %in% c("_baseline_", "_full_model_", "X", "Y"))
-    
-    }, mc.cores = parallel::detectCores() - 1)
-
+  }
+  
+  covnames_new_new <- colnames(sp)[which(colnames(sp) %in% c("survey_id", "site_code", "biomass", species_name) == FALSE)]
+  
+  # Use the package DALEX to assess covariates relative importance
+  # First create an explain object (a representation of your model, depend on the structure of the algorithm used)
+  explainer_spamm <- DALEX::explain(model = model_fit, 
+                                    data = sp[covnames_new_new], 
+                                    y = sp[,"biomass"],
+                                    label = "HLfit")
+  
+  # Compute a 25-permutation-based value of the RMSE for all explanatory variables 
+  vip.25_spamm <- DALEX::model_parts(explainer = explainer_spamm, 
+                                     loss_function = DALEX::loss_root_mean_square, # Here we used the RMSE as our loss function
+                                     B = 10, # Number of permutation
+                                     type = "difference")
+  
+  # From the model_parts function you get 25 RMSE values for each covariates. 
+  # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
+  vip.25_spamm <- vip.25_spamm |> 
+    dplyr::group_by(variable) |> 
+    dplyr::summarise(Dropout_loss = mean(dropout_loss),
+                     sd_dropout_loss = sd(dropout_loss))
+  
+  vip.25_spamm <- vip.25_spamm |> 
+    dplyr::filter(!variable %in% c("_baseline_", "_full_model_", "X", "Y"))
+  
   extracted_contributions <- dplyr::tibble(species_name = species_name, 
                                            fitted_model = "spamm", 
                                            # estimate contribution
-                                           contributions_and_sd = sp_i)
+                                           vip.25_spamm)
   
   # save contribution output in same file structure
   
-  model_dir <- "spamm"
-  
   dir.create(base_dir_cont)
   
-  save(extracted_contributions, file = paste0(base_dir_cont, model_dir, "_extracted_contributions.RData"))
-  
-  rm(list=ls())
-  gc()
+  save(extracted_contributions, file = paste0(base_dir_cont, stringr::str_replace_all(species_name, " ", "_"), ".Rdata"))
   
 }

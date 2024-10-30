@@ -18,47 +18,92 @@ load("data/new_raw_data/00_rls_surveys.Rdata")
 
 rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 
-base_dir_contribution <- "outputs/biomass_contribution/"
+species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
 
 # run glm for covariates contribution
 print("glm biomass contribution")
-glm_function_cont(biomass = rls_biomass,
-                  covariates = rls_covariates,
-                  species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                  base_dir_cont = base_dir_contribution)
+
+base_dir <- "outputs/glm_contribution/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  glm_function_cont(biomass = rls_biomass_i,
+                    covariates = rls_covariates,
+                    species_name = species_name[i],
+                    base_dir_cont = base_dir)
+  
+}, mc.cores = 1)
 
 # run random Forest for covariates contribution
 print("rf biomass contribution")
-rf_function_cont(biomass = rls_biomass,
-                 covariates = rls_covariates,
-                 species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                 base_dir_cont = base_dir_contribution)
 
-# run gam for covariates contribution
-print("gam biomass contribution")
-gam_function_cont(biomass = rls_biomass,
-                  covariates = rls_covariates,
-                  species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                  base_dir_cont = base_dir_contribution)
+base_dir <- "outputs/rf_contribution/"
 
-# run spamm for covariates contribution
-print("spamm biomass contribution")
-spamm_function_cont(biomass = rls_biomass,
-                    covariates = rls_covariates,
-                    species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                    base_dir_cont = base_dir_contribution)
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  rf_function_cont(biomass = rls_biomass_i,
+                   covariates = rls_covariates,
+                   species_name = species_name[i],
+                   base_dir_cont = base_dir)
+  
+}, mc.cores = 1)
 
 # run gbm for covariates contribution
 print("gbm biomass contribution")
-brt_function_cont(biomass = rls_biomass,
-                  covariates = rls_covariates,
-                  species_name = colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")],
-                  base_dir_cont = base_dir_contribution)
+
+base_dir <- "outputs/brt_contribution/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  brt_function_cont(biomass = rls_biomass_i,
+                    covariates = rls_covariates,
+                    species_name = species_name[i],
+                    base_dir_cont = base_dir)
+  
+}, mc.cores = 1)
+
+# run gam for covariates contribution
+print("gam biomass contribution")
+
+base_dir <- "outputs/gam_contribution/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  gam_function_cont(biomass = rls_biomass_i,
+                    covariates = rls_covariates,
+                    species_name = species_name[i],
+                    base_dir_cont = base_dir)
+  
+}, mc.cores = 1)
+
+# run spamm for covariates contribution
+print("spamm biomass contribution")
+
+base_dir <- "outputs/spamm_contribution/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  spamm_function_cont(biomass = rls_biomass_i,
+                      covariates = rls_covariates,
+                      species_name = species_name[i],
+                      base_dir_cont = base_dir)
+  
+}, mc.cores = 1)
 
 # run spatial Random Forest for covariates contribution
 print("sprf biomass contribution")
 
-species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
+base_dir <- "outputs/sprf_contribution/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -66,7 +111,8 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
   spatialrf_function_cont(biomass = rls_biomass_i,
                           covariates = rls_covariates,
-                          base_dir_cont = base_dir_contribution)
+                          species_name = species_name[i],
+                          base_dir_cont = base_dir)
   
 }, mc.cores = 1)
 

@@ -67,7 +67,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
                species_name = species_name[i],
                base_dir = base_dir)
   
-}, mc.cores = parallel::detectCores() - 1)
+}, mc.cores = 1)
 
 # run gam
 print("gam biomass prediction")
@@ -125,13 +125,13 @@ rls_biomass_realm <- rls_biomass |>
   dplyr::group_split(realm)
 
 # Remove ecoregion with less than 50 transects
-nrow_realm <- sapply(1:length(rls_biomass_realm), function(i) {
-
-  nrow(rls_biomass_realm[[i]]) < 100
-
-})
-
-rls_biomass_realm <- rls_biomass_realm[which(nrow_realm == FALSE)]
+# nrow_realm <- sapply(1:length(rls_biomass_realm), function(i) {
+# 
+#   nrow(rls_biomass_realm[[i]]) < 100
+# 
+# })
+# 
+# rls_biomass_realm <- rls_biomass_realm[which(nrow_realm == FALSE)]
 
 base_dir <- "outputs/biomass_prediction_ecoregion/"
 
@@ -144,7 +144,7 @@ pbmcapply::pbmclapply(1:length(rls_biomass_realm), function(i) {
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
