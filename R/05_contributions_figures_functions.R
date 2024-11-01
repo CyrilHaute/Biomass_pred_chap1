@@ -293,7 +293,13 @@ merged_covariates_importance_all_function <- function(plot_data,
           
 }
 
-
+plot_data = bind_files
+fitted_model = "glm"
+color = pal_contribution
+labs_y = ""
+labs_fill = ""
+ylim = c(0,0.2)
+legend.position = "none"
 
 
 
