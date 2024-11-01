@@ -69,27 +69,27 @@ rf_function_cont <- function(biomass,
                                  y = unlist(sp[colnames(sp) %in% "biomass"]),
                                  label = "ranger")
   
-  # Compute a 25-permutation-based value of the RMSE for all explanatory variables
-  vip.25_rf <- DALEX::model_parts(explainer = explainer_rf,
+  # Compute a 10-permutation-based value of the RMSE for all explanatory variables
+  vip.10_rf <- DALEX::model_parts(explainer = explainer_rf,
                                   loss_function = DALEX::loss_root_mean_square, # Here we used the RMSE as our loss function
                                   B = 10, # Number of permutation
                                   type = "difference")
   
-  # From the model_parts function you get 25 RMSE values for each covariates. 
+  # From the model_parts function you get 10 RMSE values for each covariates. 
   # Take the mean and assess the standard-deviation of the RMSE for each covariates to assess the error of the permutation method
-  vip.25_rf <- vip.25_rf |> 
+  vip.10_rf <- vip.10_rf |> 
     dplyr::group_by(variable) |> 
     dplyr::summarise(Dropout_loss = mean(dropout_loss),
                      sd_dropout_loss = sd(dropout_loss))
   
-  vip.25_rf <- vip.25_rf |> 
+  vip.10_rf <- vip.10_rf |> 
     dplyr::filter(!variable %in% c("_baseline_", "_full_model_"))
   
   
   extracted_contributions <- dplyr::tibble(species_name = species_name, 
                                            fitted_model = "rf", 
                                            # estimate contribution
-                                           vip.25_rf)
+                                           vip.10_rf)
   
   # save contribution output in same file structure
   
