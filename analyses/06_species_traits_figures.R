@@ -275,17 +275,8 @@ n_trait <- cont |>
 
 cont <- cont |> 
   dplyr::inner_join(n_trait, by = "family") |> 
-  dplyr::filter(n >= 10)
-
-cont[colnames(cont) %in% "family"] <- sapply(1:nrow(cont[colnames(cont) %in% "family"]), function(i) {
-  
-  row_i <- cont[colnames(cont) %in% "family"][i,]
-  
-  which_row <- which(grepl(row_i, unlist(n_trait[colnames(n_trait) %in% "family"])) == TRUE)
-  
-  paste0(row_i, " (n = ", n_trait$n[which_row], ")")
-  
-})
+  dplyr::filter(n >= 10) |> 
+  dplyr::select(-n)
 
 library(ggplot2)
 
@@ -297,7 +288,6 @@ plot_trait <- cont |>
                                "HUM" = pal_sp_trait[3],
                                "HAB" = pal_sp_trait[2])) +
   theme_bw() +
-  # geom_text(data = kruskal_test_trait$groups, aes_string(x = aes_string_x, y = "quant", label = "groups"), vjust=-0.48, size = 6) +
   coord_cartesian(ylim = c(0,0.25)) +
   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
   theme(
@@ -319,4 +309,42 @@ plot_trait <- cont |>
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-ggsave("figures/plot_family.pdf", plot_trait, height = 10, width = 20)
+ggsave("figures/plot_family.png", plot_trait, height = 10, width = 20)
+
+scaridae <- cont |> 
+  dplyr::filter(family == "Scaridae (n = 32)")
+
+scaridae <- scaridae |> 
+  dplyr::mutate(var_reordered = tidytext::reorder_within(var, value, species_name))
+
+plot_scaridae <- ggplot(scaridae) +
+  geom_col(aes(x = var_reordered, y = value, fill = var)) +
+  geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
+  theme_bw() +
+  coord_flip() +
+  facet_wrap(~species_name, scales = "free_y") +
+  tidytext::scale_x_reordered() +
+  scale_fill_manual(values = c("ENV" = pal_sp_trait[1], 
+                               "HUM" = pal_sp_trait[3], 
+                               "HAB" = pal_sp_trait[2])) +
+  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
+  theme(
+    legend.direction = "vertical",
+    legend.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white", color = NA),
+    title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white", colour = "grey50",
+                                    size = 1, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggsave("figures/plot_scaridae.png", plot_scaridae, height = 10, width = 20)

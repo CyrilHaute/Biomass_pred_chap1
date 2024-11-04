@@ -13,33 +13,6 @@ load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
-sprf <- list.files("outputs/biomass_contribution/sprf", full.names = T)
-
-bind_files_sprf <- lapply(1:length(sprf), function(i) {
-  
-  load(sprf[i])
-  assign(paste0("model_", i), extracted_contributions)
-  
-})
-bind_files_sprf <- do.call(rbind, bind_files_sprf)
-bind_files_sprf$contributions_and_sd <- lapply(1:nrow(bind_files_sprf), function(i) { bind_files_sprf$contributions_and_sd[[i]] |> 
-    dplyr::rename(Dropout_loss = global_dropout_loss,
-                  sd_dropout_loss = global_sd_dropout_loss)
-  })
-bind_files_sprf <- list(bind_files_sprf)
-
-list_files_path <- list.files("outputs/biomass_contribution", full.names = T)
-list_files_path <- list_files_path[which(grepl(pattern = "sprf", list_files_path) == FALSE)]
-bind_files <- lapply(1:length(list_files_path), function(i) {
-  
-  load(list_files_path[i])
-  assign(paste0("model_", i), extracted_contributions)
-  
-})
-bind_files <- c(bind_files, bind_files_sprf)
-bind_files <- do.call(rbind, bind_files)
-models <- unique(bind_files$fitted_model)
-
 glm <- list.files("outputs/glm_contribution", full.names = TRUE)
 glm <- lapply(1:length(glm), function(i) {
   
@@ -127,7 +100,7 @@ merged_covariates_importance_all <- merged_covariates_importance_all_function(pl
 
 covariates_importance_all_and_merged <- covariates_importance_all + merged_covariates_importance_all
 
-ggsave("figures/covariates_importance_all_and_merged.pdf", covariates_importance_all_and_merged, height = 7, width = 14)
+# ggsave("figures/covariates_importance_all_and_merged.pdf", covariates_importance_all_and_merged, height = 7, width = 14)
 ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 14)
 
 covariates_importance_GLM <- covariates_importance_function(plot_data = bind_files,
@@ -135,7 +108,7 @@ covariates_importance_GLM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,0.2),
+                                                            ylim = c(0,65),
                                                             legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = bind_files,
@@ -143,7 +116,7 @@ covariates_importance_GAM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,0.1),
+                                                            ylim = c(0,0.35),
                                                             legend.position = "none")
 
 covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_files,
@@ -151,7 +124,7 @@ covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_f
                                                               color = pal_contribution,
                                                               labs_y = "",
                                                               labs_fill = "",
-                                                              ylim = c(0,0.1),
+                                                              ylim = c(0,0.06),
                                                               legend.position = "none")
 
 covariates_importance_RF <- covariates_importance_function(plot_data = bind_files,
@@ -159,7 +132,7 @@ covariates_importance_RF <- covariates_importance_function(plot_data = bind_file
                                                            color = pal_contribution,
                                                            labs_y = "",
                                                            labs_fill = "",
-                                                           ylim = c(0,0.15),
+                                                           ylim = c(0,0.1),
                                                            legend.position = "none")
 
 covariates_importance_GBM <- covariates_importance_function(plot_data = bind_files,
@@ -167,7 +140,7 @@ covariates_importance_GBM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "Relative importance (RMSE)",
                                                             labs_fill = "",
-                                                            ylim = c(0,0.15),
+                                                            ylim = c(0,0.1),
                                                             legend.position = "none")
 
 covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_files,
@@ -175,12 +148,12 @@ covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_fi
                                                              color = pal_contribution,
                                                              labs_y = "Relative importance (RMSE)",
                                                              labs_fill = "",
-                                                             ylim = c(0,0.15),
+                                                             ylim = c(0,0.1),
                                                              legend.position = c(0.75, 0.16))
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
 
-ggsave("figures/covariates_importance_all.pdf", covariates_importance_all, height = 15, width = 11)
+# ggsave("figures/covariates_importance_all.pdf", covariates_importance_all, height = 15, width = 11)
 ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 15, width = 11)
 
 merged_covariates_importance_GLM <- merged_covariates_importance_function(plot_data = bind_files,
@@ -233,7 +206,6 @@ merged_covariates_importance_SPRF <- merged_covariates_importance_function(plot_
 
 merged_covariates_importance <- (merged_covariates_importance_GLM + merged_covariates_importance_GAM) / (merged_covariates_importance_SPAMM + merged_covariates_importance_RF) / (merged_covariates_importance_GBM + merged_covariates_importance_SPRF)
 
-ggsave("figures/merged_covariates_importance.pdf", merged_covariates_importance, height = 15, width = 11)
 ggsave("figures/merged_covariates_importance.png", merged_covariates_importance, height = 15, width = 11)
 
 

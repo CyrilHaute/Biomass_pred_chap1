@@ -1,4 +1,6 @@
 # function for producing a common scale of assessment criteria ----
+# plot_data=performance_bind
+# metrics = c("pearson", "spearman")
 
 aggregate_metrics <- function(plot_data,
                               metrics = c("Intercept", "Slope", "Pearson", "Spearman"),
@@ -12,23 +14,27 @@ aggregate_metrics <- function(plot_data,
   metrics_data <- na.omit(plot_data[metrics])
   
   # match targets to relative scale if < 0
-  metrics_data[, which(names(metrics_data) %in% c("Slope"))] <- abs(metrics_data[, which(names(metrics_data) %in% c("Slope"))] - 1)
-  metrics_data[, which(names(metrics_data) %in% c("Intercept"))] <- abs(metrics_data[, which(names(metrics_data) %in% c("Intercept"))])
+  # metrics_data[, which(names(metrics_data) %in% c("Slope"))] <- abs(metrics_data[, which(names(metrics_data) %in% c("Slope"))] - 1)
+  # metrics_data[, which(names(metrics_data) %in% c("Intercept"))] <- abs(metrics_data[, which(names(metrics_data) %in% c("Intercept"))])
   
   # rank order and rescale
   rescale_01 <- function(x){(x - min(x, na.rm = T))/(max(x, na.rm = T) - min(x, na.rm = T))}
   metrics_data <- data.frame(sapply(metrics_data, function(x) rescale_01(rank(x))))
   
   # range inversion
-  invert_range <- function(x){ (max(x, na.rm = T) + min(x, na.rm = T)) - x}
-  metrics_data[which(names(metrics_data) %in% c("Intercept", "Slope"))] <-
-    sapply(metrics_data[which(names(metrics_data) %in% c("Intercept", "Slope"))], function(x) invert_range(x))
+  # invert_range <- function(x){ (max(x, na.rm = T) + min(x, na.rm = T)) - x}
+  # metrics_data[which(names(metrics_data) %in% c("Intercept", "Slope"))] <-
+  #   sapply(metrics_data[which(names(metrics_data) %in% c("Intercept", "Slope"))], function(x) invert_range(x))
 
   # create columns for plotting
 
-  if(length(which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman"))) == 1){
-    discrimination <- metrics_data[, which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman"))]}else{
-    discrimination <- rowSums(metrics_data[, which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman"))])/length(which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman")))}
+  # if(length(which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman"))) == 1){
+  #   discrimination <- metrics_data[, which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman"))]}else{
+  #   discrimination <- rowSums(metrics_data[, which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman"))])/length(which(names(metrics_data) %in% c("Intercept", "Slope", "Pearson", "Spearman")))}
+  
+  if(length(which(names(metrics_data) %in% c("pearson", "spearman"))) == 1){
+    discrimination <- metrics_data[, which(names(metrics_data) %in% c("pearson", "spearman"))]}else{
+      discrimination <- rowSums(metrics_data[, which(names(metrics_data) %in% c("pearson", "spearman"))])/length(which(names(metrics_data) %in% c("pearson", "spearman")))}
 
   # index for ANY NAs
   NA_index <- rowSums(sapply(plot_data[metrics], is.na)) > 0
@@ -62,10 +68,11 @@ performance_plot <- function(plot_data,
   require(ggplot2)
   
   plot_perf <- plot_data |> 
-    dplyr::filter(metrics == metrics_sel) |> 
+    dplyr::filter(metric == metrics_sel) |> 
     dplyr::mutate(model = forcats::fct_relevel(model, "glm", "gam", "spamm", "gbm", "sprf", "rf")) |> 
-    ggplot(aes(x = model, y = value, fill = cat)) +
-    geom_boxplot(outlier.shape = NA) +
+    ggplot() +
+    # geom_boxplot(alpha = 0.9, outlier.shape = NA, size = 1) +
+    geom_boxplot(aes(x = model, y = value, fill = cat), alpha = 0.8, outlier.shape = NA, size = 0.9) +
     geom_abline(slope = slope, intercept = intercept, linetype = 2, size = 1.25, color = "red") +
     scale_fill_manual(values = c("Best models" = pal_perf[6],
                                  "All models" = pal_perf[2])) +
