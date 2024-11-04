@@ -1,4 +1,3 @@
-# files_path = "outputs/glm_biomass_contribution_realm"
 
 load_realm_cont_function <- function(files_path) {
   
@@ -15,7 +14,7 @@ load_realm_cont_function <- function(files_path) {
       
     })
     realm_j <- do.call(rbind, realm_j)
-    realm_j$realm <- glm_realm_small[i]
+    realm_j$realm <- realm_small[i]
     
     return(realm_j)
     
