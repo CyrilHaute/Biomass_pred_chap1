@@ -1,4 +1,3 @@
-# files_path = "outputs/glm_biomass_contribution_realm"
 
 load_realm_cont_function <- function(files_path) {
   
