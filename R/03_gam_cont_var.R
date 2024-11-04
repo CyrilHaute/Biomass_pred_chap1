@@ -1,9 +1,9 @@
 # function to fit gam and assess covariates relative importance
 
-# biomass = rls_biomass_i
+# biomass = realm_j
 # covariates = rls_covariates
-# species_name = species_name[i]
-# base_dir_cont = base_dir
+# species_name = new_species_name[j]
+# base_dir_cont = eco_base_dir
 
 gam_function_cont <- function(biomass, 
                               covariates,

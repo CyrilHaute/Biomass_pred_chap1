@@ -124,13 +124,13 @@ rls_biomass_realm <- rls_biomass |>
   dplyr::group_split(realm)
 
 # Remove ecoregion with less than 50 transects
-# nrow_realm <- sapply(1:length(rls_biomass_realm), function(i) {
-#   
-#   nrow(rls_biomass_realm[[i]]) < 100
-#   
-# })
+nrow_realm <- sapply(1:length(rls_biomass_realm), function(i) {
+  
+  nrow(rls_biomass_realm[[i]]) < 100
+  
+})
 
-# rls_biomass_realm <- rls_biomass_realm[which(nrow_realm == FALSE)]
+rls_biomass_realm <- rls_biomass_realm[which(nrow_realm == FALSE)]
 
 
 # run glm per realm
@@ -145,7 +145,7 @@ for(i in 1:length(rls_biomass_realm)) {
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
@@ -164,7 +164,7 @@ for(i in 1:length(rls_biomass_realm)) {
                       species_name = new_species_name[j],
                       base_dir_cont = eco_base_dir)
     
-  }, mc.cores = 1)
+  }, mc.cores = parallel::detectCores() - 1)
   
 }
 
@@ -181,7 +181,7 @@ for(i in 1:length(rls_biomass_realm)) {
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
@@ -200,45 +200,45 @@ for(i in 1:length(rls_biomass_realm)) {
                      species_name = new_species_name[j],
                      base_dir_cont = eco_base_dir)
     
-  }, mc.cores = 1)
+  }, mc.cores = parallel::detectCores() - 1)
   
 }
 
 
 # # run gbm per realm
-# print("gbm per realm")
-# 
-# base_dir_contribution <- "outputs/gbm_biomass_contribution_realm/"
-# 
-# for(i in 1:length(rls_biomass_realm)) {
-#   # pbmcapply::pbmclapply(1:2, function(i) {
-#   
-#   realm <- rls_biomass_realm[[i]]
-#   
-#   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
-#   
-#   new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
-#   
-#   new_species_name <- species_name[which(new_sp == FALSE)]
-#   
-#   realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
-#   
-#   dir.create(base_dir_contribution)
-#   
-#   eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
-#   
-#   pbmcapply::pbmclapply(1:length(new_species_name), function(j) {
-#     
-#     realm_j <- realm[, c("survey_id", "longitude", "latitude", "site_code", new_species_name[j])]
-#     
-#     brt_function_cont(biomass = realm_j,
-#                       covariates = rls_covariates,
-#                       species_name = new_species_name[j],
-#                       base_dir_cont = eco_base_dir)
-#     
-#   }, mc.cores = 1)
-#   
-# }
+print("gbm per realm")
+
+base_dir_contribution <- "outputs/gbm_biomass_contribution_realm/"
+
+for(i in 1:length(rls_biomass_realm)) {
+  # pbmcapply::pbmclapply(1:2, function(i) {
+
+  realm <- rls_biomass_realm[[i]]
+
+  species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
+
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
+
+  new_species_name <- species_name[which(new_sp == FALSE)]
+
+  realm <- realm[, c("survey_id", "latitude", "longitude", "site_code", "realm", new_species_name)]
+
+  dir.create(base_dir_contribution)
+
+  eco_base_dir <- paste0(base_dir_contribution, stringr::str_replace_all(unique(realm$realm), " ", "_"), "/")
+
+  pbmcapply::pbmclapply(1:length(new_species_name), function(j) {
+
+    realm_j <- realm[, c("survey_id", "longitude", "latitude", "site_code", new_species_name[j])]
+
+    brt_function_cont(biomass = realm_j,
+                      covariates = rls_covariates,
+                      species_name = new_species_name[j],
+                      base_dir_cont = eco_base_dir)
+
+  }, mc.cores = parallel::detectCores() - 1)
+
+}
 
 
 # run gam per realm
@@ -253,7 +253,7 @@ for(i in 1:length(rls_biomass_realm)) {
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
@@ -272,7 +272,7 @@ for(i in 1:length(rls_biomass_realm)) {
                       species_name = new_species_name[j],
                       base_dir_cont = eco_base_dir)
     
-  }, mc.cores = 1)
+  }, mc.cores = parallel::detectCores() - 1)
   
 }
 
@@ -289,7 +289,7 @@ for(i in 1:length(rls_biomass_realm)) {
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
@@ -308,7 +308,7 @@ for(i in 1:length(rls_biomass_realm)) {
                         species_name = new_species_name[j],
                         base_dir_cont = eco_base_dir)
     
-  }, mc.cores = 1)
+  }, mc.cores = parallel::detectCores() - 1)
   
 }
 
@@ -325,7 +325,7 @@ for(i in 1:length(rls_biomass_realm)) {
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
   
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 20) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
   
   new_species_name <- species_name[which(new_sp == FALSE)]
   
