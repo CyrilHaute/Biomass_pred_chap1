@@ -219,8 +219,13 @@ rf_realm <- load_realm_cont_function(files_path = "outputs/rf_biomass_contributi
 gam_realm <- load_realm_cont_function(files_path = "outputs/gam_biomass_contribution_realm")
 gbm_realm <- load_realm_cont_function(files_path = "outputs/gbm_biomass_contribution_realm")
 spamm_realm <- load_realm_cont_function(files_path = "outputs/spamm_biomass_contribution_realm")
+sprf_realm <- load_realm_cont_function(files_path = "outputs/sprf_biomass_contribution_realm")
+sprf_realm <- do.call(rbind, sprf_realm)
+colnames(sprf_realm)[colnames(sprf_realm) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
+sprf_realm <- sprf_realm |> 
+  dplyr::group_split(realm)
 
-contribution_realm_data <- list(glm_realm, gam_realm, spamm_realm, rf_realm, gbm_realm)
+contribution_realm_data <- list(glm_realm, gam_realm, spamm_realm, rf_realm, gbm_realm, sprf_realm)
 contribution_realm_data <- list(do.call(rbind, lapply(contribution_realm_data, '[[', 1)),
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 2)),
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 3)),
