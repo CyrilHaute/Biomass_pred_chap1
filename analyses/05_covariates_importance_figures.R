@@ -212,47 +212,25 @@ ggsave("figures/merged_covariates_importance.png", merged_covariates_importance,
 
 #################### Per realm contribution ####################
 
+source("R/05_load_realm_contribution_function.R")
 
-realm_full <- list.files("outputs/biomass_contribution_realm", full.names = T)
-realm_small <- list.files("outputs/biomass_contribution_realm", full.names = F)
+glm_realm <- load_realm_cont_function(files_path = "outputs/glm_biomass_contribution_realm")
+rf_realm <- load_realm_cont_function(files_path = "outputs/rf_biomass_contribution_realm")
+gam_realm <- load_realm_cont_function(files_path = "outputs/gam_biomass_contribution_realm")
+gbm_realm <- load_realm_cont_function(files_path = "outputs/gbm_biomass_contribution_realm")
+spamm_realm <- load_realm_cont_function(files_path = "outputs/spamm_biomass_contribution_realm")
 
-load_outputs <- lapply(1:length(realm_full), function(i) {
+contribution_realm_data <- list(glm_realm, gam_realm, spamm_realm, rf_realm, gbm_realm)
+contribution_realm_data <- list(do.call(rbind, lapply(contribution_realm_data, '[[', 1)),
+                                do.call(rbind, lapply(contribution_realm_data, '[[', 2)),
+                                do.call(rbind, lapply(contribution_realm_data, '[[', 3)),
+                                do.call(rbind, lapply(contribution_realm_data, '[[', 4)),
+                                do.call(rbind, lapply(contribution_realm_data, '[[', 5)))
+
+merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
-  realms_all <- list.files(realm_full[i], full.names = T)
-  realms <- realms_all[which(grepl(pattern = "sprf", realms_all) == FALSE)]
-  
-  realm_j <- lapply(1:length(realms), function(j) {
-    
-    load(realms[j])
-    assign(paste0("model_", j), extracted_contributions)
-    
-  })
-  
-  sprf <- list.files(realms_all[which(grepl(pattern = "sprf", realms_all) == TRUE)], full.names = T)
-
-  load_outputs_sprf <- lapply(1:length(sprf), function(i) {
-
-    load(sprf[i])
-    assign(paste0("model_", i), extracted_contributions)
-
-  })
-  load_outputs_sprf <- do.call(rbind, load_outputs_sprf)
-  load_outputs_sprf$contributions_and_sd <- lapply(1:nrow(load_outputs_sprf), function(i) { load_outputs_sprf$contributions_and_sd[[i]] |> 
-      dplyr::rename(Dropout_loss = global_dropout_loss,
-                    sd_dropout_loss = global_sd_dropout_loss)
-  })
-  load_outputs_sprf <- list(load_outputs_sprf)
-
-  load_outputs <- c(realm_j, load_outputs_sprf)
-  
-})
-
-names(load_outputs) <- realm_small
-
-merged_covariates_importance_all <- lapply(1:length(load_outputs), function(i) {
-  
-  merged_covariates_importance_all_function(plot_data = do.call(rbind, load_outputs[[i]]),
-                                            title = stringr::str_replace_all(names(load_outputs)[i], c("_" = " ", "-" = " ")),
+  merged_covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
+                                            title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " ")),
                                             legend.position = "none",
                                             title.size = 13,
                                             axis.text.x = 11,
@@ -266,10 +244,10 @@ merged_covariates_importance_all <- lapply(1:length(load_outputs), function(i) {
 
 })
 
-covariates_importance_all <- lapply(1:length(load_outputs), function(i) {
+covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
-  covariates_importance_all_function(plot_data = do.call(rbind, load_outputs[[i]]),
-                                     title = stringr::str_replace_all(names(load_outputs)[i], c("_" = " ", "-" = " ")),
+  covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
+                                     title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " ")),
                                      legend.position = "none",
                                      title.size = 13,
                                      axis.text.x = 11,
@@ -284,11 +262,12 @@ covariates_importance_all <- lapply(1:length(load_outputs), function(i) {
 
 world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
 
+# Corriger les géométries
+
 rls_map <- ggplot(data = world) +
-  geom_sf() +
+  geom_sf(fill = "white", color = "grey", size = 0.03) +
   scale_x_continuous(limits=c(-180, 180)) +
   scale_y_continuous(limits=c(-60, 60)) +
-  geom_sf(data = sf::st_union(world), fill = "white", color = "gray90", size = 0.01) +
   theme_classic() +
   coord_sf(expand = FALSE) +
   theme(legend.position = "none",

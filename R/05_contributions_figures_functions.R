@@ -205,17 +205,17 @@ var_max_all_function <- function(plot_data)
   
 }
 
-# plot_data = bind_files
-# title = "B."
-# legend.position = c(0.85, 0.16)
-# title.size = 18
-# axis.text.x = 15
-# axis.text.y = 17
-# axis.title = 21
+# plot_data = contribution_realm_data[[i]]
+# title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " "))
+# legend.position = "none"
+# title.size = 13
+# axis.text.x = 11
+# axis.text.y = 11
+# axis.title = 13
 # legend.text = 15
-# strip.text.x = 20
-# strip.text.y = 20
-# geom.text.size = 5
+# strip.text.x = 9
+# strip.text.y = 9
+# geom.text.size = 4
 # fill = ""
 
 merged_covariates_importance_all_function <- function(plot_data,
