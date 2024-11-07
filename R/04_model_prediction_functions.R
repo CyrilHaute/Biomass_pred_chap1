@@ -126,12 +126,14 @@ unnest_dt2 <- function(tbl, ...) {
 #   ggsave("figures/all_predictions_pres.pdf", all_plots, width = 11, height = 9)
 # }
 
-
+input_data = read_sp_eco
+nbins = 10
+levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf")
 
 
 observed_predicted_plot <- function(input_data, 
-                                    nbins = 20,
-                                    levels = c('GLM', 'GAM', 'SPAMM', 'RF', 'GBM', 'SPRF')){
+                                    nbins,
+                                    levels){
   
   require(ggplot2)
   require(patchwork)
@@ -145,6 +147,9 @@ observed_predicted_plot <- function(input_data,
     model_j <- lapply(1:length(levels), function(j) {
       
       sp_j <- model_outputs[model_outputs$species_name == sp [i] & model_outputs$model == levels[j],]
+      
+      sp_j$validation_predict <- as.numeric(sp_j$validation_predict)
+      sp_j$validation_observed <- as.numeric(sp_j$validation_observed)
       
       sp_j$validation_predict[sp_j$validation_predict < 0] <- 0
       
@@ -186,6 +191,7 @@ observed_predicted_plot <- function(input_data,
       ggplot(aes(x = observed, y = predicted)) +
       geom_density_2d_filled(aes(x = observed, y = predicted), contour_var = 'count', 
                              contour = F, n = 100, bins= 10, colour = 'transparent') + 
+      ylim(0, 1) +
       scale_fill_viridis_d(option = 'viridis', begin = 0.2, end = 0.9,
                            name = 'Count') +
       theme_bw() + 
@@ -196,7 +202,7 @@ observed_predicted_plot <- function(input_data,
     # add faceting to plot level
     facet_plot <- base_plot + 
       facet_grid(~model) + #de base facet_grid, sans ncol
-      geom_abline(slope = 0.95, intercept = 0)
+      geom_abline(slope = 1, intercept = 0)
     
     plot_levels_plot[[i]] <- facet_plot + 
       labs(x = "Observed", y = "Predicted") +

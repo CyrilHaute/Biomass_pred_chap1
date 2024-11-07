@@ -2,34 +2,44 @@
   
 source("R/04_model_prediction_functions.R")
 
-output_files <- list.files("outputs/biomass_prediction", full.names = T)
+glm <- list.files("outputs/glm_prediction", full.names = TRUE)
+rf <- list.files("outputs/rf_prediction", full.names = TRUE)
+brt <- list.files("outputs/brt_prediction", full.names = TRUE)
+gam <- list.files("outputs/gam_prediction", full.names = TRUE)
+spamm <- list.files("outputs/spamm_prediction", full.names = TRUE)
+sprf <- list.files("outputs/sprf_prediction", full.names = TRUE)
 
-load_outputs <- lapply(1:length(output_files), function(i) {
+file_model <- c(glm, rf, brt, gam, spamm, sprf)
+
+read_sp_eco <- lapply(1:length(file_model), function(i) {
   
-  load(output_files[i])
-  sp_i <- do.call(rbind, sp_i)
-  assign(paste0("model_", i), sp_i)
+  load(file_model[i])
+  assign(as.character(i), cv_j_bind)
   
 })
-predictions_all <- do.call(rbind, load_outputs)
 
-# get subsets
-model_predictions_all <- predictions_all
+read_sp_eco <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
+  
+  sp <- read_sp_eco[[i]]
+  sp$survey_id <- as.numeric(sp$survey_id)
+  to_remove <- which(sapply(sp$survey_id, is.na))
+  if(length(to_remove) == 0){
+    
+    sp <- sp
+    
+  }else{
+    
+    sp <- sp[-to_remove,]
+    
+  }
 
-# get seperate data for validations and verifications
-# validation_data <- model_predictions_all |> 
-#   dplyr::group_by(model, species_name) |> 
-#   dplyr::do(validation_observed = .$validation_observed[[1]][.$validation_observed[[1]] > 0], 
-#             validation_predict = .$validation_predict[[1]][.$validation_observed[[1]] > 0]) |> 
-#   dplyr::ungroup()
+  return(sp)
+  
+}, mc.cores = parallel::detectCores() - 1)
 
-validation_data <- model_predictions_all
-        
-# remove species with identical observations (cannot fit a model here)
-if(sum(sapply(validation_data$validation_observed, function(x) length(unique(x))==1)) != 0){
-   validation_data <- validation_data[-which(sapply(validation_data$validation_observed, function(x) length(unique(x))==1)),]}
+read_sp_eco <- do.call(rbind, read_sp_eco)
 
 # create plots 
-observed_predicted_plot(input_data = validation_data, 
+observed_predicted_plot(input_data = read_sp_eco, 
                         nbins = 10, 
-                        levels = c('glm', 'gam', 'spamm', 'rf', 'gbm', 'sprf'))
+                        levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf"))

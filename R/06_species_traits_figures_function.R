@@ -7,12 +7,12 @@ kruskal_test_function <- function(data,
                                   trait
                                   ){
   
-  data$newvar <- paste0(data$var, '_', unlist(data[trait]))
+  data$newvar <- paste0(data$VAR, '_', unlist(data[trait]))
   
   res.kruskal <- with(data, agricolae::kruskal(value, newvar, p.adj = "bonferroni", group = FALSE))
   res.kruskal2 <- with(data, agricolae::kruskal(value, newvar, p.adj = "bonferroni", group = TRUE))
   
-  res.kruskal2$groups <- data.frame(var = stringr::word(row.names(res.kruskal2$groups), 1, sep = "_"),
+  res.kruskal2$groups <- data.frame(VAR = stringr::word(row.names(res.kruskal2$groups), 1, sep = "_"),
                                     trait = stringr::word(row.names(res.kruskal2$groups), 2, sep = "_"),
                                     value = res.kruskal2$groups$value,
                                     groups = res.kruskal2$groups$groups)
@@ -24,10 +24,18 @@ kruskal_test_function <- function(data,
     dplyr::group_by_at(c(4, n)) |> 
     dplyr::summarise(mean = mean(value), quant = quantile(value, probs = 0.75))
   
-  res.kruskal2$groups <- dplyr::inner_join(res.kruskal2$groups, labs.position, by = c("var", trait))
+  res.kruskal2$groups <- dplyr::inner_join(res.kruskal2$groups, labs.position, by = c("VAR", trait))
   res.kruskal2
   
 }
+
+# plot_data = bind_files
+# trait = "ML_cat"
+# color = pal_sp_trait
+# labs_title = "A. Maximum length (cm)"
+# aes_string_x = c(3.1, 4.85, 4.1, 2.9, 5.12, 2.12, 3.9, 1.9, 0.85, 1.12, 5.37, 4.37, 3.35, 2.3, 1.3)
+# x_text_angle = NULL
+# legend.position = "none"
 
 species_traits_function <- function(plot_data,
                                     trait,
@@ -43,40 +51,63 @@ species_traits_function <- function(plot_data,
   cont <- lapply(1:length(fitted_model), function(i) {
     
     plot_level <- fitted_model[i]
-    only_model <- plot_data |> 
+    plot_data <- plot_data |> 
       dplyr::filter(fitted_model == plot_level)
-    only_model <- only_model |>
+    plot_data <- plot_data |>
       dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
 
-    ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
-    ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
-    ENV <- do.call(rbind, ENV)
-    ENV_sd <- do.call(rbind, ENV_sd)
-    ENV <- dplyr::tibble(species_name = only_model$species_name,
-                         value = matrixStats::rowMedians(ENV),
-                         sd = matrixStats::rowMedians(ENV_sd),
-                         var = rep("ENV",nrow(ENV)),
-                         plot_level = rep(plot_level, nrow(ENV)))
+    # ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
+    # ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
+    # ENV <- do.call(rbind, ENV)
+    # ENV_sd <- do.call(rbind, ENV_sd)
+    # ENV <- dplyr::tibble(species_name = only_model$species_name,
+    #                      value = matrixStats::rowMedians(ENV),
+    #                      sd = matrixStats::rowMedians(ENV_sd),
+    #                      var = rep("ENV",nrow(ENV)),
+    #                      plot_level = rep(plot_level, nrow(ENV)))
+    ENV <- plot_data |> 
+      dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
+      dplyr::group_by(species_name) |> 
+      dplyr::summarise(value = median(Dropout_loss),
+                       sd = median(sd_dropout_loss),
+                       VAR = "ENV",
+                       plot_level = plot_level)
     
-    SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
-    SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
-    SOC <- do.call(rbind, SOC)
-    SOC_sd <- do.call(rbind, SOC_sd)
-    SOC <- dplyr::tibble(species_name = only_model$species_name,
-                         value = matrixStats::rowMedians(SOC),
-                         sd = matrixStats::rowMedians(SOC_sd),
-                         var = rep("HUM",nrow(SOC)),
-                         plot_level = rep(plot_level, nrow(SOC)))
+    # SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
+    # SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
+    # SOC <- do.call(rbind, SOC)
+    # SOC_sd <- do.call(rbind, SOC_sd)
+    # SOC <- dplyr::tibble(species_name = only_model$species_name,
+    #                      value = matrixStats::rowMedians(SOC),
+    #                      sd = matrixStats::rowMedians(SOC_sd),
+    #                      var = rep("HUM",nrow(SOC)),
+    #                      plot_level = rep(plot_level, nrow(SOC)))
     
-    HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-    HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
-    HAB <- do.call(rbind, HAB)
-    HAB_sd <- do.call(rbind, HAB_sd)
-    HAB <- dplyr::tibble(species_name = only_model$species_name,
-                         value = matrixStats::rowMedians(HAB),
-                         sd = matrixStats::rowMedians(HAB_sd),
-                         var = rep("HAB",nrow(HAB)),
-                         plot_level = rep(plot_level,nrow(HAB)))
+    SOC <- plot_data |> 
+      dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
+      dplyr::group_by(species_name) |> 
+      dplyr::summarise(value = median(Dropout_loss),
+                       sd = median(sd_dropout_loss),
+                       VAR = "HUM",
+                       plot_level = plot_level)
+    
+    # HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
+    # HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
+    # HAB <- do.call(rbind, HAB)
+    # HAB_sd <- do.call(rbind, HAB_sd)
+    # HAB <- dplyr::tibble(species_name = only_model$species_name,
+    #                      value = matrixStats::rowMedians(HAB),
+    #                      sd = matrixStats::rowMedians(HAB_sd),
+    #                      var = rep("HAB",nrow(HAB)),
+    #                      plot_level = rep(plot_level,nrow(HAB)))
+    
+    HAB <- plot_data |> 
+      dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
+      dplyr::group_by(species_name) |> 
+      dplyr::summarise(value = median(Dropout_loss),
+                       sd = median(sd_dropout_loss),
+                       VAR = "HAB",
+                       plot_level = plot_level)
     
     cont <- ENV |> 
       dplyr::full_join(HAB) |> 
@@ -117,9 +148,9 @@ species_traits_function <- function(plot_data,
       print("p.chisq < 0.05")
 
         plot_trait <- cont |> 
-        dplyr::mutate(var = forcats::fct_relevel(var, "ENV", "HAB", "HUM")) |> 
-        ggplot(aes_string(x = trait, y = "value", fill = "var")) +
-        geom_boxplot(aes(fill = factor(var)), width=0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
+        dplyr::mutate(VAR = forcats::fct_relevel(VAR, "ENV", "HAB", "HUM")) |> 
+        ggplot(aes_string(x = trait, y = "value", fill = "VAR")) +
+        geom_boxplot(aes(fill = factor(VAR)), width=0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
         scale_fill_manual(values = c("ENV" = color[1],
                                      "HUM" = color[3],
                                      "HAB" = color[2])) +
