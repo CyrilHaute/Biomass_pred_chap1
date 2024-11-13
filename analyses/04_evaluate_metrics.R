@@ -110,20 +110,30 @@ performance_bind <- do.call(rbind, performance)
 
 save(performance_bind, file = "outputs/performance_model.Rdata")
 
-perf_model <- performance_bind |> 
-  dplyr::group_by(model) |> 
-  dplyr::summarise(medianr2 = median(r2, na.rm = TRUE),
-                   meanr2 = mean(r2, na.rm = TRUE),
-                   maxr2 = max(r2, na.rm = TRUE),
-                   minr2 = min(r2, na.rm = TRUE),
-                   sdr2 = sd(r2, na.rm = TRUE),
-                   medianpearson = median(pearson, na.rm = TRUE),
-                   meanpearson = mean(pearson, na.rm = TRUE),
+perf_model_gouped <- performance_bind |> 
+  dplyr::group_by(model) |>
+  dplyr::summarise(medianpearson = median(pearson, na.rm = TRUE),
+                   q95_pearson = quantile(pearson, probs = 0.95, na.rm = TRUE),
+                   q05_pearson = quantile(pearson, probs = 0.05, na.rm = TRUE),
                    maxpearson = max(pearson, na.rm = TRUE),
                    minpearson = min(pearson, na.rm = TRUE),
                    sdpearson = sd(pearson, na.rm = TRUE),
                    medianspearman = median(spearman, na.rm = TRUE),
-                   meanspearman = mean(spearman, na.rm = TRUE),
+                   q95_spearman = quantile(spearman, probs = 0.95, na.rm = TRUE),
+                   q05_spearman = quantile(spearman, probs = 0.05, na.rm = TRUE),
+                   maxspearman = max(spearman, na.rm = TRUE),
+                   minspearman = min(spearman, na.rm = TRUE),
+                   sdspearman = sd(spearman, na.rm = TRUE))
+perf_model_all <- performance_bind |> 
+  dplyr::summarise(medianpearson = median(pearson, na.rm = TRUE),
+                   q95_pearson = quantile(pearson, probs = 0.95, na.rm = TRUE),
+                   q05_pearson = quantile(pearson, probs = 0.05, na.rm = TRUE),
+                   maxpearson = max(pearson, na.rm = TRUE),
+                   minpearson = min(pearson, na.rm = TRUE),
+                   sdpearson = sd(pearson, na.rm = TRUE),
+                   medianspearman = median(spearman, na.rm = TRUE),
+                   q95_spearman = quantile(spearman, probs = 0.95, na.rm = TRUE),
+                   q05_spearman = quantile(spearman, probs = 0.05, na.rm = TRUE),
                    maxspearman = max(spearman, na.rm = TRUE),
                    minspearman = min(spearman, na.rm = TRUE),
                    sdspearman = sd(spearman, na.rm = TRUE))

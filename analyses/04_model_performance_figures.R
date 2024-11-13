@@ -65,6 +65,25 @@ best_model <- best_models_pr |>
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank())
 
+perf_corr <- performance_bind |> 
+  dplyr::group_split(model)
+perf_corr <- lapply(1:length(perf_corr), function(i) {
+  
+  model_i <- perf_corr[[i]]
+  model_i <- model_i[colnames(model_i) %in% c("species_name", "pearson", "model")]
+  colnames(model_i)[colnames(model_i) %in% "pearson"] <- unique(model_i$model)
+  model_i <- model_i |> 
+    dplyr::select(-model)
+  
+})
+perf_corr <- purrr::reduce(perf_corr, dplyr::full_join)
+
+library(ggplot2)
+
+model_corr_plot <- GGally::ggcorr(perf_corr, label = TRUE)
+
+ggsave(model_corr_plot, filename = "figures/model_corr_plot.png")
+
 # produce histograms of model performance for best models ----
 
 p_level <- unique(performance_bind$model)

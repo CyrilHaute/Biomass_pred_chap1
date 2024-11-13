@@ -39,7 +39,18 @@ read_sp_eco <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
 
 read_sp_eco <- do.call(rbind, read_sp_eco)
 
+load("outputs/best_models.Rdata")
+
+read_sp_eco_best <- read_sp_eco |> 
+  dplyr::inner_join(best_models) |> 
+  dplyr::filter(best_model == model)
+
 # create plots 
-observed_predicted_plot(input_data = read_sp_eco, 
-                        nbins = 10, 
+observed_predicted_best_plot(input_data = read_sp_eco_best, 
+                             nbins = 25)
+
+# create plots 
+observed_predicted_plot(input_data = read_sp_eco_best, 
+                        nbins = 25, 
                         levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf"))
+ 

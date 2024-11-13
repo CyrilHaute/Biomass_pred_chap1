@@ -101,7 +101,7 @@ merged_covariates_importance_all <- merged_covariates_importance_all_function(pl
 
 covariates_importance_all_and_merged <- covariates_importance_all + merged_covariates_importance_all
 
-ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 14)
+ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 15)
 
 covariates_importance_GLM <- covariates_importance_function(plot_data = bind_files,
                                                             fitted_model = "glm",
@@ -155,53 +155,53 @@ covariates_importance_all <- (covariates_importance_GLM + covariates_importance_
 
 ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 15, width = 11)
 
-merged_covariates_importance_GLM <- merged_covariates_importance_function(plot_data = bind_files,
-                                                                          fitted_model = "glm",
-                                                                          color = pal_contribution,
-                                                                          labs_y = "",
-                                                                          labs_fill = "",
-                                                                          legend.position = "none",
-                                                                          mul = 2)
+merged_covariates_importance_GLM <- plot_merged_covariates_importance_function(plot_data =  merged_covariates_importance_function(plot_data = bind_files,
+                                                                                                                                  fitted_model = "glm"),
+                                                                               color = pal_contribution,
+                                                                               labs_y = "",
+                                                                               labs_fill = "",
+                                                                               legend.position = "none",
+                                                                               mul = 2)
 
-merged_covariates_importance_GAM <- merged_covariates_importance_function(plot_data = bind_files,
-                                                                          fitted_model = "gam",
-                                                                          color = pal_contribution,
-                                                                          labs_y = "",
-                                                                          labs_fill = "",
-                                                                          legend.position = "none",
-                                                                          mul = 2)
+merged_covariates_importance_GAM <- plot_merged_covariates_importance_function(plot_data =  merged_covariates_importance_function(plot_data = bind_files,
+                                                                                                                                  fitted_model = "gam"),
+                                                                               color = pal_contribution,
+                                                                               labs_y = "",
+                                                                               labs_fill = "",
+                                                                               legend.position = "none",
+                                                                               mul = 2)
 
-merged_covariates_importance_SPAMM <- merged_covariates_importance_function(plot_data = bind_files,
-                                                                            fitted_model = "spamm",
-                                                                            color = pal_contribution,
-                                                                            labs_y = "",
-                                                                            labs_fill = "",
-                                                                            legend.position = "none",
-                                                                            mul = 2)
+merged_covariates_importance_SPAMM <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = bind_files,
+                                                                                                                       fitted_model = "spamm"),
+                                                                                 color = pal_contribution,
+                                                                                 labs_y = "",
+                                                                                 labs_fill = "",
+                                                                                 legend.position = "none",
+                                                                                 mul = 2)
 
-merged_covariates_importance_RF <- merged_covariates_importance_function(plot_data = bind_files,
-                                                                         fitted_model = "rf",
-                                                                         color = pal_contribution,
-                                                                         labs_y = "",
-                                                                         labs_fill = "",
-                                                                         legend.position = "none",
-                                                                         mul = 3)
+merged_covariates_importance_RF <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = bind_files,
+                                                                                                                    fitted_model = "rf"),
+                                                                              color = pal_contribution,
+                                                                              labs_y = "",
+                                                                              labs_fill = "",
+                                                                              legend.position = "none",
+                                                                              mul = 3)
 
-merged_covariates_importance_GBM <- merged_covariates_importance_function(plot_data = bind_files,
-                                                                          fitted_model = "gbm",
-                                                                          color = pal_contribution,
-                                                                          labs_y = "Relative importance (RMSE)",
-                                                                          labs_fill = "",
-                                                                          legend.position = "none",
-                                                                          mul = 3)
+merged_covariates_importance_GBM <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = bind_files,
+                                                                                                                     fitted_model = "gbm"),
+                                                                               color = pal_contribution,
+                                                                               labs_y = "Relative importance (RMSE)",
+                                                                               labs_fill = "",
+                                                                               legend.position = "none",
+                                                                               mul = 3)
 
-merged_covariates_importance_SPRF <- merged_covariates_importance_function(plot_data = bind_files,
-                                                                           fitted_model = "sprf",
-                                                                           color = pal_contribution,
-                                                                           labs_y = "Relative importance (RMSE)",
-                                                                           labs_fill = "",
-                                                                           legend.position = c(0.8, 0.18),
-                                                                           mul = 3)
+merged_covariates_importance_SPRF <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = bind_files,
+                                                                                                                      fitted_model = "sprf"),
+                                                                                color = pal_contribution,
+                                                                                labs_y = "Relative importance (RMSE)",
+                                                                                labs_fill = "",
+                                                                                legend.position = c(0.8, 0.18),
+                                                                                mul = 3)
 
 merged_covariates_importance <- (merged_covariates_importance_GLM + merged_covariates_importance_GAM) / (merged_covariates_importance_SPAMM + merged_covariates_importance_RF) / (merged_covariates_importance_GBM + merged_covariates_importance_SPRF)
 

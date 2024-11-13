@@ -21,30 +21,31 @@ kruskal_test_function <- function(data,
   n <- which(colnames(data) == trait)
 
   labs.position <- data |> 
-    dplyr::group_by_at(c(4, n)) |> 
+    dplyr::group_by_at(c(n, 4)) |> 
     dplyr::summarise(mean = mean(value), quant = quantile(value, probs = 0.75))
   
-  res.kruskal2$groups <- dplyr::inner_join(res.kruskal2$groups, labs.position, by = c("VAR", trait))
+  # res.kruskal2$groups <- dplyr::inner_join(res.kruskal2$groups, labs.position, by = c("VAR", trait))
+  res.kruskal2$groups <- dplyr::inner_join(labs.position, res.kruskal2$groups, by = c("VAR", trait))
   res.kruskal2
   
 }
 
 # plot_data = bind_files
-# trait = "ML_cat"
+# data_trait = phylo
+# trait = "family"
 # color = pal_sp_trait
-# labs_title = "A. Maximum length (cm)"
-# aes_string_x = c(3.1, 4.85, 4.1, 2.9, 5.12, 2.12, 3.9, 1.9, 0.85, 1.12, 5.37, 4.37, 3.35, 2.3, 1.3)
-# x_text_angle = NULL
-# legend.position = "none"
+# labs_title = "family"
+# x_text_angle = 65
+# legend.position = c(0.85, 0.8)
 
 species_traits_function <- function(plot_data,
+                                    data_trait,
                                     trait,
                                     color,
                                     labs_title,
-                                    aes_string_x,
                                     x_text_angle,
                                     legend.position
-                                    ){
+){
   
   require(ggplot2)
   
@@ -55,16 +56,7 @@ species_traits_function <- function(plot_data,
       dplyr::filter(fitted_model == plot_level)
     plot_data <- plot_data |>
       dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
-
-    # ENV <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
-    # ENV_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
-    # ENV <- do.call(rbind, ENV)
-    # ENV_sd <- do.call(rbind, ENV_sd)
-    # ENV <- dplyr::tibble(species_name = only_model$species_name,
-    #                      value = matrixStats::rowMedians(ENV),
-    #                      sd = matrixStats::rowMedians(ENV_sd),
-    #                      var = rep("ENV",nrow(ENV)),
-    #                      plot_level = rep(plot_level, nrow(ENV)))
+    
     ENV <- plot_data |> 
       dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
       dplyr::group_by(species_name) |> 
@@ -73,16 +65,6 @@ species_traits_function <- function(plot_data,
                        VAR = "ENV",
                        plot_level = plot_level)
     
-    # SOC <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
-    # SOC_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
-    # SOC <- do.call(rbind, SOC)
-    # SOC_sd <- do.call(rbind, SOC_sd)
-    # SOC <- dplyr::tibble(species_name = only_model$species_name,
-    #                      value = matrixStats::rowMedians(SOC),
-    #                      sd = matrixStats::rowMedians(SOC_sd),
-    #                      var = rep("HUM",nrow(SOC)),
-    #                      plot_level = rep(plot_level, nrow(SOC)))
-    
     SOC <- plot_data |> 
       dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
       dplyr::group_by(species_name) |> 
@@ -90,16 +72,6 @@ species_traits_function <- function(plot_data,
                        sd = median(sd_dropout_loss),
                        VAR = "HUM",
                        plot_level = plot_level)
-    
-    # HAB <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-    # HAB_sd <- lapply(1:nrow(only_model), function(i) { only_model$contributions_and_sd[[i]][only_model$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
-    # HAB <- do.call(rbind, HAB)
-    # HAB_sd <- do.call(rbind, HAB_sd)
-    # HAB <- dplyr::tibble(species_name = only_model$species_name,
-    #                      value = matrixStats::rowMedians(HAB),
-    #                      sd = matrixStats::rowMedians(HAB_sd),
-    #                      var = rep("HAB",nrow(HAB)),
-    #                      plot_level = rep(plot_level,nrow(HAB)))
     
     HAB <- plot_data |> 
       dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
@@ -120,12 +92,12 @@ species_traits_function <- function(plot_data,
   cont <- do.call(rbind, cont)
   
   cont <- cont |> 
-    dplyr::inner_join(sp_car, by = "species_name")
+    dplyr::inner_join(data_trait, by = "species_name", multiple = "first")
   
   n_trait <- cont |>
     dplyr::group_by(.dots = trait) |> 
     dplyr::summarise(n = dplyr::n() / 3)
-
+  
   kruskal_test_trait <- kruskal_test_function(cont,
                                               trait)
   
@@ -139,52 +111,62 @@ species_traits_function <- function(plot_data,
     
   })
   
+  kruskal_test_trait$groups[colnames(kruskal_test_trait$groups) %in% trait] <- sapply(1:nrow(kruskal_test_trait$groups[colnames(kruskal_test_trait$groups) %in% trait]), function(i) {
+    
+    row_i <- kruskal_test_trait$groups[colnames(kruskal_test_trait$groups) %in% trait][i,]
+    
+    which_row <- which(grepl(row_i, unlist(n_trait[colnames(n_trait) %in% trait])) == TRUE)
+    
+    paste0(row_i, " (n = ", n_trait$n[which_row], ")")
+    
+  })
+  
   if(kruskal_test_trait$statistics$p.chisq > 0.05){
     
     stop(print("No statistical differences among groups"))
     
-    }else{
-      
-      print("p.chisq < 0.05")
+  }else{
+    
+    print("p.chisq < 0.05")
+    
+    plot_trait <- cont |> 
+      ggplot(aes_string(x = trait, y = "value", fill = "VAR")) +
+      geom_boxplot(aes(fill = factor(VAR)), width = 0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
+      scale_fill_manual(values = c("ENV" = color[1],
+                                   "HUM" = color[3],
+                                   "HAB" = color[2])) +
+      theme_bw() +
+      geom_text(data = kruskal_test_trait$groups, aes_string(x = as.factor(unlist(kruskal_test_trait$groups[,1])), y = kruskal_test_trait$groups$quant, label = "groups"), vjust=-0.48, size = 5, position = position_dodge(width = 0.85)) +
+      coord_cartesian(ylim = c(0,0.25)) +
+      labs(y = "Relative importance (RMSE)", x = "", title = labs_title, fill = "") +
+      theme(legend.position = legend.position,
+            legend.direction = "horizontal",
+            legend.background = element_rect(fill = "white"),
+            legend.key = element_rect(fill = "white", color = NA),
+            title = element_text(size = 20),
+            axis.text = element_text(size = 20),
+            axis.text.x = element_text(size = 18),
+            axis.text.y = element_text(size = 20),
+            axis.title = element_text(size = 20),
+            legend.text = element_text(size = 25),
+            legend.title = element_text(size = 20),
+            strip.text.x = element_text(size = 20),
+            strip.text.y = element_text(size = 20),
+            strip.background = element_blank(),
+            panel.background = element_rect(fill = "white", colour = "grey50",
+                                            size = 1, linetype = "solid"),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
 
-        plot_trait <- cont |> 
-        dplyr::mutate(VAR = forcats::fct_relevel(VAR, "ENV", "HAB", "HUM")) |> 
-        ggplot(aes_string(x = trait, y = "value", fill = "VAR")) +
-        geom_boxplot(aes(fill = factor(VAR)), width=0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
-        scale_fill_manual(values = c("ENV" = color[1],
-                                     "HUM" = color[3],
-                                     "HAB" = color[2])) +
-        theme_bw() +
-        geom_text(data = kruskal_test_trait$groups, aes_string(x = aes_string_x, y = "quant", label = "groups"), vjust=-0.48, size = 6) +
-        coord_cartesian(ylim = c(0,0.25)) +
-        labs(y = "Relative importance (RMSE)", x = "", title = labs_title, fill = "") +
-        theme(legend.position = legend.position,
-              legend.direction = "horizontal",
-              legend.background = element_rect(fill = "white"),
-              legend.key = element_rect(fill = "white", color = NA),
-              title = element_text(size = 20),
-              axis.text = element_text(size = 20),
-              axis.text.x = element_text(size = 18),
-              axis.text.y = element_text(size = 20),
-              axis.title = element_text(size = 20),
-              legend.text = element_text(size = 25),
-              legend.title = element_text(size = 20),
-              strip.text.x = element_text(size = 20),
-              strip.text.y = element_text(size = 20),
-              strip.background = element_blank(),
-              panel.background = element_rect(fill = "white", colour = "grey50",
-                                              size = 1, linetype = "solid"),
-              panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank())
+    if(!is.null(x_text_angle)) {
       
-      if(!is.null(x_text_angle)) {
-        
-        plot_trait <- plot_trait +
-          theme(axis.text.x = element_text(angle = x_text_angle, hjust = 1))
-        
-      }
-        
+      plot_trait <- plot_trait +
+        theme(axis.text.x = element_text(angle = x_text_angle, hjust = 1))
+      
     }
+    
+  }
   
   return(plot_trait)
+  
 }

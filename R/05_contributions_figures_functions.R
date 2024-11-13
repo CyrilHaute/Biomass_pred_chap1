@@ -409,19 +409,19 @@ covariates_importance_function <- function(plot_data,
 }
 
 
-# plot_data = bind_files
+# plot_data = plot_data
 # fitted_model = plot_level
 
 var_max_function <- function(plot_data,
                              fitted_model
-                             ){
+){
   
   plot_level <- fitted_model
   plot_data <- plot_data |> 
     dplyr::filter(fitted_model == plot_level)
   plot_data <- plot_data |> 
     dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
-
+  
   ENV <- plot_data |> 
     dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
     dplyr::group_by(species_name) |> 
@@ -429,7 +429,7 @@ var_max_function <- function(plot_data,
                      sd = mean(sd_dropout_loss),
                      VAR = "ENV",
                      plot_level = plot_level)
-
+  
   SOC <- plot_data |> 
     dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
     dplyr::group_by(species_name) |> 
@@ -471,20 +471,41 @@ var_max_function <- function(plot_data,
   best[best$varmax == "2" ,2] <- "HUM"
   best[best$varmax == "3" ,2] <- "HAB"
   
+  if(is.na(fitted_model)){
+    
+    cont <- cont[which(colnames(cont) %in% "plot_level" == FALSE)] |> 
+      dplyr::inner_join(best, by = c("species_name"))
+    
+  }else{
+  
   cont <- cont |> 
     dplyr::inner_join(best, by = c("species_name", "plot_level"))
   
-  var_max <- cont |> 
-    dplyr::group_by(plot_level, varmax) |> 
-    dplyr::summarise(n = dplyr::n()/3)
-  var_max <- var_max |> 
-    dplyr::rename(VAR = varmax)
+  }
+  
+  if(is.na(fitted_model)){
+    
+    var_max <- cont |> 
+      dplyr::group_by(species_name, varmax) |> 
+      dplyr::summarise(n = dplyr::n()/3)
+    var_max <- var_max |> 
+      dplyr::rename(VAR = varmax)
+    
+  }else{
+    
+    var_max <- cont |> 
+      dplyr::group_by(plot_level, varmax) |> 
+      dplyr::summarise(n = dplyr::n()/3)
+    var_max <- var_max |> 
+      dplyr::rename(VAR = varmax)
+    
+  }
   
 }
 
 
-# plot_data = bind_files
-# fitted_model = "glm"
+# plot_data = scaridae
+# fitted_model = ""
 # color = pal_contribution
 # labs_y = ""
 # labs_fill = ""
@@ -501,8 +522,9 @@ merged_covariates_importance_function <- function(plot_data,
                                                   ){
   
   require(ggplot2)
-
+  
   # covariates relative importance by median
+  
   
   plot_level <- fitted_model
   plot_data <- plot_data |> 
@@ -550,7 +572,26 @@ merged_covariates_importance_function <- function(plot_data,
   
   cont_merge <- dplyr::inner_join(cont_merge, var_max, by = c("plot_level", "VAR"))
   
-  merged_importance_plot <- ggplot(cont_merge) +
+}
+
+# plot_data =  merged_covariates_importance_function(plot_data = plot_data,
+#                                                    fitted_model = "gam")
+# color = pal_contribution
+# labs_y = ""
+# labs_fill = ""
+# legend.position = "none"
+# mul = 2
+
+plot_merged_covariates_importance_function <- function(plot_data,
+                                                       fitted_model,
+                                                       color,
+                                                       labs_y,
+                                                       labs_fill,
+                                                       legend.position,
+                                                       mul
+){
+  
+  merged_importance_plot <- ggplot(plot_data) +
     geom_col(aes(x = reorder(VAR, value), y = value, fill = VAR)) +
     geom_errorbar(aes(x = VAR, y = value, ymin=value-sd, ymax=value+sd), width=.1,
                   position=position_dodge(.9)) +
@@ -574,4 +615,40 @@ merged_covariates_importance_function <- function(plot_data,
 }
 
 
+species_covariates_importance_function <- function(plot_data){
+  
+  require(ggplot2)
+  
+  # covariates relative importance by median
+  
+  plot_data <- plot_data |> 
+    dplyr::inner_join(best_models)
+  plot_data <- plot_data |> 
+    dplyr::filter(fitted_model == best_model)
+  
+  ENV <- plot_data |> 
+    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
+    dplyr::group_by(species_name) |> 
+    dplyr::summarise(value = median(Dropout_loss),
+                     sd = median(sd_dropout_loss),
+                     VAR = "ENV")
+  
+  SOC <- plot_data |> 
+    dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
+    dplyr::group_by(species_name) |> 
+    dplyr::summarise(value = median(Dropout_loss),
+                     sd = median(sd_dropout_loss),
+                     VAR = "HUM")
+  
+  HAB <- plot_data |> 
+    dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
+    dplyr::group_by(species_name) |> 
+    dplyr::summarise(value = median(Dropout_loss),
+                     sd = median(sd_dropout_loss),
+                     VAR = "HAB")
+  
+  cont <- ENV |>  
+    dplyr::full_join(HAB) |> 
+    dplyr::full_join(SOC)
 
+}
