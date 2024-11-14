@@ -29,6 +29,10 @@ unnest_dt2 <- function(tbl, ...) {
 }
 
 
+input_data = read_sp_eco
+nbins = 25
+levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf")
+
 observed_predicted_plot <- function(input_data, 
                                     nbins,
                                     levels){
@@ -50,6 +54,19 @@ observed_predicted_plot <- function(input_data,
       sp_j <- sp_j[which(is.infinite(sp_j$validation_predict) == FALSE),]
       
       sp_j$validation_predict[sp_j$validation_predict < 0] <- 0
+      
+      # glm, gam and spamm can give unreal prediction. Remove prediction 20 times higher than the maximum biomass observed.
+      which_to_high <- which(sp_j$validation_predict > (max(sp_j$validation_observed) * 20))
+      
+      if(length(which_to_high) != 0) {
+        
+        sp_j <- sp_j[-which_to_high,]
+        
+      }else{
+        
+        sp_j <- sp_j
+        
+      }
       
       sp_j$validation_predict <- rescale_01(log10(sp_j$validation_predict + 1))
       sp_j$validation_observed <- rescale_01(log10(sp_j$validation_observed + 1))
@@ -116,7 +133,7 @@ observed_predicted_plot <- function(input_data,
   
   all_plots <- (plot_levels_plot[[1]] + plot_levels_plot[[2]]) / (plot_levels_plot[[3]] + plot_levels_plot[[4]]) / (plot_levels_plot[[5]] + plot_levels_plot[[6]])
 
-  ggsave("figures/all_predictions_pres.pdf", all_plots, width = 11, height = 9)
+  ggsave("figures/all_predictions_pres.pdf", all_plots, width = 9, height = 11)
   
 }
 

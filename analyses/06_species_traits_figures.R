@@ -124,14 +124,8 @@ plot_trophic <- species_traits_function(plot_data = bind_files,
                                         trait = "Trophic_guild_name",
                                         color = pal_sp_trait,
                                         labs_title = "D. Trophic classes",
-                                        x_text_angle = 65,
-                                        legend.position = c(0.85, 0.8))
-
-plot_species_traits <- plot_max.length / plot_water.column / plot_habitat / plot_trophic
-
-ggsave("figures/plot_species_traits.pdf", plot_species_traits, height = 25, width = 19)
-
-
+                                        x_text_angle = 55,
+                                        legend.position = "none")
 
 load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
 phylo <- RLS_actinopterygii_data |> 
@@ -154,11 +148,13 @@ plot_familly <- species_traits_function(plot_data = bind_files,
                                         data_trait = phylo,
                                         trait = "family",
                                         color = pal_sp_trait,
-                                        labs_title = "",
-                                        x_text_angle = 65,
+                                        labs_title = "E. Family",
+                                        x_text_angle = 55,
                                         legend.position = c(0.85, 0.8))
 
-ggsave("figures/plot_family.pdf", plot_familly, height = 10, width = 17)
+plot_species_traits <- plot_max.length / plot_water.column / plot_habitat / plot_trophic / plot_familly
+
+ggsave("figures/plot_species_traits.pdf", plot_species_traits, height = 25, width = 19)
 
 
 
@@ -204,3 +200,45 @@ plot_scaridae <- ggplot(scaridae) +
     panel.grid.minor = element_blank()) 
 
 ggsave("figures/plot_scaridae.png", plot_scaridae, height = 10, width = 16)
+
+
+acanthuridae <- bind_files |> 
+  dplyr::inner_join(phylo, multiple = "first") |> 
+  dplyr::filter(family == "Acanthuridae") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-c(order, family))
+
+acanthuridae <- species_covariates_importance_function(plot_data = acanthuridae)
+
+acanthuridae <- acanthuridae |> 
+  dplyr::mutate(var_reordered = tidytext::reorder_within(VAR, value, species_name))
+
+plot_acanthuridae <- ggplot(acanthuridae) +
+  geom_col(aes(x = var_reordered, y = value, fill = VAR)) +
+  geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
+  theme_bw() +
+  coord_flip() +
+  facet_wrap(~species_name, scales = "free_y", ncol = 5) +
+  tidytext::scale_x_reordered() +
+  scale_fill_manual(values = c("ENV" = pal_sp_trait[1], 
+                               "HUM" = pal_sp_trait[3], 
+                               "HAB" = pal_sp_trait[2])) +
+  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
+  theme(
+    legend.direction = "vertical",
+    legend.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white", color = NA),
+    title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    strip.text.x = element_text(size = 12),
+    strip.text.y = element_text(size = 15),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white", colour = "grey50",
+                                    size = 1, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()) 

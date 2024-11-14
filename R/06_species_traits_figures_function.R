@@ -137,7 +137,7 @@ species_traits_function <- function(plot_data,
                                    "HAB" = color[2])) +
       theme_bw() +
       geom_text(data = kruskal_test_trait$groups, aes_string(x = as.factor(unlist(kruskal_test_trait$groups[,1])), y = kruskal_test_trait$groups$quant, label = "groups"), vjust=-0.48, size = 5, position = position_dodge(width = 0.85)) +
-      coord_cartesian(ylim = c(0,0.25)) +
+      coord_cartesian(ylim = c(0,0.2)) +
       labs(y = "Relative importance (RMSE)", x = "", title = labs_title, fill = "") +
       theme(legend.position = legend.position,
             legend.direction = "horizontal",

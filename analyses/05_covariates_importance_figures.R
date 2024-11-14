@@ -153,7 +153,7 @@ covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_fi
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
 
-ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 15, width = 11)
+ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 16, width = 12)
 
 merged_covariates_importance_GLM <- plot_merged_covariates_importance_function(plot_data =  merged_covariates_importance_function(plot_data = bind_files,
                                                                                                                                   fitted_model = "glm"),

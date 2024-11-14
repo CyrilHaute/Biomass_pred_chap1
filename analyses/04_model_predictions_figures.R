@@ -50,7 +50,7 @@ observed_predicted_best_plot(input_data = read_sp_eco_best,
                              nbins = 25)
 
 # create plots 
-observed_predicted_plot(input_data = read_sp_eco_best, 
+observed_predicted_plot(input_data = read_sp_eco, 
                         nbins = 25, 
                         levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf"))
  
