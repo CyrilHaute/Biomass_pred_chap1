@@ -71,49 +71,64 @@ perf_imp_var <- ggplot(var_imp) +
   tidytext::scale_x_reordered() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
-        axis.title = element_text(12),
+        axis.title = element_text(size = 12),
         strip.text.x = element_text(size = 10),
         strip.text.y = element_text(size = 10)) + 
-  labs(x = "", y = "Importance")
+  labs(x = "", y = "Importance", title = "A.")
 
-ggsave("figures/perf_imp_var.pdf", perf_imp_var, width = 9, height = 5)
+patial_pear_count <- pdp::partial(pearson_model, train = performance_bind, pred.var = c("count")) |> 
+  dplyr::rename(pearson = yhat)
+patial_spear_count <- pdp::partial(spearman_model, train = performance_bind, pred.var = c("count")) |> 
+  dplyr::rename(spearman = yhat)
+patial_count <- patial_pear_count |> 
+  dplyr::inner_join(patial_spear_count) |>
+  tidyr::pivot_longer(c("pearson", "spearman"),
+                      names_to = "performance")
 
-patial_plot_pear_count <- autoplot(pdp::partial(pearson_model, train = performance_bind, pred.var = c("count"))) +
-  labs(y = "pearson", x = "Count") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(12),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10))
-patial_plot_pear_ml <- autoplot(pdp::partial(pearson_model, train = performance_bind, pred.var = c("MaxLength"))) +
-  labs(y = "pearson", x = "Maximum Length (cm)") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(12),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10))
+pal <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
 
-patial_plot_spear_count <- autoplot(pdp::partial(spearman_model, train = performance_bind, pred.var = c("count"))) +
-  labs(y = "spearman", x = "Count") +
+patial_count_plot <- patial_count |> 
+  ggplot() +
+  geom_line(aes(x = count, y = value, color = performance), size = 1.2) +
+  scale_color_manual(values = c("pearson" = pal[6],
+                                "spearman" = pal[2])) +
+  labs(y = "", x = "Count", color = "", title = "B.") +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
-        axis.title = element_text(12),
+        axis.title = element_text(size = 12),
         strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10))
-patial_plot_spear_ml <- autoplot(pdp::partial(spearman_model, train = performance_bind, pred.var = c("MaxLength"))) +
-  labs(y = "spearman", x = "Maximum Length (cm)") +
+        strip.text.y = element_text(size = 10),
+        legend.position = "none")
+
+patial_pear_ml <- pdp::partial(pearson_model, train = performance_bind, pred.var = c("MaxLength")) |> 
+  dplyr::rename(pearson = yhat)
+patial_spear_ml <- pdp::partial(spearman_model, train = performance_bind, pred.var = c("MaxLength")) |> 
+  dplyr::rename(spearman = yhat)
+patial_ml <- patial_pear_ml |> 
+  dplyr::inner_join(patial_spear_ml) |>
+  tidyr::pivot_longer(c("pearson", "spearman"),
+                      names_to = "performance")
+
+patial_ml_plot <- patial_ml |> 
+  ggplot() +
+  geom_line(aes(x = MaxLength, y = value, color = performance), size = 1.2) +
+  scale_color_manual(values = c("pearson" = pal[6],
+                                "spearman" = pal[2])) +
+  labs(y = "", x = "Maximum Length (cm)", color = "") +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
-        axis.title = element_text(12),
+        axis.title = element_text(size = 12),
         strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10))
+        strip.text.y = element_text(size = 10),
+        legend.text = element_text(size = 12),
+        legend.position = c(0.80, 0.945))
 
 library(patchwork)
 
-patial_plot <- (patial_plot_pear_count + patial_plot_pear_ml) / (patial_plot_spear_count + patial_plot_spear_ml)
+patial_plot <- (patial_count_plot + patial_ml_plot)
 
-ggsave("figures/patial_plot.png", patial_plot, width = 10, height = 7)
+imp_patial_plot <- perf_imp_var / patial_plot
+ggsave("figures/imp_patial_plot.pdf", imp_patial_plot, width = 10, height = 11)
+
