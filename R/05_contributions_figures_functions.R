@@ -22,13 +22,22 @@ covariates_importance_all_function <- function(plot_data,
     dplyr::inner_join(plot_data)
   
   only_model_best <- only_model_best[only_model_best$best_model == only_model_best$fitted_model,]
-  
+
   ENV <- only_model_best |> 
-    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
+    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |>
     dplyr::group_by(variable) |> 
     dplyr::summarise(value = median(Dropout_loss),
                      sd = median(sd_dropout_loss),
                      VAR = "ENV")
+  ENV[ENV$variable == "max_1year_analysed_sst",]$variable <- "Sea Surface Temperature (max 1 year)"
+  ENV[ENV$variable == "min_1year_analysed_sst",]$variable <- "Sea Surface Temperature (min 1 year)"
+  ENV[ENV$variable == "max_5year_degree_heating_week",]$variable <- "Degree Heating Week (max 5 year)"
+  ENV[ENV$variable == "mean_1year_chl",]$variable <- "Chlorophyll (mean 1 year)"
+  ENV[ENV$variable == "mean_1year_so_mean",]$variable <- "Sea Surface Salinity (mean 1 year)"
+  ENV[ENV$variable == "max_5year_nppv",]$variable <- "Net Primary Productivity (max 5 year)"
+  ENV[ENV$variable == "min_5year_ph",]$variable <- "pH (min 5 year)"
+  ENV[ENV$variable == "min_7days_o2",]$variable <- "Dissolved oxygen (min 7 days)"
+  
 
   SOC <- only_model_best |> 
     dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
@@ -36,6 +45,14 @@ covariates_importance_all_function <- function(plot_data,
     dplyr::summarise(value = median(Dropout_loss),
                      sd = median(sd_dropout_loss),
                      VAR = "HUM")
+  SOC[SOC$variable == "effectiveness",]$variable <- "Marine Protected Area Compliance"
+  SOC[SOC$variable == "gdp",]$variable <- "Growth Development Product"
+  SOC[SOC$variable == "gravtot2",]$variable <- "Human Gravity"
+  # SOC[SOC$variable == "no_violence",]$variable <- "Human Gravity"
+  SOC[SOC$variable == "n_fishing_vessels",]$variable <- "Fishing Vessels Density"
+  SOC[SOC$variable == "natural_ressource_rent",]$variable <- "Natural Ressource Rent"
+  SOC[SOC$variable == "neartt",]$variable <- "Human Travel Time"
+  SOC[SOC$variable == "marine_ecosystem_dependency",]$variable <- "Marine Ecosystem Dependency"
 
   HAB <- only_model_best |> 
     dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
@@ -43,42 +60,19 @@ covariates_importance_all_function <- function(plot_data,
     dplyr::summarise(value = median(Dropout_loss),
                      sd = median(sd_dropout_loss),
                      VAR = "HAB")
+  HAB[HAB$variable == "Rock_500m",]$variable <- "Rock (Allen Coral Atlas)"
+  HAB[HAB$variable == "Sand_500m",]$variable <- "Sand (Allen Coral Atlas)"
+  HAB[HAB$variable == "coral_algae_500m",]$variable <- "Coral/Algae (Allen Coral Atlas)"
+  HAB[HAB$variable == "Rubble_500m",]$variable <- "Rubble (Allen Coral Atlas)"
+  HAB[HAB$variable == "coral",]$variable <- "Coral (Reef Life Survey)"
+  HAB[HAB$variable == "seagrass",]$variable <- "Sea Grass (Reef Life Survey)"
+  HAB[HAB$variable == "depth",]$variable <- "Depth"
+  HAB[HAB$variable == "reef_extent",]$variable <- "Reef Extent (Allen Coral Atlas)"
 
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
     dplyr::full_join(SOC)
 
-  # ENV[ENV$var == "mean_1year_so_mean",3]$var <- "Sea Surface Salinity (mean 1 year)"
-  # ENV[ENV$var == "min_1year_analysed_sst",3]$var <- "Sea Surface Temperature (min 1 year)"
-  # ENV[ENV$var == "mean_7days_analysed_sst",3]$var <- "Sea Surface Temperature (mean 7 days) "
-  # ENV[ENV$var == "max_1year_analysed_sst",3]$var <- "Sea Surface Temperature (max 1 year)"
-  # ENV[ENV$var == "max_5year_degree_heating_week",3]$var <- "Degree Heating Weeks (max 5 year)"
-  # ENV[ENV$var == "mean_1year_chl",3]$var <- "Chlorophyll (mean 1 year)"
-  # ENV[ENV$var == "mean_7days_chl",3]$var <- "Chlorophyll (mean 7 days)"
-  # ENV[ENV$var == "min_5year_ph",3]$var <- "pH (min 5 year)"
-  
-  # SOC[SOC$var == "n_fishing_vessels",3]$var <- "Fishing vessels density"
-  # SOC[SOC$var == "gravtot2",3]$var <- "Gravity"
-  # SOC[SOC$var == "hdi",3]$var <- "Human development index"
-  # SOC[SOC$var == "natural_ressource_rent",3]$var <- "Natural Ressource Rent"
-  # SOC[SOC$var == "neartt",3]$var <- "Neartt"
-  # SOC[SOC$var == "ngo",3]$var <- "Non governmental organization"
-  # SOC[SOC$var == "effectiveness",3]$var <- "MPA effectiveness"
-  # SOC[SOC$var == "gdp",3]$var <- "Growth development product"
-  
-  # HAB[HAB$var == "Rock_500m",3]$var <- "Rock (%)"
-  # HAB[HAB$var == "Sand_500m",3]$var <- "Sand (%)"
-  # HAB[HAB$var == "coral_algae_500m",3]$var <- "Coral/Algae (%)"
-  # HAB[HAB$var == "Rubble_500m",3]$var <- "Rubble (%)"
-  # HAB[HAB$var == "coral",3]$var <- "Coral (RLS)"
-  # HAB[HAB$var == "coralline_algae",3]$var <- "Coralline algae (RLS)"
-  # HAB[HAB$var == "depth",3]$var <- "Depth"
-  # HAB[HAB$var == "reef_extent",3]$var <- "Reef extent"
-  
-  cont <- ENV |>  
-    dplyr::full_join(HAB) |>
-    dplyr::full_join(SOC)
-  
   importance_plot <- ggplot(cont) +
     geom_col(aes(x = reorder(variable, value), y = value, fill = VAR)) +
     geom_errorbar(aes(x = variable, y = value, ymin = value - sd, ymax = value + sd), width = .2,
@@ -116,60 +110,21 @@ var_max_all_function <- function(plot_data)
     dplyr::summarise(value = mean(Dropout_loss),
                      sd = mean(sd_dropout_loss),
                      VAR = "ENV")
-  
-  # ENV <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
-  # which_true <- which(lapply(1:length(ENV), function(i) { is.null(ENV[[i]])}) == TRUE)
-  # ENV[which_true] <- lapply(1:length(ENV[which_true]), function(i) {rep(0, 8)})
-  # ENV_sd <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
-  # ENV <- do.call(rbind, ENV)
-  # which_true <- which(lapply(1:length(ENV_sd), function(i) { is.null(ENV_sd[[i]])}) == TRUE)
-  # ENV_sd[which_true] <- lapply(1:length(ENV_sd[which_true]), function(i) {rep(0, 8)})
-  # ENV_sd <- do.call(rbind, ENV_sd)
-  # ENV <- dplyr::tibble(species_name = only_model_best$species_name,
-  #                      value = rowMeans(ENV),
-  #                      sd = rowMeans(ENV_sd),
-  #                      var = rep("ENV",nrow(ENV)))
-  
+
   SOC <- only_model_best |> 
     dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
     dplyr::group_by(species_name) |> 
     dplyr::summarise(value = mean(Dropout_loss),
                      sd = mean(sd_dropout_loss),
                      VAR = "HUM")
-  
-  # SOC <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
-  # which_true <- which(lapply(1:length(SOC), function(i) { is.null(SOC[[i]])}) == TRUE)
-  # SOC[which_true] <- lapply(1:length(SOC[which_true]), function(i) {rep(0, 8)})
-  # SOC_sd <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
-  # SOC <- do.call(rbind, SOC)
-  # which_true <- which(lapply(1:length(SOC_sd), function(i) { is.null(SOC_sd[[i]])}) == TRUE)
-  # SOC_sd[which_true] <- lapply(1:length(SOC_sd[which_true]), function(i) {rep(0, 8)})
-  # SOC_sd <- do.call(rbind, SOC_sd)
-  # SOC <- dplyr::tibble(species_name = only_model_best$species_name,
-  #                      value = rowMeans(SOC),
-  #                      sd = rowMeans(SOC_sd),
-  #                      var = rep("HUM",nrow(SOC)))
-  
+
   HAB <- only_model_best |> 
     dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
     dplyr::group_by(species_name) |> 
     dplyr::summarise(value = mean(Dropout_loss),
                      sd = mean(sd_dropout_loss),
                      VAR = "HAB")
-  
-  # HAB <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-  # which_true <- which(lapply(1:length(HAB), function(i) { is.null(HAB[[i]])}) == TRUE)
-  # HAB[which_true] <- lapply(1:length(HAB[which_true]), function(i) {rep(0, 8)})
-  # HAB_sd <- lapply(1:nrow(only_model_best), function(i) { only_model_best$contributions_and_sd[[i]][only_model_best$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
-  # HAB <- do.call(rbind, HAB)
-  # which_true <- which(lapply(1:length(HAB_sd), function(i) { is.null(HAB_sd[[i]])}) == TRUE)
-  # HAB_sd[which_true] <- lapply(1:length(HAB_sd[which_true]), function(i) {rep(0, 8)})
-  # HAB_sd <- do.call(rbind, HAB_sd)
-  # HAB <- dplyr::tibble(species_name = only_model_best$species_name,
-  #                      value = rowMeans(HAB),
-  #                      sd = rowMeans(HAB_sd),
-  #                      var = rep("HAB",nrow(HAB)))
-  
+
   cont <- ENV |>
     dplyr::full_join(HAB) |>
     dplyr::full_join(SOC)
@@ -302,11 +257,11 @@ merged_covariates_importance_all_function <- function(plot_data,
 }
 
 # plot_data = bind_files
-# fitted_model = "glm"
+# fitted_model = "rf"
 # color = pal_contribution
 # labs_y = ""
 # labs_fill = ""
-# ylim = c(0,0.2)
+# ylim = c(0,0.1)
 # legend.position = "none"
 
 
@@ -331,22 +286,21 @@ covariates_importance_function <- function(plot_data,
     dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
 
   ENV <- plot_data |> 
-    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
+    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |>
     dplyr::group_by(variable) |> 
     dplyr::summarise(value = median(Dropout_loss),
                      sd = median(sd_dropout_loss),
                      VAR = "ENV",
                      plot_level = plot_level)
-  # ENV <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$Dropout_loss})
-  # ENV_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),]$sd_dropout_loss})
-  # ENV <- do.call(rbind, ENV)
-  # ENV_sd <- do.call(rbind, ENV_sd)
-  # ENV <- dplyr::tibble(value = matrixStats::colMedians(ENV),
-  #                      sd = matrixStats::colMedians(ENV_sd),
-  #                      var = c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "mean_7days_analysed_sst", "mean_7days_chl", "min_1year_analysed_sst", "min_5year_ph"),
-  #                      VAR = rep("ENV", 8),
-  #                      plot_level = rep(plot_level, 8))
-    
+  ENV[ENV$variable == "max_1year_analysed_sst",]$variable <- "Sea Surface Temperature (max 1 year)"
+  ENV[ENV$variable == "min_1year_analysed_sst",]$variable <- "Sea Surface Temperature (min 1 year)"
+  ENV[ENV$variable == "max_5year_degree_heating_week",]$variable <- "Degree Heating Week (max 5 year)"
+  ENV[ENV$variable == "mean_1year_chl",]$variable <- "Chlorophyll (mean 1 year)"
+  ENV[ENV$variable == "mean_1year_so_mean",]$variable <- "Sea Surface Salinity (mean 1 year)"
+  ENV[ENV$variable == "max_5year_nppv",]$variable <- "Net Primary Productivity (max 5 year)"
+  ENV[ENV$variable == "min_5year_ph",]$variable <- "pH (min 5 year)"
+  ENV[ENV$variable == "min_7days_o2",]$variable <- "Dissolved oxygen (min 7 days)"
+
   SOC <- plot_data |> 
     dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
     dplyr::group_by(variable) |> 
@@ -354,17 +308,15 @@ covariates_importance_function <- function(plot_data,
                      sd = median(sd_dropout_loss),
                      VAR = "HUM",
                      plot_level = plot_level)
-  # SOC <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$Dropout_loss})
-  # SOC_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),]$sd_dropout_loss})
-  # SOC <- do.call(rbind, SOC)
-  # SOC_sd <- do.call(rbind, SOC_sd)
-  # SOC <- dplyr::tibble(value = matrixStats::colMedians(SOC),
-  #                      sd = matrixStats::colMedians(SOC_sd),
-  #                      var = c("effectiveness", "gdp", "gravtot2", "hdi", "n_fishing_vessels", "natural_ressource_rent", "neartt", "ngo"),
-  #                      VAR = rep("HUM", 8),
-  #                      plot_level = rep(plot_level, 8))
-  # SOC[SOC$var == "n_fishing_vessels",3]$var <- "fishing_vessels_density"
-    
+  SOC[SOC$variable == "effectiveness",]$variable <- "MPA compliance"
+  SOC[SOC$variable == "gdp",]$variable <- "Growth Development Product"
+  SOC[SOC$variable == "gravtot2",]$variable <- "Human Gravity"
+  # SOC[SOC$variable == "no_violence",]$variable <- "Human Gravity"
+  SOC[SOC$variable == "n_fishing_vessels",]$variable <- "Fishing Vessels Density"
+  SOC[SOC$variable == "natural_ressource_rent",]$variable <- "Natural Ressource Rent"
+  SOC[SOC$variable == "neartt",]$variable <- "Nearest Population"
+  SOC[SOC$variable == "marine_ecosystem_dependency",]$variable <- "Marine Ecosystem Dependency"
+
   HAB <- plot_data |> 
     dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
     dplyr::group_by(variable) |> 
@@ -372,16 +324,15 @@ covariates_importance_function <- function(plot_data,
                      sd = median(sd_dropout_loss),
                      VAR = "HAB",
                      plot_level = plot_level)
-  # HAB <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$Dropout_loss})
-  # HAB_sd <- lapply(1:nrow(plot_data), function(i) { plot_data$contributions_and_sd[[i]][plot_data$contributions_and_sd[[i]]$variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),]$sd_dropout_loss})
-  # HAB <- do.call(rbind, HAB)
-  # HAB_sd <- do.call(rbind, HAB_sd)
-  # HAB <- dplyr::tibble(value = matrixStats::colMedians(HAB),
-  #                      sd = matrixStats::colMedians(HAB_sd),
-  #                      var = c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "coralline_algae", "depth", "reef_extent"),
-  #                      VAR = rep("HAB", 8),
-  #                      plot_level = rep(plot_level, 8))
-    
+  HAB[HAB$variable == "Rock_500m",]$variable <- "Rock (%)"
+  HAB[HAB$variable == "Sand_500m",]$variable <- "Sand (%)"
+  HAB[HAB$variable == "coral_algae_500m",]$variable <- "Coral/Algae (%)"
+  HAB[HAB$variable == "Rubble_500m",]$variable <- "Rubble (%)"
+  HAB[HAB$variable == "coral",]$variable <- "Coral (RLS)"
+  HAB[HAB$variable == "seagrass",]$variable <- "Sea grass (RLS)"
+  HAB[HAB$variable == "depth",]$variable <- "Depth"
+  HAB[HAB$variable == "reef_extent",]$variable <- "Reef extent"
+
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
     dplyr::full_join(SOC)
