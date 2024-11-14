@@ -53,7 +53,7 @@ best_model <- best_models_pr |>
                                "gbm" = pal_best[4],
                                "sprf" = pal_best[5],
                                "rf" = pal_best[6])) +
-  labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B") +
+  labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B.") +
   theme(title = element_text(size = 20),
         axis.text = element_text(size = 25),
         axis.title = element_text(size = 30),
@@ -188,10 +188,12 @@ plot_spearman <- performance_plot(performance_all_best,
                                   legend.position = c(0.5, 0.1),
                                   plot_title = "")
 
-plot_perf <- patchwork::wrap_plots(plot_pearson, plot_spearman)
+library(patchwork)
 
-ggplot2::ggsave("figures/plot_perf.pdf", plot_perf, height = 6, width = 12)
-ggplot2::ggsave("figures/plot_best.pdf", best_model, height = 6, width = 12)
+plot_perf <- plot_pearson + plot_spearman
+plot_perf_best <- plot_perf / best_model
+
+ggplot2::ggsave("figures/plot_perf_best.pdf", plot_perf_best, height = 13, width = 11)
 
 ################## Plot performance-traits relationship ################## 
 
