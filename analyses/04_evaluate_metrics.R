@@ -21,6 +21,7 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
   
   sp <- read_sp_eco[[i]]
   sp$survey_id <- as.numeric(sp$survey_id)
+  sp$validation_observed <- as.numeric(sp$validation_observed)
   
   remove_na <- which(sapply(sp$survey_id, is.na))
   
@@ -47,7 +48,7 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
     sp <- sp[-remove_infinite,]
     
   }
-  
+
   # Linear model between values
   lm_test <- lapply(1:length(unique(sp$cv)), function(k) {
     

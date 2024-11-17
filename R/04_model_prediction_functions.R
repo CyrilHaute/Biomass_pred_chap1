@@ -29,9 +29,9 @@ unnest_dt2 <- function(tbl, ...) {
 }
 
 
-input_data = read_sp_eco
-nbins = 25
-levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf")
+# input_data = read_sp_eco
+# nbins = 25
+# levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf")
 
 observed_predicted_plot <- function(input_data, 
                                     nbins,

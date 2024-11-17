@@ -54,6 +54,7 @@ var_imp[var_imp$covariates == "Trophic_guild_name",]$covariates <- "Trophic clas
 var_imp[var_imp$covariates == "count",]$covariates <- "Occurrence"
 var_imp[var_imp$covariates == "order",]$covariates <- "Order"
 var_imp[var_imp$covariates == "family",]$covariates <- "Family"
+var_imp[var_imp$covariates == "Water.column",]$covariates <- "Water Column"
 var_imp <- var_imp |> 
   tidyr::pivot_longer(c("pearson", "spearman"),
                       names_to = "peformance")
@@ -92,7 +93,7 @@ patial_count_plot <- patial_count |>
   geom_line(aes(x = count, y = value, color = performance), size = 1.2) +
   scale_color_manual(values = c("pearson" = pal[6],
                                 "spearman" = pal[2])) +
-  labs(y = "", x = "Count", color = "", title = "B.") +
+  labs(y = "", x = "Occurrence", color = "", title = "B.") +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),

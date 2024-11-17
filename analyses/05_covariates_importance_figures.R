@@ -153,7 +153,7 @@ covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_fi
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
 
-ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 16, width = 12)
+ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 16, width = 13)
 
 merged_covariates_importance_GLM <- plot_merged_covariates_importance_function(plot_data =  merged_covariates_importance_function(plot_data = bind_files,
                                                                                                                                   fitted_model = "glm"),
@@ -161,7 +161,7 @@ merged_covariates_importance_GLM <- plot_merged_covariates_importance_function(p
                                                                                labs_y = "",
                                                                                labs_fill = "",
                                                                                legend.position = "none",
-                                                                               mul = 2)
+                                                                               mul = 6)
 
 merged_covariates_importance_GAM <- plot_merged_covariates_importance_function(plot_data =  merged_covariates_importance_function(plot_data = bind_files,
                                                                                                                                   fitted_model = "gam"),
@@ -205,7 +205,7 @@ merged_covariates_importance_SPRF <- plot_merged_covariates_importance_function(
 
 merged_covariates_importance <- (merged_covariates_importance_GLM + merged_covariates_importance_GAM) / (merged_covariates_importance_SPAMM + merged_covariates_importance_RF) / (merged_covariates_importance_GBM + merged_covariates_importance_SPRF)
 
-ggsave("figures/merged_covariates_importance.png", merged_covariates_importance, height = 15, width = 11)
+ggsave("figures/merged_covariates_importance.pdf", merged_covariates_importance, height = 15, width = 11)
 
 
 
