@@ -1,9 +1,9 @@
 # function to fit glm and assess covariates relative importance
 
-# biomass = realm_j
+# biomass = rls_biomass_i
 # covariates = rls_covariates
-# species_name = new_species_name[j]
-# base_dir_cont = eco_base_dir
+# species_name = species_name[i]
+# base_dir_cont = base_dir
 
 glm_function_cont <- function(biomass, 
                               covariates, 
@@ -15,13 +15,13 @@ glm_function_cont <- function(biomass,
   
   # rename covariates
   covnames_new <- names(covariates)
-  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "effectiveness"))]
-  covnames_new <- c(covnames_new, "factor(effectiveness)")
-  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(effectiveness)"))]
+  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "protection_status2"))]
+  covnames_new <- c(covnames_new, "factor(protection_status2)")
+  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(protection_status2)"))]
   
   # create formula with new covariate names
   covnames_new_poly <- paste0('I(', covnames_new, '^2',')')
-  covnames_new_poly <- covnames_new_poly[-which(covnames_new_poly %in% c("I(factor(effectiveness)^2)"))]
+  covnames_new_poly <- covnames_new_poly[-which(covnames_new_poly %in% c("I(factor(protection_status2)^2)"))]
   
   covnames_combined <- paste0(c(covnames_new, covnames_new_poly), collapse = " + ")
   covnames_combined2 <- paste0(c(covnames_new_bis, covnames_new_poly), collapse = " + ")
@@ -67,17 +67,17 @@ glm_function_cont <- function(biomass,
   
   covariates_sp <- covariates |> 
     dplyr::filter(survey_id %in% sp$survey_id) |> 
-    noise_function(avoid = c("survey_id", "effectiveness"),
+    noise_function(avoid = c("survey_id", "protection_status2"),
                    limit = 6)
   
-  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")], center = TRUE, scale = TRUE)
   
   # add covariates
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id")
   
   # Fit the model
   
-  if(length(unique(sp$effectiveness)) == 1){
+  if(length(unique(sp$protection_status2)) == 1){
     
     model_fit <- tryCatch(glm(formula = model_formula2, family = gaussian, data = sp), error = function(e) NA)
     

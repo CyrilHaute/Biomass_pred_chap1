@@ -36,9 +36,9 @@ spamm_function <- function(biomass,
   
   # rename covariates
   covnames_new <- names(covariates)
-  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "effectiveness"))]
-  covnames_new <- c(covnames_new, "factor(effectiveness)", "Matern(1 | X + Y)")
-  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(effectiveness)"))]
+  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "protection_status2"))]
+  covnames_new <- c(covnames_new, "factor(protection_status2)", "Matern(1 | X + Y)")
+  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(protection_status2)"))]
   
   # create formula with new covariate names
   fmla <- as.formula(paste(response, paste(covnames_new, collapse = " + ")))
@@ -82,10 +82,10 @@ spamm_function <- function(biomass,
   
   covariates_sp <- covariates |> 
     dplyr::filter(survey_id %in% sp$survey_id) |> 
-    noise_function(avoid = c("survey_id", "effectiveness"),
+    noise_function(avoid = c("survey_id", "protection_status2"),
                    limit = 6)
   
-  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")], center = TRUE, scale = TRUE)
   
   # Create spatial k-fold cross-validation dataset, here with 5 fold, each fold being splited in 80% for training and 20% for testing. The spatial compenent can resulting in less than 80% of data in the training set
   biomass_scv <- scv_function(sp,
@@ -112,11 +112,11 @@ spamm_function <- function(biomass,
     
     train_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% training$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
+      noise_function(avoid = c("survey_id", "protection_status2"),
                      limit = 6)
     test_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% testing$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
+      noise_function(avoid = c("survey_id", "protection_status2"),
                      limit = 6)
     
     # add covariates
@@ -127,18 +127,18 @@ spamm_function <- function(biomass,
     
     # Fit the model
     
-    if(length(unique(training$effectiveness)) == 1){
+    if(length(unique(training$protection_status2)) == 1){
       
       model_fit <- spaMM::fitme(fmla2, data = training, method = "ML")
       
     }else{
       
-      test <- unique(testing$effectiveness) %in% unique(training$effectiveness)
+      test <- unique(testing$protection_status2) %in% unique(training$protection_status2)
       
       if(any(test == FALSE)){
         
         testing <- testing |> 
-          dplyr::filter(effectiveness %in% unique(training$effectiveness))
+          dplyr::filter(protection_status2 %in% unique(training$protection_status2))
         
       }
       

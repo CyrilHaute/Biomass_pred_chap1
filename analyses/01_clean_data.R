@@ -89,6 +89,7 @@ load("data/new_raw_data/social_covariates/noviolence.RData")
 load("data/new_raw_data/social_covariates/voice.RData")
 
 ngo <- ngo[which(is.na(ngo$ngo) == FALSE),]
+mpa <- mpa[!colnames(mpa) %in% c("site_code", "protection_status")]
 
 rls_soc <- corruption |> 
   dplyr::inner_join(gdp) |> 
@@ -103,7 +104,7 @@ rls_soc <- corruption |>
   dplyr::inner_join(noviolence) |> 
   dplyr::inner_join(voice)
 
-rls_soc$effectiveness <- as.factor(rls_soc$effectiveness)
+rls_soc$protection_status2 <- as.factor(rls_soc$protection_status2)
 
 rls_habitat_inferred_benthos$survey_id <- as.integer(rls_habitat_inferred_benthos$survey_id)
 
@@ -150,8 +151,66 @@ save(sp_count, file = "data/new_derived_data/species_count.Rdata")
 rls_spread_coral_reef_biomass <- rls_coral_fish_mean_biomass_count |>
   tidyr::spread(species_name, biomass, fill = 0)
 
+##################################################
+############### Biotic covariates ################
+##################################################
+
+species_name <- colnames(rls_spread_coral_reef_biomass)[!colnames(rls_spread_coral_reef_biomass) %in% c("survey_id", "latitude", "longitude")]
+
+diversity <- rls_coral_fish_mean_biomass_count |> 
+  dplyr::group_by(survey_id) |> 
+  dplyr::summarise(diversity = dplyr::n())
+
+# biomass_cov <- rls_spread_coral_reef_biomass |>
+#   dplyr::group_by(survey_id) |>
+#   dplyr::summarise(total_biomass = sum(dplyr::across(species_name)),
+#                    mean_biomass = rowMeans(dplyr::across(species_name)),
+#                    max_biomass = max(dplyr::across(species_name)),
+#                    min_biomass = min(dplyr::across(species_name)),
+#                    delta_biomass = max(dplyr::across(species_name)) - min(dplyr::across(species_name)))
+
+biomass_cov2 <- rls_coral_fish_mean_biomass_count |> 
+  dplyr::group_by(survey_id) |>
+  dplyr::summarise(total_biomass = sum(biomass),
+                   mean_biomass = mean(biomass),
+                   max_biomass = max(biomass),
+                   min_biomass = min(biomass),
+                   delta_biomass = max(biomass) - min(biomass))
+
+# Load species traits
+sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE) |> 
+  dplyr::rename(species_name = Species)
+sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
+
+sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
+
+sp_car <- sp_car |> 
+  dplyr::select(species_name, Trophic_guild_name, Trophic.Level)
+
+n_trophic <- rls_coral_fish_mean_biomass_count |> 
+  dplyr::inner_join(sp_car) |> 
+  dplyr::group_by(survey_id, Trophic_guild_name) |> 
+  dplyr::summarise(n_trophic = dplyr::n()) |> 
+  dplyr::group_by(survey_id) |> 
+  dplyr::mutate(n_trophic = dplyr::n()) |> 
+  dplyr::select(-c(Trophic_guild_name)) |> 
+  unique()
+
+stat_troph <- rls_coral_fish_mean_biomass_count |> 
+  dplyr::inner_join(sp_car) |> 
+  dplyr::group_by(survey_id) |> 
+  dplyr::summarise(mean_trophic = mean(Trophic.Level),
+                   max_trophic = max(Trophic.Level),
+                   min_trophic = min(Trophic.Level))
+
+biotic <- diversity |> 
+  dplyr::inner_join(biomass_cov2) |> 
+  dplyr::inner_join(n_trophic) |> 
+  dplyr::inner_join(stat_troph)
+
 rls_fish_cov <- rls_spread_coral_reef_biomass |>
-  dplyr::inner_join(rls_covariates)
+  dplyr::inner_join(rls_covariates) |> 
+  dplyr::inner_join(biotic)
 
 ##############################################
 ############# Variable selection #############
@@ -164,12 +223,12 @@ rls_env_selec <- rls_env_selec[,which(grepl(pattern = paste0(c("survey_id", "max
 cor_env <- stats::cor(rls_env_selec[!colnames(rls_env_selec) %in% c("survey_id", "longitude", "latitude")]) #Look at correlation between covariates
 corrplot::corrplot(cor_env, type = "upper") 
 
-# rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_7days_chl", "mean_7days_analysed_sst")]
-rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "min_7days_o2")]
+# rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "min_7days_o2")]
+rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_nppv", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week")]
 cor_env2 <- stats::cor(rls_env_selec2)
 corrplot::corrplot(cor_env2, type = "upper")
 
-rls_env_final <- rls_env_selec[,c("survey_id", "min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "min_7days_o2")]
+rls_env_final <- rls_env_selec[,c("survey_id", "min_5year_ph", "mean_1year_nppv", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week")]
 
 
 # Select social covariates
@@ -179,16 +238,18 @@ rls_soc_selec <- rls_fish_cov[,colnames(rls_soc)]
 rls_soc_selec$gdp <- log10(rls_soc_selec$gdp + 1)
 rls_soc_selec$gravtot2 <- log10(rls_soc_selec$gravtot2 + mean(rls_soc_selec$gravtot2))
 
-cor_soc <- stats::cor(rls_soc_selec[!colnames(rls_soc_selec) %in% c("survey_id", "longitude", "latitude", "effectiveness")])
+# cor_soc <- stats::cor(rls_soc_selec[!colnames(rls_soc_selec) %in% c("survey_id", "longitude", "latitude", "effectiveness")])
+cor_soc <- stats::cor(rls_soc_selec[!colnames(rls_soc_selec) %in% c("survey_id", "longitude", "latitude", "protection_status2")])
 corrplot::corrplot(cor_soc, type = "upper")
 
-# rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "hdi", "natural_ressource_rent", "n_fishing_vessels", "ngo")]
-rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "natural_ressource_rent")]
+# rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "natural_ressource_rent")]
+rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "marine_ecosystem_dependency", "n_fishing_vessels")]
 
 cor_soc2 <- stats::cor(rls_soc_selec2)
 corrplot::corrplot(cor_soc2, type = "upper")
 
-rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "natural_ressource_rent", "effectiveness")]
+# rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "effectiveness")]
+rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "marine_ecosystem_dependency", "n_fishing_vessels", "protection_status2")]
 
 
 # Select habitat covariates
@@ -200,13 +261,24 @@ cor_hab <- stats::cor(rls_hab_selec[!colnames(rls_hab_selec) %in% c("survey_id",
 corrplot::corrplot(cor_hab, type = "upper")
 
 colnames(inferred_benthos)[-c(1:3)]
-# rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "coralline_algae")]
-rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
+# rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
+rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "coral")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
 corrplot::corrplot(cor_hab2, type = "upper")
 
-rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
+rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "coral")]
 
+
+# Select biotic covariates
+rls_biot_selec <- rls_fish_cov[,colnames(biotic)]
+cor_biot <- stats::cor(rls_biot_selec[!colnames(rls_biot_selec) %in% c("survey_id")])
+corrplot::corrplot(cor_biot, type = "upper")
+
+rls_biot_selec2 <- rls_biot_selec[,c("diversity", "n_trophic", "max_trophic", "mean_trophic")]
+cor_biot2 <- stats::cor(rls_biot_selec2)
+corrplot::corrplot(cor_biot2, type = "upper")
+
+rls_biot_final <- rls_biot_selec[,c("survey_id", "diversity", "n_trophic", "max_trophic", "mean_trophic")]
 
 #####################################################################
 ##############  Create biomass and covariates dataset  ##############
@@ -224,12 +296,13 @@ rls_biomass <- rls_biomass |>
                 site_code, 
                 species_name)
 
+
 # save derived data
 
 rls_covariates <- rls_env_final |> 
   dplyr::inner_join(rls_soc_final) |> 
-  dplyr::inner_join(rls_hab_final)
-# rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")] <- scale(rls_covariates[,!colnames(rls_covariates) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  dplyr::inner_join(rls_hab_final) |> 
+  dplyr::inner_join(rls_biot_final)
 
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(rls_biomass, file = "data/new_derived_data/rls_biomass.RData")

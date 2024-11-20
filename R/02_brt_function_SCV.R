@@ -72,10 +72,10 @@ brt_function <- function(biomass,
   
   covariates_sp <- covariates |> 
     dplyr::filter(survey_id %in% sp$survey_id) |> 
-    noise_function(avoid = c("survey_id", "effectiveness"),
+    noise_function(avoid = c("survey_id", "protection_status2"),
                    limit = 6)
   
-  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")], center = TRUE, scale = TRUE)
   
   # Create spatial k-fold cross-validation dataset, here with 5 fold, each fold being splited in 80% for training and 20% for testing. The spatial compenent can resulting in less than 80% of data in the training set
   biomass_scv <- scv_function(sp,
@@ -102,11 +102,11 @@ brt_function <- function(biomass,
     
     train_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% training$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
+      noise_function(avoid = c("survey_id", "protection_status2"),
                      limit = 6)
     test_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% testing$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
+      noise_function(avoid = c("survey_id", "protection_status2"),
                      limit = 6)
     
     # add covariates

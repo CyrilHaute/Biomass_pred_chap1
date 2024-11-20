@@ -28,14 +28,14 @@ gam_function <- function(biomass,
   
   # rename covariates
   covnames_new <- names(covariates)
-  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "effectiveness"))]
-  covnames_new <- c(covnames_new, "factor(effectiveness)")
-  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(effectiveness)"))]
+  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "protection_status2"))]
+  covnames_new <- c(covnames_new, "factor(protection_status2)")
+  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(protection_status2)"))]
   
   # create formula with new covariate names
   covnames_splines <- paste0(rep("s(", length(covnames_new)),  covnames_new, rep(", k = 3)", length(covnames_new)))
-  covnames_splines <- covnames_splines[-which(covnames_splines %in% c("s(factor(effectiveness), k = 3)"))]
-  covnames_splines <- c(covnames_splines, "factor(effectiveness)")
+  covnames_splines <- covnames_splines[-which(covnames_splines %in% c("s(factor(protection_status2), k = 3)"))]
+  covnames_splines <- c(covnames_splines, "factor(protection_status2)")
   covnames_splines2 <- paste0(rep("s(", length(covnames_new_bis)),  covnames_new_bis, rep(", k = 3)", length(covnames_new_bis)))
   
   covnames_combined <- paste0(covnames_splines, collapse = " + ")
@@ -83,10 +83,10 @@ gam_function <- function(biomass,
   
   covariates_sp <- covariates |> 
     dplyr::filter(survey_id %in% sp$survey_id) |> 
-    noise_function(avoid = c("survey_id", "effectiveness"),
+    noise_function(avoid = c("survey_id", "protection_status2"),
                    limit = 6)
   
-  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")], center = TRUE, scale = TRUE)
   
   # Create spatial k-fold cross-validation dataset, here with 5 fold, each fold being splited in 80% for training and 20% for testing. The spatial compenent can resulting in less than 80% of data in the training set
   biomass_scv <- scv_function(sp,
@@ -113,11 +113,11 @@ gam_function <- function(biomass,
     
     train_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% training$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
+      noise_function(avoid = c("survey_id", "protection_status2"),
                      limit = 6)
     test_covariates <- covariates_sp |> 
       dplyr::filter(survey_id %in% testing$survey_id) |> 
-      noise_function(avoid = c("survey_id", "effectiveness"),
+      noise_function(avoid = c("survey_id", "protection_status2"),
                      limit = 6)
     
     # add covariates
@@ -128,19 +128,19 @@ gam_function <- function(biomass,
     
     # Fit the model
     
-    if(length(unique(training$effectiveness)) == 1){
+    if(length(unique(training$protection_status2)) == 1){
       
-      model_fit <- tryCatch(mgcv::gam(model_formula2, data = training[!colnames(training) %in% "effectiveness"], family = gaussian, select = FALSE, method = 'ML'), error = function(e) NA)
+      model_fit <- tryCatch(mgcv::gam(model_formula2, data = training[!colnames(training) %in% "protection_status2"], family = gaussian, select = FALSE, method = 'ML'), error = function(e) NA)
       
     }else{
       
-      test <- unique(testing$effectiveness) %in% unique(training$effectiveness) # test if you have the same MPA effectivness factors in the fitting and validation set
+      test <- unique(testing$protection_status2) %in% unique(training$protection_status2) # test if you have the same MPA effectivness factors in the fitting and validation set
       
       if(any(test == FALSE)){
         
         testing <- testing |>
           
-          dplyr::filter(effectiveness %in% unique(training$effectiveness))
+          dplyr::filter(protection_status2 %in% unique(training$protection_status2))
         
       }
       

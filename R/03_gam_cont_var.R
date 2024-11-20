@@ -1,9 +1,9 @@
 # function to fit gam and assess covariates relative importance
 
-# biomass = realm_j
+# biomass = rls_biomass_i
 # covariates = rls_covariates
-# species_name = new_species_name[j]
-# base_dir_cont = eco_base_dir
+# species_name = species_name[i]
+# base_dir_cont = base_dir
 
 gam_function_cont <- function(biomass, 
                               covariates,
@@ -15,14 +15,14 @@ gam_function_cont <- function(biomass,
   
   # rename covariates
   covnames_new <- names(covariates)
-  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "effectiveness"))]
-  covnames_new <- c(covnames_new, "factor(effectiveness)")
-  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(effectiveness)"))]
+  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "protection_status2"))]
+  covnames_new <- c(covnames_new, "factor(protection_status2)")
+  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(protection_status2)"))]
   
   # create formula with new covariate names
   covnames_splines <- paste0(rep("s(", length(covnames_new)),  covnames_new, rep(", k = 3)", length(covnames_new)))
-  covnames_splines <- covnames_splines[-which(covnames_splines %in% c("s(factor(effectiveness), k = 3)"))]
-  covnames_splines <- c(covnames_splines, "factor(effectiveness)")
+  covnames_splines <- covnames_splines[-which(covnames_splines %in% c("s(factor(protection_status2), k = 3)"))]
+  covnames_splines <- c(covnames_splines, "factor(protection_status2)")
   covnames_splines2 <- paste0(rep("s(", length(covnames_new_bis)),  covnames_new_bis, rep(", k = 3)", length(covnames_new_bis)))
   
   covnames_combined <- paste0(covnames_splines, collapse = " + ")
@@ -70,17 +70,17 @@ gam_function_cont <- function(biomass,
   
   covariates_sp <- covariates |> 
     dplyr::filter(survey_id %in% sp$survey_id) |> 
-    noise_function(avoid = c("survey_id", "effectiveness"),
+    noise_function(avoid = c("survey_id", "protection_status2"),
                    limit = 6)
   
-  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")], center = TRUE, scale = TRUE)
   
   # add covariates
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id")
   
   # Fit the model
   
-  if(length(unique(sp$effectiveness)) == 1){
+  if(length(unique(sp$protection_status2)) == 1){
     
     model_fit <- mgcv::gam(model_formula2, data = sp, family = gaussian, select = FALSE, method = 'ML')
     

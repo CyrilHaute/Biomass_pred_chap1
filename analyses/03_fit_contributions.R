@@ -23,7 +23,7 @@ species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id",
 # run glm for covariates contribution
 print("glm biomass contribution")
 
-base_dir <- "outputs/glm_contribution/"
+base_dir <- "outputs/glm_contribution2/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -39,7 +39,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run random Forest for covariates contribution
 print("rf biomass contribution")
 
-base_dir <- "outputs/rf_contribution/"
+base_dir <- "outputs/rf_contribution2/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -55,7 +55,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run gbm for covariates contribution
 print("gbm biomass contribution")
 
-base_dir <- "outputs/brt_contribution/"
+base_dir <- "outputs/brt_contribution2/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -71,7 +71,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run gam for covariates contribution
 print("gam biomass contribution")
 
-base_dir <- "outputs/gam_contribution/"
+base_dir <- "outputs/gam_contribution2/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -87,7 +87,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run spamm for covariates contribution
 print("spamm biomass contribution")
 
-base_dir <- "outputs/spamm_contribution/"
+base_dir <- "outputs/spamm_contribution2/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -103,7 +103,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run spatial Random Forest for covariates contribution
 print("sprf biomass contribution")
 
-base_dir <- "outputs/sprf_contribution/"
+base_dir <- "outputs/sprf_contribution2/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -136,7 +136,7 @@ rls_biomass_realm <- rls_biomass_realm[which(nrow_realm == FALSE)]
 # run glm per realm
 print("glm per realm")
 
-base_dir_contribution <- "outputs/glm_biomass_contribution_realm/"
+base_dir_contribution <- "outputs/glm_biomass_contribution_realm2/"
 
 for(i in 1:length(rls_biomass_realm)) {
 # pbmcapply::pbmclapply(1:2, function(i) {
@@ -172,7 +172,7 @@ for(i in 1:length(rls_biomass_realm)) {
 # run random forest per realm
 print("rf per realm")
 
-base_dir_contribution <- "outputs/rf_biomass_contribution_realm/"
+base_dir_contribution <- "outputs/rf_biomass_contribution_realm2/"
 
 for(i in 1:length(rls_biomass_realm)) {
   # pbmcapply::pbmclapply(1:2, function(i) {
@@ -208,7 +208,7 @@ for(i in 1:length(rls_biomass_realm)) {
 # # run gbm per realm
 print("gbm per realm")
 
-base_dir_contribution <- "outputs/gbm_biomass_contribution_realm/"
+base_dir_contribution <- "outputs/gbm_biomass_contribution_realm2/"
 
 for(i in 1:length(rls_biomass_realm)) {
   # pbmcapply::pbmclapply(1:2, function(i) {
@@ -244,7 +244,7 @@ for(i in 1:length(rls_biomass_realm)) {
 # run gam per realm
 print("gam per realm")
 
-base_dir_contribution <- "outputs/gam_biomass_contribution_realm/"
+base_dir_contribution <- "outputs/gam_biomass_contribution_realm2/"
 
 for(i in 1:length(rls_biomass_realm)) {
   # pbmcapply::pbmclapply(1:2, function(i) {
@@ -280,7 +280,7 @@ for(i in 1:length(rls_biomass_realm)) {
 # run spamm per realm
 print("spamm per realm")
 
-base_dir_contribution <- "outputs/spamm_biomass_contribution_realm/"
+base_dir_contribution <- "outputs/spamm_biomass_contribution_realm2/"
 
 for(i in 1:length(rls_biomass_realm)) {
   # pbmcapply::pbmclapply(1:2, function(i) {
@@ -316,7 +316,7 @@ for(i in 1:length(rls_biomass_realm)) {
 # run sprf per realm
 print("sprf per realm")
 
-base_dir_contribution <- "outputs/sprf_biomass_contribution_realm/"
+base_dir_contribution <- "outputs/sprf_biomass_contribution_realm2/"
 
 for(i in 1:length(rls_biomass_realm)) {
   # pbmcapply::pbmclapply(1:2, function(i) {

@@ -5,7 +5,8 @@ library(patchwork)
 source("R/05_contributions_figures_functions.R")
 source("R/05_load_realm_contribution_function.R")
 
-pal_contribution <- PNWColors::pnw_palette("Bay", 3, type = "discrete")
+# pal_contribution <- PNWColors::pnw_palette("Bay", type = "discrete")
+pal_contribution <- RColorBrewer::brewer.pal(n = 9, name = "Set1")
 
 load("outputs/best_models.Rdata")
 
@@ -14,7 +15,7 @@ load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
-glm <- list.files("outputs/glm_contribution", full.names = TRUE)
+glm <- list.files("outputs/glm_contribution2", full.names = TRUE)
 glm <- lapply(1:length(glm), function(i) {
   
   load(glm[i])
@@ -41,7 +42,7 @@ spamm <- lapply(1:length(spamm), function(i) {
 })
 spamm <- do.call(rbind, spamm)
 
-rf <- list.files("outputs/rf_contribution", full.names = TRUE)
+rf <- list.files("outputs/rf_contribution2", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
   
   load(rf[i])
@@ -103,12 +104,12 @@ covariates_importance_all_and_merged <- covariates_importance_all + merged_covar
 
 ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 15)
 
-covariates_importance_GLM <- covariates_importance_function(plot_data = bind_files,
+covariates_importance_GLM <- covariates_importance_function(plot_data = glm,
                                                             fitted_model = "glm",
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,65),
+                                                            ylim = c(0, 2),
                                                             legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = bind_files,
@@ -116,7 +117,7 @@ covariates_importance_GAM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0,0.35),
+                                                            ylim = c(0, 0.35),
                                                             legend.position = "none")
 
 covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_files,
@@ -124,15 +125,15 @@ covariates_importance_SPAMM <- covariates_importance_function(plot_data = bind_f
                                                               color = pal_contribution,
                                                               labs_y = "",
                                                               labs_fill = "",
-                                                              ylim = c(0,0.06),
+                                                              ylim = c(0, 0.06),
                                                               legend.position = "none")
 
-covariates_importance_RF <- covariates_importance_function(plot_data = bind_files,
+covariates_importance_RF <- covariates_importance_function(plot_data = rf,
                                                            fitted_model = "rf",
                                                            color = pal_contribution,
                                                            labs_y = "",
                                                            labs_fill = "",
-                                                           ylim = c(0,0.1),
+                                                           ylim = c(0, 0.13),
                                                            legend.position = "none")
 
 covariates_importance_GBM <- covariates_importance_function(plot_data = bind_files,
@@ -140,7 +141,7 @@ covariates_importance_GBM <- covariates_importance_function(plot_data = bind_fil
                                                             color = pal_contribution,
                                                             labs_y = "Relative importance (RMSE)",
                                                             labs_fill = "",
-                                                            ylim = c(0,0.1),
+                                                            ylim = c(0, 0.1),
                                                             legend.position = "none")
 
 covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_files,
@@ -148,7 +149,7 @@ covariates_importance_SPRF <- covariates_importance_function(plot_data = bind_fi
                                                              color = pal_contribution,
                                                              labs_y = "Relative importance (RMSE)",
                                                              labs_fill = "",
-                                                             ylim = c(0,0.1),
+                                                             ylim = c(0, 0.1),
                                                              legend.position = c(0.75, 0.16))
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
@@ -179,13 +180,16 @@ merged_covariates_importance_SPAMM <- plot_merged_covariates_importance_function
                                                                                  legend.position = "none",
                                                                                  mul = 2)
 
-merged_covariates_importance_RF <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = bind_files,
+merged_covariates_importance_RF <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = rf,
                                                                                                                     fitted_model = "rf"),
                                                                               color = pal_contribution,
-                                                                              labs_y = "",
+                                                                              # labs_y = "",
+                                                                              labs_y = "Relative importance (RMSE)",
                                                                               labs_fill = "",
-                                                                              legend.position = "none",
+                                                                              # legend.position = "none",
+                                                                              legend.position = c(0.8, 0.18),
                                                                               mul = 3)
+ggsave("figures/merged_covariates_importance_rf_biot.pdf", merged_covariates_importance_RF)
 
 merged_covariates_importance_GBM <- plot_merged_covariates_importance_function(merged_covariates_importance_function(plot_data = bind_files,
                                                                                                                      fitted_model = "gbm"),

@@ -15,9 +15,9 @@ spamm_function_cont <- function(biomass,
   
   # rename covariates
   covnames_new <- names(covariates)
-  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "effectiveness"))]
-  covnames_new <- c(covnames_new, "factor(effectiveness)", "Matern(1 | X + Y)")
-  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(effectiveness)"))]
+  covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "protection_status2"))]
+  covnames_new <- c(covnames_new, "factor(protection_status2)", "Matern(1 | X + Y)")
+  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(protection_status2)"))]
   
   # create formula with new covariate names
   fmla <- as.formula(paste(response, paste(covnames_new, collapse = " + ")))
@@ -61,10 +61,10 @@ spamm_function_cont <- function(biomass,
   
   covariates_sp <- covariates |> 
     dplyr::filter(survey_id %in% sp$survey_id) |> 
-    noise_function(avoid = c("survey_id", "effectiveness"),
+    noise_function(avoid = c("survey_id", "protection_status2"),
                    limit = 6)
   
-  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "effectiveness")], center = TRUE, scale = TRUE)
+  covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")] <- scale(covariates_sp[!colnames(covariates_sp) %in% c("survey_id", "protection_status2")], center = TRUE, scale = TRUE)
   
   # add covariates
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id") |> 
@@ -73,7 +73,7 @@ spamm_function_cont <- function(biomass,
   
   # Fit the model
   
-  if(length(unique(sp$effectiveness)) == 1){
+  if(length(unique(sp$protection_status2)) == 1){
     
     model_fit <- spaMM::fitme(fmla2, data = sp, method = "ML")
     
