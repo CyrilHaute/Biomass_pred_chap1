@@ -3,10 +3,10 @@
 
 glm <- list.files("outputs/glm_prediction2", full.names = TRUE)
 rf <- list.files("outputs/rf_prediction2", full.names = TRUE)
-brt <- list.files("outputs/brt_prediction", full.names = TRUE)
-gam <- list.files("outputs/gam_prediction", full.names = TRUE)
-spamm <- list.files("outputs/spamm_prediction", full.names = TRUE)
-sprf <- list.files("outputs/sprf_prediction", full.names = TRUE)
+brt <- list.files("outputs/brt_prediction2", full.names = TRUE)
+gam <- list.files("outputs/gam_prediction2", full.names = TRUE)
+spamm <- list.files("outputs/spamm_prediction2", full.names = TRUE)
+sprf <- list.files("outputs/sprf_prediction2", full.names = TRUE)
 
 file_model <- c(glm, rf, brt, gam, spamm, sprf)
 
@@ -109,7 +109,7 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
 
 performance_bind <- do.call(rbind, performance)
 
-# save(performance_bind, file = "outputs/performance_model.Rdata")
+save(performance_bind, file = "outputs/performance_model.Rdata")
 
 perf_model_gouped <- performance_bind |> 
   dplyr::group_by(model) |>
