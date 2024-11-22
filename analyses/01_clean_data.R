@@ -127,11 +127,11 @@ rls_fish_data <- dplyr::inner_join(RLS_actinopterygii_data, rls_surveys)
 rls_coral_fish <- rls_fish_data |>
   dplyr::filter(survey_id %in% rls_covariates$survey_id)
 
-rls_coral_fish$biomass <- log10(rls_coral_fish$biomass + 1)
+# rls_coral_fish$biomass <- log10(rls_coral_fish$biomass + 1)
 
 rls_coral_fish_mean_biomass <- rls_coral_fish |> 
   dplyr::group_by(survey_id, site_code, species_name, latitude, longitude, survey_date, depth) |> 
-  dplyr::summarise(biomass = mean(biomass))
+  dplyr::summarise(biomass = sum(biomass))
 
 rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::group_by(species_name) |>
@@ -148,6 +148,8 @@ sp_count <- rls_coral_fish_mean_biomass |>
 
 save(sp_count, file = "data/new_derived_data/species_count.Rdata")
 
+rls_coral_fish_mean_biomass_count$biomass <- log10(rls_coral_fish_mean_biomass_count$biomass)
+
 rls_spread_coral_reef_biomass <- rls_coral_fish_mean_biomass_count |>
   tidyr::spread(species_name, biomass, fill = 0)
 
@@ -160,14 +162,6 @@ species_name <- colnames(rls_spread_coral_reef_biomass)[!colnames(rls_spread_cor
 diversity <- rls_coral_fish_mean_biomass_count |> 
   dplyr::group_by(survey_id) |> 
   dplyr::summarise(diversity = dplyr::n())
-
-# biomass_cov <- rls_spread_coral_reef_biomass |>
-#   dplyr::group_by(survey_id) |>
-#   dplyr::summarise(total_biomass = sum(dplyr::across(species_name)),
-#                    mean_biomass = rowMeans(dplyr::across(species_name)),
-#                    max_biomass = max(dplyr::across(species_name)),
-#                    min_biomass = min(dplyr::across(species_name)),
-#                    delta_biomass = max(dplyr::across(species_name)) - min(dplyr::across(species_name)))
 
 biomass_cov2 <- rls_coral_fish_mean_biomass_count |> 
   dplyr::group_by(survey_id) |>

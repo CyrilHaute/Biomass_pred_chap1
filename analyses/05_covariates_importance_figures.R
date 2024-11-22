@@ -42,7 +42,7 @@ spamm <- lapply(1:length(spamm), function(i) {
 })
 spamm <- do.call(rbind, spamm)
 
-rf <- list.files("outputs/rf_contribution2", full.names = TRUE)
+rf <- list.files("outputs/rf_contribution", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
   
   load(rf[i])

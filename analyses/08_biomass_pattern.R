@@ -10,7 +10,7 @@ rls_coral_fish <- rls_fish_data |>
 
 rls_coral_fish_mean_biomass <- rls_coral_fish |> 
   dplyr::group_by(survey_id, site_code, species_name, latitude, longitude, survey_date, depth) |> 
-  dplyr::summarise(biomass = mean(biomass))
+  dplyr::summarise(biomass = sum(biomass))
 
 rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::group_by(species_name) |>
@@ -105,7 +105,6 @@ troph_realm <- rls_coral_fish_mean_biomass_count |>
 biomass_realm_troph_plot <- ggplot(troph_realm, aes(x = troph_reordered, y = biomass)) +
   geom_point(position = "jitter", alpha = 0.2, size = 0.5) +
   geom_boxplot(aes(fill = Trophic_guild_name), alpha = 0.9, outlier.shape = NA) +
-  geom_smooth(method = "lm", se = FALSE) +
   facet_wrap(~ realm, scales = "free_x") +
   theme_bw() +
   scale_fill_manual(values = pal_contribution) +
