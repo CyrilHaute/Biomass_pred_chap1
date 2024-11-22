@@ -47,7 +47,7 @@ phylo <- RLS_actinopterygii_data |>
   dplyr::select(species_name, order, family)
 phylo <- unique(phylo)
 
-n_phylo <- bind_files |> 
+n_phylo <- rls_coral_fish_mean_biomass_count |> 
   dplyr::inner_join(phylo, multiple = "first") |> 
   dplyr::select(species_name, family) |> 
   unique() |> 
@@ -77,17 +77,33 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
 
 mean_global <- mean(rls_coral_fish_mean_biomass_count$biomass)
 med_global <- median(rls_coral_fish_mean_biomass_count$biomass)
-min(rls_coral_fish_mean_biomass_count$biomass)
-max(rls_coral_fish_mean_biomass_count$biomass)
-sd(rls_coral_fish_mean_biomass_count$biomass)
+min_global <- min(rls_coral_fish_mean_biomass_count$biomass)
+max_global <- max(rls_coral_fish_mean_biomass_count$biomass)
 
 stat_biomass_eco <- rls_coral_fish_mean_biomass_count |> 
   dplyr::group_by(ecoregion) |> 
-  dplyr::summarise(med_biomass = mean(biomass),
+  dplyr::summarise(med_biomass = median(biomass),
+                   sd_biomass = sd(biomass),
+                   max_biomass = max(biomass),
+                   min_biomass = min(biomass),
                    inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
 stat_biomass_realm <- rls_coral_fish_mean_biomass_count |> 
   dplyr::group_by(realm) |> 
-  dplyr::summarise(med_biomass = mean(biomass),
+  dplyr::summarise(med_biomass = median(biomass),
+                   max_biomass = max(biomass),
+                   q95_biomass = quantile(biomass, probs = 0.95),
+                   q75_biomass = quantile(biomass, probs = 0.75),
+                   inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
+stat_biomass_realm_troph <- rls_coral_fish_mean_biomass_count |> 
+  dplyr::group_by(realm, Trophic_guild_name) |> 
+  dplyr::summarise(med_biomass = median(biomass),
+                   max_biomass = max(biomass),
+                   q95_biomass = quantile(biomass, probs = 0.95),
+                   q75_biomass = quantile(biomass, probs = 0.75),
+                   inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
+stat_biomass_realm_fam <- rls_coral_fish_mean_biomass_count |> 
+  dplyr::group_by(realm, family) |> 
+  dplyr::summarise(med_biomass = median(biomass),
                    max_biomass = max(biomass),
                    q95_biomass = quantile(biomass, probs = 0.95),
                    q75_biomass = quantile(biomass, probs = 0.75),
