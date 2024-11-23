@@ -5,7 +5,8 @@ library(patchwork)
 source("R/06_species_traits_figures_function.R")
 source("R/05_contributions_figures_functions.R")
 
-pal_sp_trait <- PNWColors::pnw_palette("Bay", 3, type = "discrete")
+# pal_sp_trait <- PNWColors::pnw_palette("Bay", 3, type = "discrete")
+pal_sp_trait <- RColorBrewer::brewer.pal(n = 9, name = "Set1")
 
 load("outputs/best_models.Rdata")
 
@@ -13,7 +14,7 @@ load("outputs/best_models.Rdata")
 
 # Merge all files together by species
 
-glm <- list.files("outputs/glm_contribution", full.names = TRUE)
+glm <- list.files("outputs/glm_contribution3", full.names = TRUE)
 glm <- lapply(1:length(glm), function(i) {
   
   load(glm[i])
@@ -22,7 +23,7 @@ glm <- lapply(1:length(glm), function(i) {
 })
 glm <- do.call(rbind, glm)
 
-gam <- list.files("outputs/gam_contribution", full.names = TRUE)
+gam <- list.files("outputs/gam_contribution3", full.names = TRUE)
 gam <- lapply(1:length(gam), function(i) {
   
   load(gam[i])
@@ -31,7 +32,7 @@ gam <- lapply(1:length(gam), function(i) {
 })
 gam <- do.call(rbind, gam)
 
-spamm <- list.files("outputs/spamm_contribution", full.names = TRUE)
+spamm <- list.files("outputs/spamm_contribution2", full.names = TRUE)
 spamm <- lapply(1:length(spamm), function(i) {
   
   load(spamm[i])
@@ -40,7 +41,7 @@ spamm <- lapply(1:length(spamm), function(i) {
 })
 spamm <- do.call(rbind, spamm)
 
-rf <- list.files("outputs/rf_contribution", full.names = TRUE)
+rf <- list.files("outputs/rf_contribution3", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
   
   load(rf[i])
@@ -49,7 +50,7 @@ rf <- lapply(1:length(rf), function(i) {
 })
 rf <- do.call(rbind, rf)
 
-sprf <- list.files("outputs/sprf_contribution", full.names = TRUE)
+sprf <- list.files("outputs/sprf_contribution2", full.names = TRUE)
 sprf <- lapply(1:length(sprf), function(i) {
   
   load(sprf[i])
@@ -59,7 +60,7 @@ sprf <- lapply(1:length(sprf), function(i) {
 sprf <- do.call(rbind, sprf)
 colnames(sprf)[colnames(sprf) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
 
-gbm <- list.files("outputs/brt_contribution", full.names = TRUE)
+gbm <- list.files("outputs/brt_contribution3", full.names = TRUE)
 gbm <- lapply(1:length(gbm), function(i) {
   
   load(gbm[i])
@@ -176,9 +177,10 @@ plot_scaridae <- ggplot(scaridae) +
   coord_flip() +
   facet_wrap(~species_name, scales = "free_y", ncol = 5) +
   tidytext::scale_x_reordered() +
-  scale_fill_manual(values = c("ENV" = pal_sp_trait[1], 
-                               "HUM" = pal_sp_trait[3], 
-                               "HAB" = pal_sp_trait[2])) +
+  scale_fill_manual(values = c("ENV" = pal_sp_trait[2],
+                               "HUM" = pal_sp_trait[1],
+                               "HAB" = pal_sp_trait[6],
+                               "BIOT" = pal_sp_trait[3])) +
   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
   theme(
     legend.direction = "vertical",

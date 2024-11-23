@@ -66,6 +66,7 @@ best_model <- best_models_pr |>
         panel.grid.minor = element_blank())
 
 perf_corr <- performance_bind |> 
+  tidyr::drop_na() |> 
   dplyr::group_split(model)
 perf_corr <- lapply(1:length(perf_corr), function(i) {
   
@@ -82,53 +83,7 @@ library(ggplot2)
 
 model_corr_plot <- GGally::ggcorr(perf_corr, label = TRUE)
 
-ggsave(model_corr_plot, filename = "figures/model_corr_plot.png")
-
-# produce histograms of model performance for best models ----
-
-p_level <- unique(performance_bind$model)
-
-perf_models_all <- performance_bind |> 
-  dplyr::summarise_at(dplyr::vars(pearson, spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
-                                                                           IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
-                                                                           median  = round(median(x, na.rm = T), 2),
-                                                                           IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
-                                                                           Q0.95 = round(quantile(x, 0.95, na.rm = T), 2)))) |> 
-  dplyr::mutate(summary_value = c('Q0.05','IQR0.25', 'median', 'IQR0.75', 'Q0.95')) |> 
-  tidyr::unnest() |> 
-  dplyr::group_by(summary_value) |> 
-  dplyr::select(pearson, spearman) |> 
-  t() |> 
-  data.frame()
-
-perf_models_all <- perf_models_all |> 
-  dplyr::mutate(metric = rownames(perf_models_all)) |>
-  dplyr::select(metric, X1:X5)
-
-perf_models_details <- parallel::mclapply(1:length(p_level), function(i) {
-  
-  p_level <- p_level[i]
-  
-  perf_models <- performance_bind |> 
-    dplyr::filter(model == p_level) |> 
-    dplyr::summarise_at(dplyr::vars(pearson, spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
-                                                                           IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
-                                                                           median  = round(median(x, na.rm = T), 2),
-                                                                           IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
-                                                                           Q0.95 = round(quantile(x, 0.95, na.rm = T), 2)))) |> 
-    dplyr::mutate(summary_value = c('Q0.05', 'IQR0.25', 'median', 'IQR0.75', 'Q0.95')) |> 
-    tidyr::unnest() |> 
-    dplyr::group_by(summary_value) |> 
-    dplyr::select(pearson, spearman) |> 
-    t() |> 
-    data.frame() 
-  
-  perf_models <- perf_models |> 
-    dplyr::mutate(metric = rownames(perf_models)) |> 
-    dplyr::select(metric, X1:X5)
-  
-}, mc.cores = 1)
-names(perf_models_details) <- p_level
+ggsave(model_corr_plot, filename = "figures/model_corr_plot.png", width = 7, height = 7)
 
 # Select only the best model for each species
 
@@ -157,6 +112,7 @@ max(best_assessments_SCV$spearman)
 # Manage data for performance plot
 
 performance_all <- performance_bind |> 
+  tidyr::drop_na() |> 
   dplyr::select(-c(r2_sd, sd_pearson, sd_spearman)) |> 
   tidyr::pivot_longer(c(r2, spearman, pearson), names_to = "metric", values_to = "value")
 

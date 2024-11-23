@@ -15,7 +15,7 @@ load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
-glm <- list.files("outputs/glm_contribution2", full.names = TRUE)
+glm <- list.files("outputs/glm_contribution3", full.names = TRUE)
 glm <- lapply(1:length(glm), function(i) {
   
   load(glm[i])
@@ -24,7 +24,7 @@ glm <- lapply(1:length(glm), function(i) {
 })
 glm <- do.call(rbind, glm)
 
-gam <- list.files("outputs/gam_contribution2", full.names = TRUE)
+gam <- list.files("outputs/gam_contribution3", full.names = TRUE)
 gam <- lapply(1:length(gam), function(i) {
   
   load(gam[i])
@@ -42,7 +42,7 @@ spamm <- lapply(1:length(spamm), function(i) {
 })
 spamm <- do.call(rbind, spamm)
 
-rf <- list.files("outputs/rf_contribution2", full.names = TRUE)
+rf <- list.files("outputs/rf_contribution3", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
   
   load(rf[i])
@@ -61,7 +61,7 @@ sprf <- lapply(1:length(sprf), function(i) {
 sprf <- do.call(rbind, sprf)
 colnames(sprf)[colnames(sprf) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
 
-gbm <- list.files("outputs/brt_contribution2", full.names = TRUE)
+gbm <- list.files("outputs/brt_contribution3", full.names = TRUE)
 gbm <- lapply(1:length(gbm), function(i) {
   
   load(gbm[i])
@@ -70,7 +70,7 @@ gbm <- lapply(1:length(gbm), function(i) {
 })
 gbm <- do.call(rbind, gbm)
 
-bind_files <- list(glm, gam, spamm, rf, sprf, gbm)
+bind_files <- list(glm, gam, spamm, sprf, rf, gbm)
 bind_files <- purrr::reduce(bind_files, dplyr::full_join)
 
 ##### For bind_files
@@ -109,7 +109,7 @@ covariates_importance_GLM <- covariates_importance_function(plot_data = glm,
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0, 0.13),
+                                                            ylim = c(0, 0.15),
                                                             legend.position = "none")
 
 covariates_importance_GAM <- covariates_importance_function(plot_data = gam,
@@ -117,7 +117,7 @@ covariates_importance_GAM <- covariates_importance_function(plot_data = gam,
                                                             color = pal_contribution,
                                                             labs_y = "",
                                                             labs_fill = "",
-                                                            ylim = c(0, 0.13),
+                                                            ylim = c(0, 0.15),
                                                             legend.position = "none")
 
 covariates_importance_SPAMM <- covariates_importance_function(plot_data = spamm,
@@ -125,7 +125,7 @@ covariates_importance_SPAMM <- covariates_importance_function(plot_data = spamm,
                                                               color = pal_contribution,
                                                               labs_y = "",
                                                               labs_fill = "",
-                                                              ylim = c(0, 0.13),
+                                                              ylim = c(0, 0.15),
                                                               legend.position = "none")
 
 covariates_importance_RF <- covariates_importance_function(plot_data = rf,
@@ -133,7 +133,7 @@ covariates_importance_RF <- covariates_importance_function(plot_data = rf,
                                                            color = pal_contribution,
                                                            labs_y = "",
                                                            labs_fill = "",
-                                                           ylim = c(0, 0.13),
+                                                           ylim = c(0, 0.15),
                                                            legend.position = "none")
 
 covariates_importance_GBM <- covariates_importance_function(plot_data = gbm,
@@ -141,7 +141,7 @@ covariates_importance_GBM <- covariates_importance_function(plot_data = gbm,
                                                             color = pal_contribution,
                                                             labs_y = "Relative importance (RMSE)",
                                                             labs_fill = "",
-                                                            ylim = c(0, 0.13),
+                                                            ylim = c(0, 0.15),
                                                             legend.position = "none")
 
 covariates_importance_SPRF <- covariates_importance_function(plot_data = sprf,
@@ -149,7 +149,7 @@ covariates_importance_SPRF <- covariates_importance_function(plot_data = sprf,
                                                              color = pal_contribution,
                                                              labs_y = "Relative importance (RMSE)",
                                                              labs_fill = "",
-                                                             ylim = c(0, 0.13),
+                                                             ylim = c(0, 0.15),
                                                              legend.position = c(0.75, 0.16))
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)

@@ -31,6 +31,7 @@ phylo <- RLS_actinopterygii_data |>
 phylo <- unique(phylo)
 
 performance_bind <- performance_bind |> 
+  tidyr::drop_na() |> 
   dplyr::select(species_name, pearson, spearman, model) |> 
   dplyr::inner_join(sp_car) |> 
   dplyr::inner_join(sp_count) |> 

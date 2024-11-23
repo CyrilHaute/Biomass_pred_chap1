@@ -156,7 +156,7 @@ var_max_all_function <- function(plot_data)
                      sd = mean(sd_dropout_loss),
                      VAR = "HAB")
   
-  BIOT <- plot_data |> 
+  BIOT <- only_model_best |> 
     dplyr::filter(variable %in% c("delta_biomass", "diversity", "max_trophic", "mean_biomass", "mean_trophic", "n_trophic")) |> 
     dplyr::group_by(species_name) |> 
     dplyr::summarise(value = mean(Dropout_loss),
@@ -289,9 +289,10 @@ merged_covariates_importance_all_function <- function(plot_data,
     geom_errorbar(aes(x = VAR, y = value, ymin=value-sd, ymax=value+sd), width=.1,
                   position=position_dodge(.9)) +
     geom_text(aes(x = VAR, y = value+3*sd, label = n), size = geom.text.size) +
-    scale_fill_manual(values = c("ENV" = pal_contribution[1],
-                                 "HUM" = pal_contribution[3],
-                                 "HAB" = pal_contribution[2])) +
+    scale_fill_manual(values = c("ENV" = pal_contribution[2],
+                                 "HUM" = pal_contribution[1],
+                                 "HAB" = pal_contribution[6],
+                                 "BIOT" = pal_contribution[3])) +
     theme_minimal() +
     coord_flip() +
     labs(y = "Relative importance (RMSE)", x = "", fill = fill, title = title) +
@@ -701,28 +702,37 @@ species_covariates_importance_function <- function(plot_data){
     dplyr::filter(fitted_model == best_model)
   
   ENV <- plot_data |> 
-    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
+    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |>
     dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "ENV")
   
   SOC <- plot_data |> 
-    dplyr::filter(variable %in% c("protection_status2", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
+    dplyr::filter(variable %in% c("protection_status2", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")) |> 
     dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HUM")
   
   HAB <- plot_data |> 
-    dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
+    dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent")) |> 
     dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HAB")
   
-  cont <- ENV |>  
-    dplyr::full_join(HAB) |> 
-    dplyr::full_join(SOC)
+  BIOT <- plot_data |> 
+    dplyr::filter(variable %in% c("delta_biomass", "diversity", "max_trophic", "mean_biomass", "mean_trophic", "n_trophic")) |> 
+    dplyr::group_by(species_name) |> 
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
+                     VAR = "BIOT")
+  
+
+  cont <- ENV |>
+    dplyr::full_join(HAB) |>
+    dplyr::full_join(SOC) |> 
+    dplyr::full_join(BIOT)
 
 }

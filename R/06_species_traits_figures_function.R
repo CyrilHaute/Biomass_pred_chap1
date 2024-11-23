@@ -31,12 +31,12 @@ kruskal_test_function <- function(data,
 }
 
 # plot_data = bind_files
-# data_trait = phylo
-# trait = "family"
+# data_trait = sp_car
+# trait = "ML_cat"
 # color = pal_sp_trait
-# labs_title = "family"
-# x_text_angle = 65
-# legend.position = c(0.85, 0.8)
+# labs_title = "A. Maximum length (cm)"
+# x_text_angle = NULL
+# legend.position = "none"
 
 species_traits_function <- function(plot_data,
                                     data_trait,
@@ -58,32 +58,41 @@ species_traits_function <- function(plot_data,
       dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
     
     ENV <- plot_data |> 
-      dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |> 
+      dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |>
       dplyr::group_by(species_name) |> 
       dplyr::summarise(value = median(Dropout_loss),
                        sd = median(sd_dropout_loss),
                        VAR = "ENV",
                        plot_level = plot_level)
-    
+
     SOC <- plot_data |> 
-      dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "marine_ecosystem_dependency")) |> 
+      dplyr::filter(variable %in% c("protection_status2", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")) |> 
       dplyr::group_by(species_name) |> 
       dplyr::summarise(value = median(Dropout_loss),
                        sd = median(sd_dropout_loss),
                        VAR = "HUM",
                        plot_level = plot_level)
-    
+
     HAB <- plot_data |> 
-      dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "seagrass", "depth", "reef_extent")) |> 
+      dplyr::filter(variable %in% c("Rock_500m", "Rubble_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent")) |> 
       dplyr::group_by(species_name) |> 
       dplyr::summarise(value = median(Dropout_loss),
                        sd = median(sd_dropout_loss),
                        VAR = "HAB",
                        plot_level = plot_level)
-    
-    cont <- ENV |> 
+
+    BIOT <- plot_data |> 
+      dplyr::filter(variable %in% c("delta_biomass", "diversity", "max_trophic", "mean_biomass", "mean_trophic", "n_trophic")) |> 
+      dplyr::group_by(species_name) |> 
+      dplyr::summarise(value = median(Dropout_loss),
+                       sd = median(sd_dropout_loss),
+                       VAR = "BIOT",
+                       plot_level = plot_level)
+
+    cont <- ENV |>  
       dplyr::full_join(HAB) |> 
-      dplyr::full_join(SOC)
+      dplyr::full_join(SOC) |> 
+      dplyr::full_join(BIOT)
     cont$plot_level <- rep(plot_level, nrow(cont))
     cont
     
@@ -96,7 +105,7 @@ species_traits_function <- function(plot_data,
   
   n_trait <- cont |>
     dplyr::group_by(.dots = trait) |> 
-    dplyr::summarise(n = dplyr::n() / 3)
+    dplyr::summarise(n = dplyr::n() / 4)
   
   kruskal_test_trait <- kruskal_test_function(cont,
                                               trait)
@@ -132,9 +141,10 @@ species_traits_function <- function(plot_data,
     plot_trait <- cont |> 
       ggplot(aes_string(x = trait, y = "value", fill = "VAR")) +
       geom_boxplot(aes(fill = factor(VAR)), width = 0.6, outlier.shape = NA, position = position_dodge(width = 0.75)) +
-      scale_fill_manual(values = c("ENV" = color[1],
-                                   "HUM" = color[3],
-                                   "HAB" = color[2])) +
+      scale_fill_manual(values = c("ENV" = color[2],
+                                   "HUM" = color[1],
+                                   "HAB" = color[6],
+                                   "BIOT" = color[3])) +
       theme_bw() +
       geom_text(data = kruskal_test_trait$groups, aes_string(x = as.factor(unlist(kruskal_test_trait$groups[,1])), y = kruskal_test_trait$groups$quant, label = "groups"), vjust=-0.48, size = 5, position = position_dodge(width = 0.85)) +
       coord_cartesian(ylim = c(0,0.2)) +
