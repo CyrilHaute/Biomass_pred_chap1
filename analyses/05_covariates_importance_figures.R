@@ -104,53 +104,47 @@ covariates_importance_all_and_merged <- covariates_importance_all + merged_covar
 
 ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 15)
 
-covariates_importance_GLM <- covariates_importance_function(plot_data = glm,
-                                                            fitted_model = "glm",
-                                                            color = pal_contribution,
-                                                            labs_y = "",
-                                                            labs_fill = "",
-                                                            ylim = c(0, 0.15),
-                                                            legend.position = "none")
+covariates_importance_GLM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = glm),
+                                                                 color = pal_contribution,
+                                                                 labs_y = "",
+                                                                 labs_fill = "",
+                                                                 ylim = c(0, 0.16),
+                                                                 legend.position = "none")
 
-covariates_importance_GAM <- covariates_importance_function(plot_data = gam,
-                                                            fitted_model = "gam",
-                                                            color = pal_contribution,
-                                                            labs_y = "",
-                                                            labs_fill = "",
-                                                            ylim = c(0, 0.15),
-                                                            legend.position = "none")
+covariates_importance_GAM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = gam),
+                                                                 color = pal_contribution,
+                                                                 labs_y = "",
+                                                                 labs_fill = "",
+                                                                 ylim = c(0, 0.16),
+                                                                 legend.position = "none")
 
-covariates_importance_SPAMM <- covariates_importance_function(plot_data = spamm,
-                                                              fitted_model = "spamm",
-                                                              color = pal_contribution,
-                                                              labs_y = "",
-                                                              labs_fill = "",
-                                                              ylim = c(0, 0.15),
-                                                              legend.position = "none")
+covariates_importance_SPAMM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = spamm),
+                                                                   color = pal_contribution,
+                                                                   labs_y = "",
+                                                                   labs_fill = "",
+                                                                   ylim = c(0, 0.16),
+                                                                   legend.position = "none")
 
-covariates_importance_RF <- covariates_importance_function(plot_data = rf,
-                                                           fitted_model = "rf",
-                                                           color = pal_contribution,
-                                                           labs_y = "",
-                                                           labs_fill = "",
-                                                           ylim = c(0, 0.15),
-                                                           legend.position = "none")
+covariates_importance_RF <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = rf),
+                                                                color = pal_contribution,
+                                                                labs_y = "",
+                                                                labs_fill = "",
+                                                                ylim = c(0, 0.16),
+                                                                legend.position = "none")
 
-covariates_importance_GBM <- covariates_importance_function(plot_data = gbm,
-                                                            fitted_model = "gbm",
-                                                            color = pal_contribution,
-                                                            labs_y = "Relative importance (RMSE)",
-                                                            labs_fill = "",
-                                                            ylim = c(0, 0.15),
-                                                            legend.position = "none")
+covariates_importance_GBM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = gbm),
+                                                                 color = pal_contribution,
+                                                                 labs_y = "Relative importance (RMSE)",
+                                                                 labs_fill = "",
+                                                                 ylim = c(0, 0.16),
+                                                                 legend.position = "none")
 
-covariates_importance_SPRF <- covariates_importance_function(plot_data = sprf,
-                                                             fitted_model = "sprf",
-                                                             color = pal_contribution,
-                                                             labs_y = "Relative importance (RMSE)",
-                                                             labs_fill = "",
-                                                             ylim = c(0, 0.15),
-                                                             legend.position = c(0.75, 0.16))
+covariates_importance_SPRF <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = sprf),
+                                                                  color = pal_contribution,
+                                                                  labs_y = "Relative importance (RMSE)",
+                                                                  labs_fill = "",
+                                                                  ylim = c(0, 0.16),
+                                                                  legend.position = c(0.75, 0.16))
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
 

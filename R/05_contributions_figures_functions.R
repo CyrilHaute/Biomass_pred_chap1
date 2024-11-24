@@ -309,38 +309,30 @@ merged_covariates_importance_all_function <- function(plot_data,
           
 }
 
-# plot_data = rf
-# fitted_model = "rf"
-# color = pal_contribution
-# labs_y = ""
-# labs_fill = ""
-# ylim = c(0,0.1)
-# legend.position = "none"
+plot_data = rf
+fitted_model = "rf"
+color = pal_contribution
+labs_y = ""
+labs_fill = ""
+ylim = c(0,0.1)
+legend.position = "none"
 
 
 
-covariates_importance_function <- function(plot_data,
-                                           fitted_model,
-                                           color,
-                                           labs_y,
-                                           labs_fill,
-                                           ylim,
-                                           legend.position
+covariates_importance_function <- function(plot_data
                                            ){
   
   require(ggplot2)
 
   # covariates relative importance by mean
 
-  plot_level <- fitted_model
-  plot_data <- plot_data |> 
-    dplyr::filter(fitted_model == plot_level)
+  plot_level <- unique(plot_data$fitted_model)
   plot_data <- plot_data |>
     dplyr::filter(species_name %in% best_models[best_models$best_model == plot_level,1]$species_name)
 
   ENV <- plot_data |> 
     # dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_chl", "mean_1year_so_mean", "max_5year_nppv", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |>
-    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")) |>
+    dplyr::filter(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph")) |>
     dplyr::group_by(variable) |> 
     dplyr::summarise(value = median(Dropout_loss),
                      sd = median(sd_dropout_loss),
@@ -358,7 +350,7 @@ covariates_importance_function <- function(plot_data,
 
   SOC <- plot_data |> 
     # dplyr::filter(variable %in% c("effectiveness", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "natural_ressource_rent", "neartt", "mCarine_ecosystem_dependency")) |> 
-    dplyr::filter(variable %in% c("protection_status2", "gdp", "gravtot2", "no_violence", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")) |> 
+    dplyr::filter(variable %in% c("protection_status2", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")) |> 
     dplyr::group_by(variable) |> 
     dplyr::summarise(value = median(Dropout_loss),
                      sd = median(sd_dropout_loss),
@@ -410,11 +402,19 @@ covariates_importance_function <- function(plot_data,
     dplyr::full_join(SOC) |> 
     dplyr::full_join(BIOT)
   
-  # cont <- ENV |>  
-  #   dplyr::full_join(HAB) |> 
-  #   dplyr::full_join(SOC)
+}
 
-  importance_plot <- ggplot(cont) +
+plot_covariates_importance_function <- function(plot_data,
+                                                color,
+                                                labs_y,
+                                                labs_fill,
+                                                ylim,
+                                                legend.position
+){
+  
+  require(ggplot2)
+  
+  importance_plot <- ggplot(plot_data) +
     geom_col(aes(x = reorder(variable, value), y = value, fill = VAR)) +
     geom_errorbar(aes(x = variable, y = value, ymin = value - sd, ymax = value + sd), width = .2,
                     position = position_dodge(.9)) +
@@ -422,9 +422,6 @@ covariates_importance_function <- function(plot_data,
                                  "HUM" = color[1],
                                  "HAB" = color[6],
                                  "BIOT" = color[3])) +
-    # scale_fill_manual(values = c("ENV" = color[1],
-    #                              "HUM" = color[3],
-    #                              "HAB" = color[2])) +
     theme_minimal() +
     coord_flip(ylim = ylim) +
     facet_grid(~ plot_level) +

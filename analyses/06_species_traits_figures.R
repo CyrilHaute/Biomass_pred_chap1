@@ -96,6 +96,117 @@ sp_car[sp_car$Habitat == "Coral",]$Habitat <- "coral"
 
 sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
 
+
+
+
+
+
+# species <- species_covariates_importance_function(plot_data = bind_files) |> 
+#   dplyr::select(!sd) |> 
+#   dplyr::filter(!species_name %in% "Pseudolabrus luculentus") |> 
+#   tidyr::pivot_wider(names_from = VAR,
+#                      values_from = value) |> 
+#   dplyr::group_by(species_name) |> 
+#   dplyr::mutate(varmax = names(dplyr::across(c("ENV", "HAB", "HUM", "BIOT")))[
+#     max.col(dplyr::across(c("ENV", "HAB", "HUM", "BIOT")), ties.method = "first")
+#   ]) |> 
+#   dplyr::inner_join(sp_car[,colnames(sp_car) %in% c("species_name", "MaxLength", "Trophic_guild_name", "Trophic.Level")]) |> 
+#   tidyr::drop_na()
+varnames <- unique(bind_files$variable)
+species <- bind_files |> 
+  dplyr::inner_join(best_models) |> 
+  dplyr::filter(fitted_model == best_model) |> 
+  dplyr::filter(!species_name %in% "Pseudolabrus luculentus") |> 
+  dplyr::select(!c(sd_dropout_loss, best_model, fitted_model)) |> 
+  tidyr::pivot_wider(names_from = variable,
+                     values_from = Dropout_loss) |> 
+  dplyr::group_by(species_name) |>
+  dplyr::mutate(varmax = names(dplyr::across(varnames))[
+    max.col(dplyr::across(varnames), ties.method = "first")
+  ]) |> 
+  dplyr::mutate(varmax = dplyr::case_when(varmax %in% c("max_1year_analysed_sst",
+                                                          "max_5year_degree_heating_week",
+                                                          "mean_1year_nppv",
+                                                          "mean_1year_so_mean",
+                                                          "min_1year_analysed_sst",
+                                                          "min_5year_ph") ~ "ENV",
+                                          varmax %in% c("protection_status2",
+                                                          "gdp",
+                                                          "marine_ecosystem_dependency",
+                                                          "gravtot2",
+                                                          "n_fishing_vessels",
+                                                          "neartt") ~ "HUM",
+                                          varmax %in% c("Rock_500m",
+                                                          "Sand_500m",
+                                                          "coral",
+                                                          "coral_algae_500m",
+                                                          "depth",
+                                                          "reef_extent") ~ "HAB",
+                                          varmax %in% c("delta_biomass",
+                                                          "diversity",
+                                                          "max_trophic",
+                                                          "mean_biomass",
+                                                          "mean_trophic",
+                                                          "n_trophic") ~ "BIOT"))
+  
+species[!colnames(species) %in% c("species_name", "varmax")] <- scale(species[!colnames(species) %in% c("species_name", "varmax")], center = TRUE, scale = TRUE)
+
+PCA <- FactoMineR::PCA(species[,c(2:23)], graph = FALSE, scale.unit = FALSE)
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            col.ind = species$varmax,
+                            col.var = colnames(species)[2:23],
+                            repel = TRUE,
+                            ggtheme = theme_minimal()) +
+  scale_color_manual(values = c("max_1year_analysed_sst" = pal_sp_trait[2],
+                                "max_5year_degree_heating_week" = pal_sp_trait[2],
+                                "mean_1year_nppv" = pal_sp_trait[2],
+                                "mean_1year_so_mean" = pal_sp_trait[2],
+                                "min_1year_analysed_sst" = pal_sp_trait[2],
+                                "min_5year_ph" = pal_sp_trait[2],
+                                "protection_status2" = pal_sp_trait[1],
+                                "gdp" = pal_sp_trait[1],
+                                "marine_ecosystem_dependency" = pal_sp_trait[1],
+                                "gravtot2" = pal_sp_trait[1],
+                                "n_fishing_vessels" = pal_sp_trait[1],
+                                "neartt" = pal_sp_trait[1],
+                                "Rock_500m" = pal_sp_trait[5],
+                                "Sand_500m" = pal_sp_trait[5],
+                                "coral" = pal_sp_trait[5],
+                                "coral_algae_500m" = pal_sp_trait[5],
+                                "depth" = pal_sp_trait[5],
+                                "reef_extent" = pal_sp_trait[5],
+                                "delta_biomass" = pal_sp_trait[3],
+                                "diversity" = pal_sp_trait[3],
+                                "max_trophic" = pal_sp_trait[3],
+                                "mean_biomass" = pal_sp_trait[3],
+                                "mean_trophic" = pal_sp_trait[3],
+                                "n_trophic" = pal_sp_trait[3],
+                                "ENV" = pal_sp_trait[2],
+                                "HUM" = pal_sp_trait[1],
+                                "HAB" = pal_sp_trait[5],
+                                "BIOT" = pal_sp_trait[3])) +
+  theme(legend.position = "none")
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            # gradient.cols = viridis::viridis(10),
+                            col.ind = species$varmax) +
+  scale_color_manual(values = c("ENV" = pal_sp_trait[2],
+                                "HUM" = pal_sp_trait[1],
+                                "HAB" = pal_sp_trait[6],
+                                "BIOT" = pal_sp_trait[3]))
+famd <- FactoMineR::FAMD(species[,!colnames(species) %in% c("varmax", "species_name")], graph = FALSE)
+factoextra::fviz_famd_ind(famd,
+                          geom = c("point"),
+                          repel = TRUE,
+                          ggtheme = theme_minimal())
+factoextra::fviz_famd_var(famd,
+                          c("quali.var"),
+                          geom = c("arrow", "text"),
+                          repel = TRUE,
+                          ggtheme = theme_minimal())
+
+
 plot_max.length <- species_traits_function(plot_data = bind_files,
                                            data_trait = sp_car,
                                            trait = "ML_cat",
