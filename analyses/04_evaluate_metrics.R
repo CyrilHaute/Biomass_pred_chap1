@@ -34,8 +34,6 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
     
   }else{
     
-    
-    
     sp$survey_id <- as.numeric(sp$survey_id)
     sp$validation_observed <- as.numeric(sp$validation_observed)
     

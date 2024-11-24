@@ -32,7 +32,7 @@ gam <- lapply(1:length(gam), function(i) {
 })
 gam <- do.call(rbind, gam)
 
-spamm <- list.files("outputs/spamm_contribution2", full.names = TRUE)
+spamm <- list.files("outputs/spamm_contribution3", full.names = TRUE)
 spamm <- lapply(1:length(spamm), function(i) {
   
   load(spamm[i])
@@ -50,7 +50,7 @@ rf <- lapply(1:length(rf), function(i) {
 })
 rf <- do.call(rbind, rf)
 
-sprf <- list.files("outputs/sprf_contribution2", full.names = TRUE)
+sprf <- list.files("outputs/sprf_contribution3", full.names = TRUE)
 sprf <- lapply(1:length(sprf), function(i) {
   
   load(sprf[i])
