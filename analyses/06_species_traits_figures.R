@@ -5,8 +5,7 @@ library(patchwork)
 source("R/06_species_traits_figures_function.R")
 source("R/05_contributions_figures_functions.R")
 
-# pal_sp_trait <- PNWColors::pnw_palette("Bay", 3, type = "discrete")
-pal_sp_trait <- RColorBrewer::brewer.pal(n = 9, name = "Set1")
+pal_sp_trait <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors::pnw_palette("Bay", 6, type = "continuous"))
 
 load("outputs/best_models.Rdata")
 
@@ -70,7 +69,30 @@ gbm <- lapply(1:length(gbm), function(i) {
 gbm <- do.call(rbind, gbm)
 
 bind_files <- list(glm, gam, spamm, rf, sprf, gbm)
+bind_files <- lapply(1:length(bind_files), function(i) {
+  
+  model_i <- bind_files[[i]]
+  
+  sp <- unique(model_i$species_name)
+  
+  new_sp <- pbmcapply::pbmclapply(1:length(sp), function(j) {
+    
+    sp_j <- model_i |> 
+      dplyr::filter(species_name == sp[[j]])
+    
+    sum_dr <- sum(sp_j$Dropout_loss)
+    
+    sp_j <- sp_j |> 
+      dplyr::rowwise() |> 
+      dplyr::mutate(Dropout_loss = (Dropout_loss * 100) / sum_dr)
+    
+  }, mc.cores = parallel::detectCores() - 1)
+  new_sp <- do.call(rbind, new_sp)
+  
+})
 bind_files <- purrr::reduce(bind_files, dplyr::full_join)
+
+
 
 fitted_model <- unique(bind_files$fitted_model)
 
@@ -96,8 +118,19 @@ sp_car[sp_car$Habitat == "Coral",]$Habitat <- "coral"
 
 sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
 
+load("outputs/performance_model.Rdata")
+load("data/new_derived_data/species_count.Rdata")
 
+performance_bind_best <- performance_bind |> 
+  dplyr::inner_join(best_models) |> 
+  dplyr::filter(model == best_model) |> 
+  dplyr::select(-c(model)) |> 
+  dplyr::filter(best_model %in% c("glm", "gam", "rf", "sprf"))
 
+performance_bind_best <- performance_bind |> 
+  dplyr::inner_join(best_models) |> 
+  dplyr::filter(model == best_model) |> 
+  dplyr::select(-c(model, best_model))
 
 
 
@@ -112,6 +145,9 @@ sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Troph
 #   ]) |> 
 #   dplyr::inner_join(sp_car[,colnames(sp_car) %in% c("species_name", "MaxLength", "Trophic_guild_name", "Trophic.Level")]) |> 
 #   tidyr::drop_na()
+
+library(ggplot2)
+
 varnames <- unique(bind_files$variable)
 species <- bind_files |> 
   dplyr::inner_join(best_models) |> 
@@ -147,17 +183,37 @@ species <- bind_files |>
                                                           "max_trophic",
                                                           "mean_biomass",
                                                           "mean_trophic",
-                                                          "n_trophic") ~ "BIOT"))
+                                                          "n_trophic") ~ "BIOT")) |> 
+  dplyr::inner_join(sp_car) |> 
+  dplyr::inner_join(performance_bind_best) |> 
+  dplyr::inner_join(sp_count)
   
-species[!colnames(species) %in% c("species_name", "varmax")] <- scale(species[!colnames(species) %in% c("species_name", "varmax")], center = TRUE, scale = TRUE)
-
-PCA <- FactoMineR::PCA(species[,c(2:23)], graph = FALSE, scale.unit = FALSE)
+PCA <- FactoMineR::PCA(species[,c(2:23)], graph = FALSE, scale.unit = TRUE)
 factoextra::fviz_pca_biplot(PCA,
                             geom.ind = "point",
-                            col.ind = species$varmax,
-                            col.var = colnames(species)[2:23],
+                            pointshape = 19,
+                            col.ind = log10(species$count),
+                            # col.var = colnames(species)[2:23],
                             repel = TRUE,
                             ggtheme = theme_minimal()) +
+  scale_color_continuous(type = "viridis")
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            pointshape = 19,
+                            col.ind = species$best_model,
+                            # col.var = colnames(species)[2:23],
+                            repel = TRUE,
+                            ggtheme = theme_minimal())
+
+
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            pointshape = 19,
+                            col.ind = species$Trophic.Level,
+                            # col.var = colnames(species)[2:23],
+                            repel = TRUE,
+                            ggtheme = theme_minimal()) +
+  scale_color_continuous(type = "viridis") +
   scale_color_manual(values = c("max_1year_analysed_sst" = pal_sp_trait[2],
                                 "max_5year_degree_heating_week" = pal_sp_trait[2],
                                 "mean_1year_nppv" = pal_sp_trait[2],
@@ -184,7 +240,7 @@ factoextra::fviz_pca_biplot(PCA,
                                 "n_trophic" = pal_sp_trait[3],
                                 "ENV" = pal_sp_trait[2],
                                 "HUM" = pal_sp_trait[1],
-                                "HAB" = pal_sp_trait[5],
+                                "HAB" = pal_sp_trait[13],
                                 "BIOT" = pal_sp_trait[3])) +
   theme(legend.position = "none")
 factoextra::fviz_pca_biplot(PCA,
@@ -290,7 +346,7 @@ plot_scaridae <- ggplot(scaridae) +
   tidytext::scale_x_reordered() +
   scale_fill_manual(values = c("ENV" = pal_sp_trait[2],
                                "HUM" = pal_sp_trait[1],
-                               "HAB" = pal_sp_trait[6],
+                               "HAB" = pal_sp_trait[13],
                                "BIOT" = pal_sp_trait[3])) +
   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
   theme(
@@ -315,27 +371,28 @@ plot_scaridae <- ggplot(scaridae) +
 ggsave("figures/plot_scaridae.png", plot_scaridae, height = 10, width = 16)
 
 
-acanthuridae <- bind_files |> 
+pomacentridae <- bind_files |> 
   dplyr::inner_join(phylo, multiple = "first") |> 
-  dplyr::filter(family == "Acanthuridae") |> 
+  dplyr::filter(family == "Pomacentridae") |> 
   dplyr::ungroup() |> 
   dplyr::select(-c(order, family))
 
-acanthuridae <- species_covariates_importance_function(plot_data = acanthuridae)
+pomacentridae <- species_covariates_importance_function(plot_data = pomacentridae)
 
-acanthuridae <- acanthuridae |> 
+pomacentridae <- pomacentridae |> 
   dplyr::mutate(var_reordered = tidytext::reorder_within(VAR, value, species_name))
 
-plot_acanthuridae <- ggplot(acanthuridae) +
+plot_pomacentridae <- ggplot(pomacentridae) +
   geom_col(aes(x = var_reordered, y = value, fill = VAR)) +
   geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
   theme_bw() +
   coord_flip() +
   facet_wrap(~species_name, scales = "free_y", ncol = 5) +
   tidytext::scale_x_reordered() +
-  scale_fill_manual(values = c("ENV" = pal_sp_trait[1], 
-                               "HUM" = pal_sp_trait[3], 
-                               "HAB" = pal_sp_trait[2])) +
+  scale_fill_manual(values = c("ENV" = pal_sp_trait[2],
+                               "HUM" = pal_sp_trait[1],
+                               "HAB" = pal_sp_trait[13],
+                               "BIOT" = pal_sp_trait[3])) +
   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
   theme(
     legend.direction = "vertical",
@@ -355,3 +412,5 @@ plot_acanthuridae <- ggplot(acanthuridae) +
                                     size = 1, linetype = "solid"),
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank()) 
+
+ggsave("figures/plot_pomacentridae.png", plot_pomacentridae, height = 30, width = 16)

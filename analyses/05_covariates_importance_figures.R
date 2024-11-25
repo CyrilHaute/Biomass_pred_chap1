@@ -5,8 +5,7 @@ library(patchwork)
 source("R/05_contributions_figures_functions.R")
 source("R/05_load_realm_contribution_function.R")
 
-# pal_contribution <- PNWColors::pnw_palette("Bay", type = "discrete")
-pal_contribution <- RColorBrewer::brewer.pal(n = 9, name = "Set1")
+pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors::pnw_palette("Bay", 6, type = "continuous"))
 
 load("outputs/best_models.Rdata")
 
@@ -284,6 +283,8 @@ map_contribution_merged_realm <- rls_map +
 
 ggplot2::ggsave("figures/map_contribution_merged_realm.pdf", map_contribution_merged_realm, height = 6, width = 15)
 
-covariates_importance_all_bind <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]]) / (covariates_importance_all[[4]] + covariates_importance_all[[5]])
+covariates_importance_all_bind1 <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]])
+covariates_importance_all_bind2 <- (covariates_importance_all[[4]] + covariates_importance_all[[5]])
+covariates_importance_all_bind <- covariates_importance_all_bind1 / covariates_importance_all_bind2
 
 ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 20)

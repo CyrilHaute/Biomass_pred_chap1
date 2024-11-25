@@ -96,7 +96,7 @@ covariates_importance_all_function <- function(plot_data,
                   position = position_dodge(.9)) +
     scale_fill_manual(values = c("ENV" = pal_contribution[2],
                                  "HUM" = pal_contribution[1],
-                                 "HAB" = pal_contribution[5],
+                                 "HAB" = pal_contribution[13],
                                  "BIOT" = pal_contribution[3])) +
     theme_minimal() +
     coord_flip() +
@@ -191,18 +191,18 @@ var_max_all_function <- function(plot_data)
   
 }
 
-plot_data = contribution_realm_data[[i]]
-title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " "))
-legend.position = "none"
-title.size = 13
-axis.text.x = 11
-axis.text.y = 11
-axis.title = 13
-legend.text = 15
-strip.text.x = 9
-strip.text.y = 9
-geom.text.size = 4
-fill = ""
+# plot_data = contribution_realm_data[[i]]
+# title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " "))
+# legend.position = "none"
+# title.size = 13
+# axis.text.x = 11
+# axis.text.y = 11
+# axis.title = 13
+# legend.text = 15
+# strip.text.x = 9
+# strip.text.y = 9
+# geom.text.size = 4
+# fill = ""
 
 merged_covariates_importance_all_function <- function(plot_data,
                                                       title,
@@ -278,7 +278,7 @@ merged_covariates_importance_all_function <- function(plot_data,
     geom_text(aes(x = VAR, y = value+3*sd, label = n), size = geom.text.size) +
     scale_fill_manual(values = c("ENV" = pal_contribution[2],
                                  "HUM" = pal_contribution[1],
-                                 "HAB" = pal_contribution[5],
+                                 "HAB" = pal_contribution[13],
                                  "BIOT" = pal_contribution[3])) +
     theme_minimal() +
     coord_flip() +
@@ -394,7 +394,7 @@ plot_covariates_importance_function <- function(plot_data,
                     position = position_dodge(.9)) +
     scale_fill_manual(values = c("ENV" = color[2],
                                  "HUM" = color[1],
-                                 "HAB" = color[5],
+                                 "HAB" = color[13],
                                  "BIOT" = color[3])) +
     theme_minimal() +
     coord_flip(ylim = ylim) +
@@ -621,7 +621,7 @@ plot_merged_covariates_importance_function <- function(plot_data,
     geom_text(aes(x = VAR, y = value+mul*sd, label = n), size = 5) +
     scale_fill_manual(values = c("ENV" = color[2],
                                  "HUM" = color[1],
-                                 "HAB" = color[5],
+                                 "HAB" = color[13],
                                  "BIOT" = color[3])) +
     theme_minimal() +
     coord_flip() +

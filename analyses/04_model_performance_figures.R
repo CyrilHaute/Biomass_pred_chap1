@@ -16,6 +16,7 @@ pal_perf <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
 ############### read data global ###############
 
 load("outputs/performance_model.Rdata")
+load("data/new_derived_data/species_count.Rdata")
 
 # estimate for each species the best model based on performance metrics  
 best_models <- performance_bind |> 
@@ -77,7 +78,55 @@ perf_corr <- lapply(1:length(perf_corr), function(i) {
     dplyr::select(-model)
   
 })
-perf_corr <- purrr::reduce(perf_corr, dplyr::full_join)
+perf_corr <- purrr::reduce(perf_corr, dplyr::full_join) |> 
+  tidyr::drop_na() |> 
+  dplyr::inner_join(best_models) |> 
+  dplyr::inner_join(sp_count) |> 
+  dplyr::mutate(model_cat = dplyr::case_when(best_model %in% c("sprf", "rf", "gbm") ~ "Machine Learning models",
+                                             best_model %in% c("glm", "gam", "spamm") ~ "Linear models"))
+
+PCA <- FactoMineR::PCA(perf_corr[,-c(1, 8, 9, 10)], graph = FALSE, scale.unit = TRUE)
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            pointshape = 19,
+                            col.ind = perf_corr$model_cat,
+                            # col.var = colnames(species)[2:23],
+                            repel = TRUE,
+                            ggtheme = theme_minimal())
+
+performance_bind2 <- performance_bind |> 
+  tidyr::drop_na() |> 
+  dplyr::inner_join(best_models)
+
+PCA <- FactoMineR::PCA(performance_bind2[,c(5, 7)], graph = FALSE, scale.unit = TRUE)
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            pointshape = 19,
+                            col.ind = performance_bind2$best_model,
+                            # col.var = colnames(species)[2:23],
+                            repel = TRUE,
+                            ggtheme = theme_minimal())
+
+performance_bind2 <- performance_bind |> 
+  tidyr::drop_na() |> 
+  dplyr::inner_join(best_models) |> 
+  dplyr::mutate(model_model = dplyr::case_when(best_model == "glm" ~ 1,
+                                               best_model == "gam" ~ 2,
+                                               best_model == "spamm" ~ 3,
+                                               best_model == "gbm" ~ 4,
+                                               best_model == "sprf" ~ 5,
+                                               best_model == "rf" ~ 6)) |> 
+  dplyr::mutate(model_cat = dplyr::case_when(best_model %in% c("sprf", "rf", "gbm") ~ "Machine Learning models",
+                                             best_model %in% c("glm", "gam", "spamm") ~ "Linear models"))
+
+PCA <- FactoMineR::PCA(performance_bind2[,c(5, 7, 10)], graph = FALSE, scale.unit = TRUE)
+factoextra::fviz_pca_biplot(PCA,
+                            geom.ind = "point",
+                            pointshape = 19,
+                            col.ind = as.factor(performance_bind2$model_cat),
+                            # col.var = colnames(species)[2:23],
+                            repel = TRUE,
+                            ggtheme = theme_minimal())
 
 library(ggplot2)
 
