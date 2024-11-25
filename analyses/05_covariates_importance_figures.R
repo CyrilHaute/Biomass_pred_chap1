@@ -281,7 +281,7 @@ map_contribution_merged_realm <- rls_map +
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "right")
 
-ggplot2::ggsave("figures/map_contribution_merged_realm.pdf", map_contribution_merged_realm, height = 6, width = 15)
+ggplot2::ggsave("figures/map_contribution_merged_realm.png", map_contribution_merged_realm, height = 6, width = 15)
 
 covariates_importance_all_bind1 <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]])
 covariates_importance_all_bind2 <- (covariates_importance_all[[4]] + covariates_importance_all[[5]])

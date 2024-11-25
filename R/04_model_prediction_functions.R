@@ -205,6 +205,6 @@ observed_predicted_best_plot <- function(input_data,
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank())
   
-  ggsave("figures/all_predictions_pred_best.pdf", plot_levels_plot, width = 7, height = 7)
+  ggsave("figures/all_predictions_pred_best.png", plot_levels_plot, width = 7, height = 7)
 
 }

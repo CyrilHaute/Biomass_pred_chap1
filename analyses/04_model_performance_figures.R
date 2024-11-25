@@ -198,7 +198,7 @@ library(patchwork)
 plot_perf <- plot_pearson + plot_spearman
 plot_perf_best <- plot_perf / best_model
 
-ggplot2::ggsave("figures/plot_perf_best.pdf", plot_perf_best, height = 13, width = 11)
+ggplot2::ggsave("figures/plot_perf_best.png", plot_perf_best, height = 13, width = 11)
 
 ################## Plot performance-traits relationship ################## 
 

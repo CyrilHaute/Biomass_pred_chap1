@@ -132,5 +132,5 @@ library(patchwork)
 patial_plot <- (patial_count_plot + patial_ml_plot)
 
 imp_patial_plot <- perf_imp_var / patial_plot
-ggsave("figures/imp_patial_plot.pdf", imp_patial_plot, width = 10, height = 11)
+ggsave("figures/imp_patial_plot.png", imp_patial_plot, width = 10, height = 11)
 
