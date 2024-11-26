@@ -83,7 +83,7 @@ covariates_importance_all_function <- function(plot_data,
   BIOT[BIOT$variable == "diversity",]$variable <- "Diversity"
   BIOT[BIOT$variable == "max_trophic",]$variable <- "Maximum Trophic Level"
   BIOT[BIOT$variable == "mean_trophic",]$variable <- "Trophic Level (mean)"
-  BIOT[BIOT$variable == "n_trophic",]$variable <- "Number of Throphic Level"
+  BIOT[BIOT$variable == "n_trophic",]$variable <- "Number of Trophic Level"
   
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
@@ -369,7 +369,7 @@ covariates_importance_function <- function(plot_data
   BIOT[BIOT$variable == "diversity",]$variable <- "Diversity"
   BIOT[BIOT$variable == "max_trophic",]$variable <- "Trophic Level (max)"
   BIOT[BIOT$variable == "mean_trophic",]$variable <- "Trophic Level (mean)"
-  BIOT[BIOT$variable == "n_trophic",]$variable <- "Number of Throphic Level"
+  BIOT[BIOT$variable == "n_trophic",]$variable <- "Number of Trophic Level"
 
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 

@@ -171,7 +171,7 @@ central_indo_pacific_mean <- partial_realm_mean |>
   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
                 realm == "Central Indo-Pacific (n = 16)") |> 
   ggplot() +
-  # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
+  geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                "HUM" = pal_contribution[1],
@@ -192,7 +192,7 @@ eastern_indo_pacific_mean <- partial_realm_mean |>
   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
                 realm == "Eastern Indo-Pacific (n = 34)") |> 
   ggplot() +
-  # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
+  geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
@@ -213,7 +213,7 @@ tropical_atlantic_mean <- partial_realm_mean |>
   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
                 realm == "Tropical Atlantic (n = 20)") |> 
   ggplot() +
-  # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
+  geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
@@ -233,7 +233,7 @@ tropical_eastern_pacific_mean <- partial_realm_mean |>
   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
                 realm == "Tropical Eastern Pacific (n = 18)") |> 
   ggplot() +
-  # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
+  geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
@@ -254,7 +254,7 @@ temperate_northern_atlantic_mean <- partial_realm_mean |>
   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
                 realm == "Temperate Northern Atlantic (n = 2)") |> 
   ggplot() +
-  # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
+  geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
@@ -273,5 +273,5 @@ temperate_northern_atlantic_mean <- partial_realm_mean |>
 
 realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean
 
-ggsave("figures/realm_partial_mean_plot.png", realm_partial_mean_plot, width = 11, height = 13)
+ggsave("figures/realm_partial_mean_plot2.png", realm_partial_mean_plot, width = 11, height = 13)
 
