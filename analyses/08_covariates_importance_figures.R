@@ -14,7 +14,7 @@ load("outputs/best_models.Rdata")
 
 #### Covariates contribution plot ####
 
-glm <- list.files("outputs/glm_contribution3", full.names = TRUE)
+glm <- list.files("outputs/glm_contribution", full.names = TRUE)
 glm <- lapply(1:length(glm), function(i) {
   
   load(glm[i])
@@ -23,7 +23,7 @@ glm <- lapply(1:length(glm), function(i) {
 })
 glm <- do.call(rbind, glm)
 
-gam <- list.files("outputs/gam_contribution3", full.names = TRUE)
+gam <- list.files("outputs/gam_contribution", full.names = TRUE)
 gam <- lapply(1:length(gam), function(i) {
   
   load(gam[i])
@@ -32,7 +32,7 @@ gam <- lapply(1:length(gam), function(i) {
 })
 gam <- do.call(rbind, gam)
 
-spamm <- list.files("outputs/spamm_contribution3", full.names = TRUE)
+spamm <- list.files("outputs/spamm_contribution", full.names = TRUE)
 spamm <- lapply(1:length(spamm), function(i) {
   
   load(spamm[i])
@@ -41,7 +41,7 @@ spamm <- lapply(1:length(spamm), function(i) {
 })
 spamm <- do.call(rbind, spamm)
 
-rf <- list.files("outputs/rf_contribution3", full.names = TRUE)
+rf <- list.files("outputs/rf_contribution", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
   
   load(rf[i])
@@ -50,7 +50,7 @@ rf <- lapply(1:length(rf), function(i) {
 })
 rf <- do.call(rbind, rf)
 
-sprf <- list.files("outputs/sprf_contribution3", full.names = TRUE)
+sprf <- list.files("outputs/sprf_contribution", full.names = TRUE)
 sprf <- lapply(1:length(sprf), function(i) {
   
   load(sprf[i])
@@ -60,7 +60,7 @@ sprf <- lapply(1:length(sprf), function(i) {
 sprf <- do.call(rbind, sprf)
 colnames(sprf)[colnames(sprf) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
 
-gbm <- list.files("outputs/brt_contribution3", full.names = TRUE)
+gbm <- list.files("outputs/brt_contribution", full.names = TRUE)
 gbm <- lapply(1:length(gbm), function(i) {
   
   load(gbm[i])
@@ -74,10 +74,9 @@ bind_files <- purrr::reduce(bind_files, dplyr::full_join)
 
 ##### For bind_files
 
-env_var <- c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph")
-hum_var <- c("protection_status2", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")
-hab_var <- c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent")
-biot_var <- c("diversity", "max_trophic", "mean_trophic", "n_trophic")
+env_var <- c("max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "mean_1year_chl", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")
+hum_var <- c("effectiveness", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency", "natural_ressource_rent", "no_violence")
+hab_var <- c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent", "Rubble_500m", "seagrass")
 
 covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
                                                                 title = "A.",
@@ -210,12 +209,12 @@ ggsave("figures/merged_covariates_importance.pdf", merged_covariates_importance,
 
 #################### Per realm contribution ####################
 
-glm_realm <- load_realm_cont_function(files_path = "outputs/glm_biomass_contribution_realm3")
-rf_realm <- load_realm_cont_function(files_path = "outputs/rf_biomass_contribution_realm3")
-gam_realm <- load_realm_cont_function(files_path = "outputs/gam_biomass_contribution_realm3")
-gbm_realm <- load_realm_cont_function(files_path = "outputs/gbm_biomass_contribution_realm3")
-spamm_realm <- load_realm_cont_function(files_path = "outputs/spamm_biomass_contribution_realm3")
-sprf_realm <- load_realm_cont_function(files_path = "outputs/sprf_biomass_contribution_realm3")
+glm_realm <- load_realm_cont_function(files_path = "outputs/glm_biomass_contribution_realm")
+rf_realm <- load_realm_cont_function(files_path = "outputs/rf_biomass_contribution_realm")
+gam_realm <- load_realm_cont_function(files_path = "outputs/gam_biomass_contribution_realm")
+gbm_realm <- load_realm_cont_function(files_path = "outputs/gbm_biomass_contribution_realm")
+spamm_realm <- load_realm_cont_function(files_path = "outputs/spamm_biomass_contribution_realm")
+sprf_realm <- load_realm_cont_function(files_path = "outputs/sprf_biomass_contribution_realm")
 sprf_realm <- do.call(rbind, sprf_realm)
 colnames(sprf_realm)[colnames(sprf_realm) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
 sprf_realm <- sprf_realm |> 

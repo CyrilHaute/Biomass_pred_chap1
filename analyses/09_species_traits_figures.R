@@ -13,7 +13,7 @@ load("outputs/best_models.Rdata")
 
 # Merge all files together by species
 
-glm <- list.files("outputs/glm_contribution3", full.names = TRUE)
+glm <- list.files("outputs/glm_contribution", full.names = TRUE)
 glm <- lapply(1:length(glm), function(i) {
   
   load(glm[i])
@@ -22,7 +22,7 @@ glm <- lapply(1:length(glm), function(i) {
 })
 glm <- do.call(rbind, glm)
 
-gam <- list.files("outputs/gam_contribution3", full.names = TRUE)
+gam <- list.files("outputs/gam_contribution", full.names = TRUE)
 gam <- lapply(1:length(gam), function(i) {
   
   load(gam[i])
@@ -31,7 +31,7 @@ gam <- lapply(1:length(gam), function(i) {
 })
 gam <- do.call(rbind, gam)
 
-spamm <- list.files("outputs/spamm_contribution3", full.names = TRUE)
+spamm <- list.files("outputs/spamm_contribution", full.names = TRUE)
 spamm <- lapply(1:length(spamm), function(i) {
   
   load(spamm[i])
@@ -40,7 +40,7 @@ spamm <- lapply(1:length(spamm), function(i) {
 })
 spamm <- do.call(rbind, spamm)
 
-rf <- list.files("outputs/rf_contribution3", full.names = TRUE)
+rf <- list.files("outputs/rf_contribution", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
   
   load(rf[i])
@@ -49,7 +49,7 @@ rf <- lapply(1:length(rf), function(i) {
 })
 rf <- do.call(rbind, rf)
 
-sprf <- list.files("outputs/sprf_contribution3", full.names = TRUE)
+sprf <- list.files("outputs/sprf_contribution", full.names = TRUE)
 sprf <- lapply(1:length(sprf), function(i) {
   
   load(sprf[i])
@@ -59,7 +59,7 @@ sprf <- lapply(1:length(sprf), function(i) {
 sprf <- do.call(rbind, sprf)
 colnames(sprf)[colnames(sprf) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
 
-gbm <- list.files("outputs/brt_contribution3", full.names = TRUE)
+gbm <- list.files("outputs/brt_contribution", full.names = TRUE)
 gbm <- lapply(1:length(gbm), function(i) {
   
   load(gbm[i])

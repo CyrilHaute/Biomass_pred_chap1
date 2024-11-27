@@ -153,58 +153,9 @@ rls_coral_fish_mean_biomass_count$biomass <- log10(rls_coral_fish_mean_biomass_c
 rls_spread_coral_reef_biomass <- rls_coral_fish_mean_biomass_count |>
   tidyr::spread(species_name, biomass, fill = 0)
 
-##################################################
-############### Biotic covariates ################
-##################################################
-
-species_name <- colnames(rls_spread_coral_reef_biomass)[!colnames(rls_spread_coral_reef_biomass) %in% c("survey_id", "latitude", "longitude")]
-
-diversity <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::group_by(survey_id) |> 
-  dplyr::summarise(diversity = dplyr::n())
-
-biomass_cov2 <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::group_by(survey_id) |>
-  dplyr::summarise(total_biomass = sum(biomass),
-                   mean_biomass = mean(biomass),
-                   max_biomass = max(biomass),
-                   min_biomass = min(biomass),
-                   delta_biomass = max(biomass) - min(biomass))
-
-# Load species traits
-sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE) |> 
-  dplyr::rename(species_name = Species)
-sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
-
-sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
-
-sp_car <- sp_car |> 
-  dplyr::select(species_name, Trophic_guild_name, Trophic.Level)
-
-n_trophic <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::inner_join(sp_car) |> 
-  dplyr::group_by(survey_id, Trophic_guild_name) |> 
-  dplyr::summarise(n_trophic = dplyr::n()) |> 
-  dplyr::group_by(survey_id) |> 
-  dplyr::mutate(n_trophic = dplyr::n()) |> 
-  dplyr::select(-c(Trophic_guild_name)) |> 
-  unique()
-
-stat_troph <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::inner_join(sp_car) |> 
-  dplyr::group_by(survey_id) |> 
-  dplyr::summarise(mean_trophic = mean(Trophic.Level),
-                   max_trophic = max(Trophic.Level),
-                   min_trophic = min(Trophic.Level))
-
-biotic <- diversity |> 
-  dplyr::inner_join(biomass_cov2) |> 
-  dplyr::inner_join(n_trophic) |> 
-  dplyr::inner_join(stat_troph)
 
 rls_fish_cov <- rls_spread_coral_reef_biomass |>
-  dplyr::inner_join(rls_covariates) |> 
-  dplyr::inner_join(biotic)
+  dplyr::inner_join(rls_covariates)
 
 ##############################################
 ############# Variable selection #############
@@ -262,18 +213,6 @@ corrplot::corrplot(cor_hab2, type = "upper")
 
 rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "coral")]
 
-
-# Select biotic covariates
-rls_biot_selec <- rls_fish_cov[,colnames(biotic)]
-cor_biot <- stats::cor(rls_biot_selec[!colnames(rls_biot_selec) %in% c("survey_id")])
-corrplot::corrplot(cor_biot, type = "upper")
-
-rls_biot_selec2 <- rls_biot_selec[,c("diversity", "n_trophic", "max_trophic", "mean_trophic")]
-cor_biot2 <- stats::cor(rls_biot_selec2)
-corrplot::corrplot(cor_biot2, type = "upper")
-
-rls_biot_final <- rls_biot_selec[,c("survey_id", "diversity", "n_trophic", "max_trophic", "mean_trophic")]
-
 #####################################################################
 ##############  Create biomass and covariates dataset  ##############
 #####################################################################
@@ -295,8 +234,7 @@ rls_biomass <- rls_biomass |>
 
 rls_covariates <- rls_env_final |> 
   dplyr::inner_join(rls_soc_final) |> 
-  dplyr::inner_join(rls_hab_final) |> 
-  dplyr::inner_join(rls_biot_final)
+  dplyr::inner_join(rls_hab_final)
 
 save(rls_covariates, file = "data/new_derived_data/rls_covariates.RData")
 save(rls_biomass, file = "data/new_derived_data/rls_biomass.RData")

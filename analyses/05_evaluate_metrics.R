@@ -1,12 +1,12 @@
 
 ################## extract evaluation model global ##################
 
-glm <- list.files("outputs/glm_prediction3", full.names = TRUE)
-rf <- list.files("outputs/rf_prediction3", full.names = TRUE)
-brt <- list.files("outputs/brt_prediction3", full.names = TRUE)
-gam <- list.files("outputs/gam_prediction3", full.names = TRUE)
-spamm <- list.files("outputs/spamm_prediction3", full.names = TRUE)
-sprf <- list.files("outputs/sprf_prediction3", full.names = TRUE)
+glm <- list.files("outputs/glm_prediction", full.names = TRUE)
+rf <- list.files("outputs/rf_prediction", full.names = TRUE)
+brt <- list.files("outputs/brt_prediction", full.names = TRUE)
+gam <- list.files("outputs/gam_prediction", full.names = TRUE)
+spamm <- list.files("outputs/spamm_prediction", full.names = TRUE)
+sprf <- list.files("outputs/sprf_prediction", full.names = TRUE)
 
 file_model <- c(glm, rf, brt, gam, spamm, sprf)
 
