@@ -24,7 +24,7 @@ species_name <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id",
 # run glm 
 print("glm biomass prediction")
 
-base_dir <- "outputs/glm_prediction3/"
+base_dir <- "outputs/glm_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -40,7 +40,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run random forest
 print("rf biomass prediction")
 
-base_dir <- "outputs/rf_prediction3/"
+base_dir <- "outputs/rf_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -56,7 +56,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run boosted regression trees
 print("brt biomass prediction")
 
-base_dir <- "outputs/brt_prediction3/"
+base_dir <- "outputs/brt_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -72,7 +72,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run gam
 print("gam biomass prediction")
 
-base_dir <- "outputs/gam_prediction3/"
+base_dir <- "outputs/gam_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -88,7 +88,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run spamm (GLMM)
 print("spamm biomass prediction")
 
-base_dir <- "outputs/spamm_prediction3/"
+base_dir <- "outputs/spamm_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
@@ -104,7 +104,7 @@ pbmcapply::pbmclapply(1:length(species_name), function(i) {
 # run spatial random forest
 print("sprf biomass prediction")
 
-base_dir <- "outputs/sprf_prediction3/"
+base_dir <- "outputs/sprf_prediction/"
 
 pbmcapply::pbmclapply(1:length(species_name), function(i) {
   
