@@ -117,7 +117,7 @@ spatialrf_function <- function(biomass,
     
     model_fit <- SpatialML::grf(formula = fmla,
                                 dframe = training,
-                                bw = round(max_dist * 0.1),
+                                bw = round(max_dist * 0.2),
                                 kernel = "fixed",
                                 coords = coords,
                                 ntree = ncol(training[!colnames(training) %in% c("survey_id", "biomass", "X", "Y")]) * 10,

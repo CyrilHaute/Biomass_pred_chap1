@@ -139,8 +139,7 @@ print("glm per realm")
 base_dir_contribution <- "outputs/glm_biomass_contribution_realm/"
 
 for(i in 1:length(rls_biomass_realm)) {
-# pbmcapply::pbmclapply(1:2, function(i) {
-  
+
   realm <- rls_biomass_realm[[i]]
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
@@ -175,8 +174,7 @@ print("rf per realm")
 base_dir_contribution <- "outputs/rf_biomass_contribution_realm/"
 
 for(i in 1:length(rls_biomass_realm)) {
-  # pbmcapply::pbmclapply(1:2, function(i) {
-  
+
   realm <- rls_biomass_realm[[i]]
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
@@ -211,13 +209,12 @@ print("gbm per realm")
 base_dir_contribution <- "outputs/gbm_biomass_contribution_realm/"
 
 for(i in 1:length(rls_biomass_realm)) {
-  # pbmcapply::pbmclapply(1:2, function(i) {
 
   realm <- rls_biomass_realm[[i]]
 
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
 
-  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 10) })
+  new_sp <- sapply(1:length(species_name), function(j) { nrow(unique(realm[, species_name[j]])) < round(nrow(realm) / 9) })
 
   new_species_name <- species_name[which(new_sp == FALSE)]
 
@@ -247,8 +244,7 @@ print("gam per realm")
 base_dir_contribution <- "outputs/gam_biomass_contribution_realm/"
 
 for(i in 1:length(rls_biomass_realm)) {
-  # pbmcapply::pbmclapply(1:2, function(i) {
-  
+ 
   realm <- rls_biomass_realm[[i]]
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
@@ -283,8 +279,7 @@ print("spamm per realm")
 base_dir_contribution <- "outputs/spamm_biomass_contribution_realm/"
 
 for(i in 1:length(rls_biomass_realm)) {
-  # pbmcapply::pbmclapply(1:2, function(i) {
-  
+
   realm <- rls_biomass_realm[[i]]
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
@@ -319,8 +314,7 @@ print("sprf per realm")
 base_dir_contribution <- "outputs/sprf_biomass_contribution_realm/"
 
 for(i in 1:length(rls_biomass_realm)) {
-  # pbmcapply::pbmclapply(1:2, function(i) {
-  
+
   realm <- rls_biomass_realm[[i]]
   
   species_name <- colnames(realm)[!colnames(realm) %in% c("survey_id", "latitude", "longitude", "site_code", "realm")]
