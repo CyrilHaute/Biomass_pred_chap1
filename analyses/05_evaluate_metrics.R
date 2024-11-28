@@ -63,6 +63,18 @@ performance <- pbmcapply::pbmclapply(1:length(read_sp_eco), function(i) {
       
     }
     
+    length_cv <- unlist(sapply(1:length(unique(sp$cv)), function(k) { if(nrow(sp[sp$cv %in% unique(sp$cv)[k],]) < 2) { unique(sp$cv)[k] } }))
+    
+    if(is.null(length_cv)) {
+      
+      sp <- sp
+      
+    }else{
+      
+      sp <- sp[sp$cv != length_cv,]
+      
+    }
+
     # Linear model between values
     lm_test <- lapply(1:length(unique(sp$cv)), function(k) {
       
