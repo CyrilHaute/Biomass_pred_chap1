@@ -35,43 +35,37 @@ covariates_importance_all_function <- function(plot_data,
   
   only_model_best <- only_model_best[only_model_best$best_model == only_model_best$fitted_model,]
 
-  ENV <- plot_data |> 
+  ENV <- only_model_best |> 
     dplyr::filter(variable %in% env_var) |>
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "ENV")
   ENV[ENV$variable == "max_1year_analysed_sst",]$variable <- "Sea Surface Temperature (max 1 year)"
   ENV[ENV$variable == "min_1year_analysed_sst",]$variable <- "Sea Surface Temperature (min 1 year)"
   ENV[ENV$variable == "max_5year_degree_heating_week",]$variable <- "Degree Heating Week (max 5 year)"
-  # ENV[ENV$variable == "mean_1year_nppv",]$variable <- "Net Primary Productivity (mean 1 year)"
-  ENV[ENV$variable == "max_5year_nppv",]$variable <- "Net Primary Productivity (max 5 year)"
-  ENV[ENV$variable == "mean_1year_chl",]$variable <- "Chlorophyll (mean 1 year)"
+  ENV[ENV$variable == "mean_1year_nppv",]$variable <- "Net Primary Productivity (mean 1 year)"
   ENV[ENV$variable == "mean_1year_so_mean",]$variable <- "Sea Surface Salinity (mean 1 year)"
   ENV[ENV$variable == "min_5year_ph",]$variable <- "pH (min 5 year)"
-  ENV[ENV$variable == "min_7days_o2",]$variable <- "Dissolved oxygen (min 7 days)"
 
-  SOC <- plot_data |> 
+  SOC <- only_model_best |> 
     dplyr::filter(variable %in% hum_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HUM")
-  # SOC[SOC$variable == "protection_status2",]$variable <- "MPA status"
-  SOC[SOC$variable == "effectiveness",]$variable <- "MPA status"
+  SOC[SOC$variable == "protection_status2",]$variable <- "MPA status"
   SOC[SOC$variable == "gdp",]$variable <- "Growth Development Product"
   SOC[SOC$variable == "gravtot2",]$variable <- "Human Gravity"
   SOC[SOC$variable == "n_fishing_vessels",]$variable <- "Fishing Vessels Density"
   SOC[SOC$variable == "neartt",]$variable <- "Nearest Population"
   SOC[SOC$variable == "marine_ecosystem_dependency",]$variable <- "Marine Ecosystem Dependency"
-  SOC[SOC$variable == "natural_ressource_rent",]$variable <- "Natural Ressource Rent"
-  SOC[SOC$variable == "no_violence",]$variable <- "Violence"
-  
-  HAB <- plot_data |> 
+
+  HAB <- only_model_best |> 
     dplyr::filter(variable %in% hab_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HAB")
   HAB[HAB$variable == "Rock_500m",]$variable <- "Rock (%)"
   HAB[HAB$variable == "Sand_500m",]$variable <- "Sand (%)"
@@ -79,12 +73,11 @@ covariates_importance_all_function <- function(plot_data,
   HAB[HAB$variable == "coral",]$variable <- "Coral (RLS)"
   HAB[HAB$variable == "depth",]$variable <- "Depth"
   HAB[HAB$variable == "reef_extent",]$variable <- "Reef extent"
-  HAB[HAB$variable == "seagrass",]$variable <- "Seagrass"
-  HAB[HAB$variable == "Rubble_500m",]$variable <- "Rubble (%)"
 
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
-    dplyr::full_join(SOC)
+    dplyr::full_join(SOC) |> 
+    dplyr::mutate(realm = stringr::str_replace_all(unique(only_model_best$realm), c("_" = " ")))
 
   importance_plot <- ggplot(cont) +
     geom_col(aes(x = reorder(variable, value), y = value, fill = VAR)) +
@@ -95,6 +88,7 @@ covariates_importance_all_function <- function(plot_data,
                                  "HAB" = pal_contribution[13])) +
     theme_minimal() +
     coord_flip() +
+    facet_wrap(~ realm) +
     labs(y = "Relative importance (RMSE)", x = "", fill = fill, title = title) +
     theme(legend.position = legend.position) +
     theme(title = element_text(size = title.size),
@@ -174,17 +168,17 @@ var_max_all_function <- function(plot_data)
   
 }
 
-# plot_data = contribution_realm_data[[i]]
-# title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " "))
-# legend.position = "none"
-# title.size = 13
-# axis.text.x = 11
-# axis.text.y = 11
-# axis.title = 13
+# plot_data = bind_files
+# title = "B."
+# legend.position = c(0.85, 0.16)
+# title.size = 18
+# axis.text.x = 15
+# axis.text.y = 17
+# axis.title = 21
 # legend.text = 15
-# strip.text.x = 9
-# strip.text.y = 9
-# geom.text.size = 4
+# strip.text.x = 20
+# strip.text.y = 20
+# geom.text.size = 5
 # fill = ""
 
 merged_covariates_importance_all_function <- function(plot_data,
@@ -198,7 +192,8 @@ merged_covariates_importance_all_function <- function(plot_data,
                                                       strip.text.x,
                                                       strip.text.y,
                                                       geom.text.size,
-                                                      fill){
+                                                      fill,
+                                                      ylim){
   
   require(ggplot2)
   
@@ -212,22 +207,22 @@ merged_covariates_importance_all_function <- function(plot_data,
   ENV <- only_model_best_best |> 
     dplyr::filter(variable %in% env_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "ENV")
   
   SOC <- only_model_best_best |> 
     dplyr::filter(variable %in% hum_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HUM")
   
   HAB <- only_model_best_best |> 
     dplyr::filter(variable %in% hab_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HAB")
 
   cont <- ENV |>  
@@ -267,7 +262,6 @@ merged_covariates_importance_all_function <- function(plot_data,
           strip.text.y = element_text(size = strip.text.y)) +
     scale_y_continuous(breaks = c(0, round(mean(cont_merge$value), 2), round(max(cont_merge$value) + (max(cont_merge$value) * 0.2), 2)))
     
-          
 }
 
 # plot_data = rf
@@ -294,42 +288,36 @@ covariates_importance_function <- function(plot_data
   ENV <- plot_data |> 
     dplyr::filter(variable %in% env_var) |>
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "ENV",
                      plot_level = plot_level)
   ENV[ENV$variable == "max_1year_analysed_sst",]$variable <- "Sea Surface Temperature (max 1 year)"
   ENV[ENV$variable == "min_1year_analysed_sst",]$variable <- "Sea Surface Temperature (min 1 year)"
   ENV[ENV$variable == "max_5year_degree_heating_week",]$variable <- "Degree Heating Week (max 5 year)"
-  # ENV[ENV$variable == "mean_1year_nppv",]$variable <- "Net Primary Productivity (mean 1 year)"
-  ENV[ENV$variable == "max_5year_nppv",]$variable <- "Net Primary Productivity (max 5 year)"
-  ENV[ENV$variable == "mean_1year_chl",]$variable <- "Chlorophyll (mean 1 year)"
+  ENV[ENV$variable == "mean_1year_nppv",]$variable <- "Net Primary Productivity (mean 1 year)"
   ENV[ENV$variable == "mean_1year_so_mean",]$variable <- "Sea Surface Salinity (mean 1 year)"
   ENV[ENV$variable == "min_5year_ph",]$variable <- "pH (min 5 year)"
-  ENV[ENV$variable == "min_7days_o2",]$variable <- "Dissolved oxygen (min 7 days)"
 
   SOC <- plot_data |> 
     dplyr::filter(variable %in% hum_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HUM",
                      plot_level = plot_level)
-  # SOC[SOC$variable == "protection_status2",]$variable <- "MPA status"
-  SOC[SOC$variable == "effectiveness",]$variable <- "MPA status"
+  SOC[SOC$variable == "protection_status2",]$variable <- "MPA status"
   SOC[SOC$variable == "gdp",]$variable <- "Growth Development Product"
   SOC[SOC$variable == "gravtot2",]$variable <- "Human Gravity"
   SOC[SOC$variable == "n_fishing_vessels",]$variable <- "Fishing Vessels Density"
   SOC[SOC$variable == "neartt",]$variable <- "Nearest Population"
   SOC[SOC$variable == "marine_ecosystem_dependency",]$variable <- "Marine Ecosystem Dependency"
-  SOC[SOC$variable == "natural_ressource_rent",]$variable <- "Natural Ressource Rent"
-  SOC[SOC$variable == "no_violence",]$variable <- "Violence"
 
   HAB <- plot_data |> 
     dplyr::filter(variable %in% hab_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HAB",
                      plot_level = plot_level)
   HAB[HAB$variable == "Rock_500m",]$variable <- "Rock (%)"
@@ -338,8 +326,6 @@ covariates_importance_function <- function(plot_data
   HAB[HAB$variable == "coral",]$variable <- "Coral (RLS)"
   HAB[HAB$variable == "depth",]$variable <- "Depth"
   HAB[HAB$variable == "reef_extent",]$variable <- "Reef extent"
-  HAB[HAB$variable == "seagrass",]$variable <- "Seagrass"
-  HAB[HAB$variable == "Rubble_500m",]$variable <- "Rubble (%)"
 
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
@@ -506,24 +492,24 @@ merged_covariates_importance_function <- function(plot_data,
   ENV <- plot_data |> 
     dplyr::filter(variable %in% env_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "ENV",
                      plot_level = plot_level)
 
   SOC <- plot_data |> 
     dplyr::filter(variable %in% hum_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HUM",
                      plot_level = plot_level)
 
   HAB <- plot_data |> 
     dplyr::filter(variable %in% hab_var) |> 
     dplyr::group_by(variable) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HAB",
                      plot_level = plot_level)
 
@@ -600,22 +586,22 @@ species_covariates_importance_function <- function(plot_data){
   ENV <- plot_data |> 
     dplyr::filter(variable %in% env_var) |>
     dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = mean(Dropout_loss),
-                     sd = mean(sd_dropout_loss),
+    dplyr::summarise(value = median(Dropout_loss),
+                     sd = median(sd_dropout_loss),
                      VAR = "ENV")
   
   SOC <- plot_data |> 
     dplyr::filter(variable %in% hum_var) |> 
     dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = mean(Dropout_loss),
-                     sd = mean(sd_dropout_loss),
+    dplyr::summarise(value = median(Dropout_loss),
+                     sd = median(sd_dropout_loss),
                      VAR = "HUM")
   
   HAB <- plot_data |> 
     dplyr::filter(variable %in% hab_var) |> 
     dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = mean(Dropout_loss),
-                     sd = mean(sd_dropout_loss),
+    dplyr::summarise(value = median(Dropout_loss),
+                     sd = median(sd_dropout_loss),
                      VAR = "HAB")
 
 

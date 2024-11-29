@@ -92,22 +92,35 @@ ggsave(model_corr_plot, filename = "figures/model_corr_plot.png", width = 7, hei
 best_assessments_SCV <- dplyr::inner_join(performance_bind, best_models, by = "species_name")
 best_assessments_SCV <- best_assessments_SCV[best_assessments_SCV$model == best_assessments_SCV$best_model,]
 
-perf_models_all_best <- best_assessments_SCV |> 
-  dplyr::summarise_at(dplyr::vars(pearson, spearman), list(function(x) list(Q0.05 = round(quantile(x, 0.05, na.rm = T), 2),
-                                                                  IQR0.25 = round(quantile(x, 0.25, na.rm = T), 2),
-                                                                  median  = round(median(x, na.rm = T), 2),
-                                                                  IQR0.75 = round(quantile(x, 0.75, na.rm = T), 2),
-                                                                  Q0.95 = round(quantile(x, 0.95, na.rm = T), 2)))) |> 
-  dplyr::mutate(summary_value = c('Q0.05','IQR0.25', 'median', 'IQR0.75', 'Q0.95')) |> 
-  tidyr::unnest() |> 
-  dplyr::group_by(summary_value) |> 
-  dplyr::select(pearson, spearman) |> 
-  t() |> 
-  data.frame() 
-
-perf_models_all_best <- perf_models_all_best |> 
-  dplyr::mutate(metric = rownames(perf_models_all_best)) |> 
-  dplyr::select(metric, X1:X5)
+perf_model_gouped_best <- best_assessments_SCV |> 
+  tidyr::drop_na() |> 
+  dplyr::group_by(model) |>
+  dplyr::summarise(medianpearson = median(pearson, na.rm = TRUE),
+                   q95_pearson = quantile(pearson, probs = 0.95, na.rm = TRUE),
+                   q05_pearson = quantile(pearson, probs = 0.05, na.rm = TRUE),
+                   maxpearson = max(pearson, na.rm = TRUE),
+                   minpearson = min(pearson, na.rm = TRUE),
+                   sdpearson = sd(pearson, na.rm = TRUE),
+                   medianspearman = median(spearman, na.rm = TRUE),
+                   q95_spearman = quantile(spearman, probs = 0.95, na.rm = TRUE),
+                   q05_spearman = quantile(spearman, probs = 0.05, na.rm = TRUE),
+                   maxspearman = max(spearman, na.rm = TRUE),
+                   minspearman = min(spearman, na.rm = TRUE),
+                   sdspearman = sd(spearman, na.rm = TRUE))
+perf_model_best <- best_assessments_SCV |> 
+  tidyr::drop_na() |>
+  dplyr::summarise(medianpearson = median(pearson, na.rm = TRUE),
+                   q95_pearson = quantile(pearson, probs = 0.95, na.rm = TRUE),
+                   q05_pearson = quantile(pearson, probs = 0.05, na.rm = TRUE),
+                   maxpearson = max(pearson, na.rm = TRUE),
+                   minpearson = min(pearson, na.rm = TRUE),
+                   sdpearson = sd(pearson, na.rm = TRUE),
+                   medianspearman = median(spearman, na.rm = TRUE),
+                   q95_spearman = quantile(spearman, probs = 0.95, na.rm = TRUE),
+                   q05_spearman = quantile(spearman, probs = 0.05, na.rm = TRUE),
+                   maxspearman = max(spearman, na.rm = TRUE),
+                   minspearman = min(spearman, na.rm = TRUE),
+                   sdspearman = sd(spearman, na.rm = TRUE))
 max(best_assessments_SCV$pearson)
 max(best_assessments_SCV$spearman)
 

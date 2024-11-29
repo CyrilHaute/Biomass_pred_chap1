@@ -1,12 +1,15 @@
 source("R/05_load_realm_contribution_function.R")
 
-partial_realm <- load_realm_partial_function(files_path = "outputs/realm_partial")
+partial_realm_rf <- load_realm_partial_function(files_path = "outputs/realm_partial_rf")
+partial_realm_sprf <- load_realm_partial_function(files_path = "outputs/realm_partial_sprf")
+partial_realm_gbm <- load_realm_partial_function(files_path = "outputs/realm_partial_gbm")
+partial_realm_list <- c(partial_realm_rf, partial_realm_sprf, partial_realm_gbm)
 
-partial_realm <- lapply(1:length(partial_realm), function(i) {
+partial_realm <- lapply(1:length(partial_realm_list), function(i) {
   
-  realm_i <- partial_realm[[i]]
+  realm_i <- partial_realm_list[[i]]
   
-  partial_cov <- lapply(1:22, function(j) {
+  partial_cov <- lapply(1:18, function(j) {
     
     partial_cov_j <- lapply(realm_i, '[[', j)
     partial_cov_j <- lapply(1:length(partial_cov_j), function(k) {
@@ -31,8 +34,7 @@ partial_realm <- do.call(rbind, partial_realm)
 partial_realm <- partial_realm |> 
   dplyr::mutate(var_type = dplyr::case_when(var %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph") ~ "ENV",
                                             var %in% c("protection_status2", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency") ~ "HUM",
-                                            var %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent") ~ "HAB",
-                                            var %in% c("diversity", "max_trophic", "mean_trophic", "n_trophic") ~ "BIOT"))
+                                            var %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent") ~ "HAB"))
 
 partial_realm[partial_realm$var == "max_1year_analysed_sst",]$var <- "SST max"
 partial_realm[partial_realm$var == "min_1year_analysed_sst",]$var <- "SST min"
@@ -55,93 +57,8 @@ partial_realm[partial_realm$var == "coral",]$var <- "Coral (RLS)"
 partial_realm[partial_realm$var == "depth",]$var <- "Depth"
 partial_realm[partial_realm$var == "reef_extent",]$var <- "Reef extent"
 
-partial_realm[partial_realm$var == "diversity",]$var <- "Diversity"
-partial_realm[partial_realm$var == "max_trophic",]$var <- "Trophic max"
-partial_realm[partial_realm$var == "mean_trophic",]$var <- "Trophic mean"
-partial_realm[partial_realm$var == "n_trophic",]$var <- "Trophic n"
-
 library(ggplot2)
-
-# central_indo_pacific <- partial_realm |> 
-#   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-#                 realm == "Central Indo-Pacific") |> 
-#   ggplot() +
-#   geom_line(aes(x = as.numeric(values), y = biomass, group = species_name), size = 1) +
-#   facet_wrap(~var, scales = "free", nrow = 1) +
-#   theme_bw() +
-#   labs(title = "Central Indo-Pacific", x = "", y = "log10(Biomass+1)") +
-#   theme(axis.text.x = element_text(size = 10),
-#         axis.text.y = element_text(size = 10),
-#         axis.title = element_text(size = 12),
-#         strip.text.x = element_text(size = 10),
-#         strip.text.y = element_text(size = 10),
-#         legend.text = element_text(size = 12))
-# 
-# eastern_indo_pacific <- partial_realm |> 
-#   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-#                 realm == "Eastern Indo-Pacific") |> 
-#   ggplot() +
-#   geom_line(aes(x = as.numeric(values), y = biomass, group = species_name), size = 1) +
-#   facet_wrap(~var, scales = "free", nrow = 1) +
-#   theme_bw() +
-#   labs(title = "Eastern Indo-Pacific", x = "", y = "log10(Biomass+1)") +
-#   theme(axis.text.x = element_text(size = 10),
-#         axis.text.y = element_text(size = 10),
-#         axis.title = element_text(size = 12),
-#         strip.text.x = element_text(size = 10),
-#         strip.text.y = element_text(size = 10),
-#         legend.text = element_text(size = 12))
-# 
-# tropical_atlantic <- partial_realm |> 
-#   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-#                 realm == "Tropical Atlantic") |> 
-#   ggplot() +
-#   geom_line(aes(x = as.numeric(values), y = biomass, group = species_name), size = 1) +
-#   facet_wrap(~var, scales = "free", nrow = 1) +
-#   theme_bw() +
-#   labs(title = "Tropical Atlantic", x = "", y = "log10(Biomass+1)") +
-#   theme(axis.text.x = element_text(size = 10),
-#         axis.text.y = element_text(size = 10),
-#         axis.title = element_text(size = 12),
-#         strip.text.x = element_text(size = 10),
-#         strip.text.y = element_text(size = 10),
-#         legend.text = element_text(size = 12))
-# 
-# tropical_eastern_pacific <- partial_realm |> 
-#   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-#                 realm == "Tropical Eastern Pacific") |> 
-#   ggplot() +
-#   geom_line(aes(x = as.numeric(values), y = biomass, group = species_name), size = 1) +
-#   facet_wrap(~var, scales = "free", nrow = 1) +
-#   theme_bw() +
-#   labs(title = "Tropical Eastern Pacific", x = "", y = "log10(Biomass+1)") +
-#   theme(axis.text.x = element_text(size = 10),
-#         axis.text.y = element_text(size = 10),
-#         axis.title = element_text(size = 12),
-#         strip.text.x = element_text(size = 10),
-#         strip.text.y = element_text(size = 10),
-#         legend.text = element_text(size = 12))
-# 
-# temperate_northern_atlantic <- partial_realm |> 
-#   dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-#                 realm == "Temperate Northern Atlantic") |> 
-#   ggplot() +
-#   geom_line(aes(x = as.numeric(values), y = biomass, group = species_name), size = 1) +
-#   facet_wrap(~var, scales = "free", nrow = 1) +
-#   theme_bw() +
-#   labs(title = "Temperate Northern Atlantic", x = "", y = "log10(Biomass+1)") +
-#   theme(axis.text.x = element_text(size = 10),
-#         axis.text.y = element_text(size = 10),
-#         axis.title = element_text(size = 12),
-#         strip.text.x = element_text(size = 10),
-#         strip.text.y = element_text(size = 10),
-#         legend.text = element_text(size = 12))
-
 library(patchwork)
-
-# realm_partial_plot <- central_indo_pacific / eastern_indo_pacific / tropical_atlantic / tropical_eastern_pacific / temperate_northern_atlantic
-
-# ggsave("figures/realm_partial_plot.png", realm_partial_plot, width = 10, height = 13)
 
 partial_realm$values <- as.numeric(partial_realm$values)
 
@@ -154,8 +71,7 @@ partial_realm_mean <- partial_realm |>
                    sd_biomass = sd(biomass)) |> 
   dplyr::mutate(var_type = dplyr::case_when(var %in% c("SST max", "SST min", "DHW max", "NPP mean", "SSS mean", "pH min") ~ "ENV",
                                             var %in% c("MPA", "GDP", "Gravity", "Fishing", "Neartt", "MED") ~ "HUM",
-                                            var %in% c("Rock (%)", "Sand (%)", "Coral/Algae (%)", "Coral (RLS)", "Depth", "Reef extent") ~ "HAB",
-                                            var %in% c("Diversity", "Trophic max", "Trophic mean", "Trophic n") ~ "BIOT"))
+                                            var %in% c("Rock (%)", "Sand (%)", "Coral/Algae (%)", "Coral (RLS)", "Depth", "Reef extent") ~ "HAB"))
 
 sp_n_realm <- partial_realm |> 
   dplyr::select(realm, species_name) |> 
@@ -168,8 +84,11 @@ partial_realm_mean <- partial_realm_mean |>
   dplyr::mutate(realm = paste0(realm, " (n = ", n, ")"))
 
 central_indo_pacific_mean <- partial_realm_mean |> 
-  dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-                realm == "Central Indo-Pacific (n = 16)") |> 
+  dplyr::filter(var %in% c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max", "Gravity"),
+                realm == "Central Indo-Pacific (n = 21)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max", "Gravity"))) |> 
   ggplot() +
   geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
@@ -179,7 +98,7 @@ central_indo_pacific_mean <- partial_realm_mean |>
                                "BIOT" = pal_contribution[3])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Central Indo-Pacific (n = 16)", x = "", y = "log10(Biomass+1)") +
+  labs(title = "Central Indo-Pacific (n = 21)", x = "", y = "log10(Biomass+1)") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -189,8 +108,11 @@ central_indo_pacific_mean <- partial_realm_mean |>
         legend.position = "none")
 
 eastern_indo_pacific_mean <- partial_realm_mean |> 
-  dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-                realm == "Eastern Indo-Pacific (n = 34)") |> 
+  dplyr::filter(var %in% c("MED", "GDP", "SSS mean", "SST min", "DHW max", "SST max"),
+                realm == "Eastern Indo-Pacific (n = 65)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "GDP", "SSS mean", "SST min", "DHW max", "SST max"))) |> 
   ggplot() +
   geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
@@ -200,7 +122,7 @@ eastern_indo_pacific_mean <- partial_realm_mean |>
                                 "BIOT" = pal_contribution[3])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Eastern Indo-Pacific (n = 34)", x = "", y = "log10(Biomass+1)") +
+  labs(title = "Eastern Indo-Pacific (n = 65)", x = "", y = "log10(Biomass+1)") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -210,8 +132,11 @@ eastern_indo_pacific_mean <- partial_realm_mean |>
         legend.position = "none")
 
 tropical_atlantic_mean <- partial_realm_mean |> 
-  dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-                realm == "Tropical Atlantic (n = 20)") |> 
+  dplyr::filter(var %in% c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)", "pH min"),
+                realm == "Tropical Atlantic (n = 44)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)", "pH min"))) |> 
   ggplot() +
   geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
@@ -221,7 +146,7 @@ tropical_atlantic_mean <- partial_realm_mean |>
                                 "BIOT" = pal_contribution[3])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Tropical Atlantic (n = 20)", x = "", y = "log10(Biomass+1)", color = " ") +
+  labs(title = "Tropical Atlantic (n = 44)", x = "", y = "log10(Biomass+1)", color = " ") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -230,18 +155,20 @@ tropical_atlantic_mean <- partial_realm_mean |>
         legend.text = element_text(size = 12))
 
 tropical_eastern_pacific_mean <- partial_realm_mean |> 
-  dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-                realm == "Tropical Eastern Pacific (n = 18)") |> 
+  dplyr::filter(var %in% c("Depth", "Gravity", "MED", "SSS mean", "NPP mean", "Neartt"),
+                realm == "Tropical Eastern Pacific (n = 34)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "Gravity", "MED", "SSS mean", "NPP mean", "Neartt"))) |> 
   ggplot() +
   geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
-                                "HAB" = pal_contribution[13],
-                                "BIOT" = pal_contribution[3])) +
+                                "HAB" = pal_contribution[13])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Tropical Eastern Pacific (n = 18)", x = "", y = "log10(Biomass+1)") +
+  labs(title = "Tropical Eastern Pacific (n = 34)", x = "", y = "log10(Biomass+1)") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -251,18 +178,20 @@ tropical_eastern_pacific_mean <- partial_realm_mean |>
         legend.position = "none")
 
 temperate_northern_atlantic_mean <- partial_realm_mean |> 
-  dplyr::filter(var %in% c("Diversity", "NPP mean", "SSS mean", "Trophic mean", "SST min", "Reef extent", "Gravity"),
-                realm == "Temperate Northern Atlantic (n = 2)") |> 
+  dplyr::filter(var %in% c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)", "Reef extent"),
+                realm == "Temperate Northern Atlantic (n = 8)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)", "Reef extent"))) |> 
   ggplot() +
   geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
   geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
-                                "HAB" = pal_contribution[13],
-                                "BIOT" = pal_contribution[3])) +
+                                "HAB" = pal_contribution[13])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Temperate Northern Atlantic (n = 2)", x = "", y = "log10(Biomass+1)") +
+  labs(title = "Temperate Northern Atlantic (n = 8)", x = "", y = "log10(Biomass+1)") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -271,7 +200,7 @@ temperate_northern_atlantic_mean <- partial_realm_mean |>
         legend.text = element_text(size = 12),
         legend.position = "none")
 
-realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean
+realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean / temperate_northern_atlantic_mean
 
-ggsave("figures/realm_partial_mean_plot2.png", realm_partial_mean_plot, width = 11, height = 13)
+ggsave("figures/realm_partial_mean_plot.png", realm_partial_mean_plot, width = 11, height = 13)
 

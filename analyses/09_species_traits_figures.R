@@ -326,6 +326,10 @@ ggsave("figures/plot_species_traits.pdf", plot_species_traits, height = 25, widt
 
 
 
+env_var <- c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph")
+hum_var <- c("protection_status2", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")
+hab_var <- c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent")
+
 scaridae <- bind_files |> 
   dplyr::inner_join(phylo, multiple = "first") |> 
   dplyr::filter(family == "Scaridae") |> 
@@ -346,8 +350,7 @@ plot_scaridae <- ggplot(scaridae) +
   tidytext::scale_x_reordered() +
   scale_fill_manual(values = c("ENV" = pal_sp_trait[2],
                                "HUM" = pal_sp_trait[1],
-                               "HAB" = pal_sp_trait[13],
-                               "BIOT" = pal_sp_trait[3])) +
+                               "HAB" = pal_sp_trait[13])) +
   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
   theme(
     legend.direction = "vertical",

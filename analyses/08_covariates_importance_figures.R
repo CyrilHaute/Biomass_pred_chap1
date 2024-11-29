@@ -9,6 +9,10 @@ pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors:
 
 load("outputs/best_models.Rdata")
 
+env_var <- c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph")
+hum_var <- c("protection_status2", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency")
+hab_var <- c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent")
+
 #################### Global contribution ####################
 
 
@@ -74,10 +78,6 @@ bind_files <- purrr::reduce(bind_files, dplyr::full_join)
 
 ##### For bind_files
 
-env_var <- c("max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "mean_1year_chl", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph", "min_7days_o2")
-hum_var <- c("effectiveness", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency", "natural_ressource_rent", "no_violence")
-hab_var <- c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent", "Rubble_500m", "seagrass")
-
 covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
                                                                 title = "A.",
                                                                 legend.position = "none",
@@ -111,42 +111,42 @@ covariates_importance_GLM <- plot_covariates_importance_function(plot_data = cov
                                                                  color = pal_contribution,
                                                                  labs_y = "",
                                                                  labs_fill = "",
-                                                                 ylim = c(0, 0.16),
+                                                                 ylim = c(0, 0.4),
                                                                  legend.position = "none")
 
 covariates_importance_GAM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = gam),
                                                                  color = pal_contribution,
                                                                  labs_y = "",
                                                                  labs_fill = "",
-                                                                 ylim = c(0, 0.16),
+                                                                 ylim = c(0, 0.4),
                                                                  legend.position = "none")
 
 covariates_importance_SPAMM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = spamm),
                                                                    color = pal_contribution,
                                                                    labs_y = "",
                                                                    labs_fill = "",
-                                                                   ylim = c(0, 0.16),
+                                                                   ylim = c(0, 0.4),
                                                                    legend.position = "none")
 
 covariates_importance_RF <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = rf),
                                                                 color = pal_contribution,
                                                                 labs_y = "",
                                                                 labs_fill = "",
-                                                                ylim = c(0, 0.16),
+                                                                ylim = c(0, 0.4),
                                                                 legend.position = "none")
 
 covariates_importance_GBM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = gbm),
                                                                  color = pal_contribution,
                                                                  labs_y = "Relative importance (RMSE)",
                                                                  labs_fill = "",
-                                                                 ylim = c(0, 0.16),
+                                                                 ylim = c(0, 0.4),
                                                                  legend.position = "none")
 
 covariates_importance_SPRF <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = sprf),
                                                                   color = pal_contribution,
                                                                   labs_y = "Relative importance (RMSE)",
                                                                   labs_fill = "",
-                                                                  ylim = c(0, 0.16),
+                                                                  ylim = c(0, 0.4),
                                                                   legend.position = c(0.75, 0.16))
 
 covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
@@ -203,7 +203,7 @@ merged_covariates_importance_SPRF <- plot_merged_covariates_importance_function(
 
 merged_covariates_importance <- (merged_covariates_importance_GLM + merged_covariates_importance_GAM) / (merged_covariates_importance_SPAMM + merged_covariates_importance_RF) / (merged_covariates_importance_GBM + merged_covariates_importance_SPRF)
 
-ggsave("figures/merged_covariates_importance.pdf", merged_covariates_importance, height = 15, width = 11)
+ggsave("figures/merged_covariates_importance.png", merged_covariates_importance, height = 15, width = 11)
 
 
 
@@ -230,33 +230,51 @@ contribution_realm_data <- list(do.call(rbind, lapply(contribution_realm_data, '
 merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
   merged_covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
-                                            title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " ")),
+                                            title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ")),
                                             legend.position = "none",
-                                            title.size = 13,
-                                            axis.text.x = 11,
-                                            axis.text.y = 11,
-                                            axis.title = 13,
+                                            title.size = 10,
+                                            axis.text.x = 9,
+                                            axis.text.y = 9,
+                                            axis.title = 10,
                                             legend.text = 15,
                                             strip.text.x = 9,
                                             strip.text.y = 9,
-                                            geom.text.size = 4,
+                                            geom.text.size = 3,
                                             fill = "")
 
 })
 
 covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
+  if(i == 1) {
+  
   covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
-                                     title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ", "-" = " ")),
+                                     title = "B.",
                                      legend.position = "none",
                                      title.size = 13,
                                      axis.text.x = 11,
                                      axis.text.y = 11,
                                      axis.title = 13,
                                      legend.text = 15,
-                                     strip.text.x = 9,
+                                     strip.text.x = 13,
                                      strip.text.y = 9,
                                      fill = "Covariate categories")
+    
+  }else{
+    
+    covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
+                                       title = "",
+                                       legend.position = "none",
+                                       title.size = 13,
+                                       axis.text.x = 11,
+                                       axis.text.y = 11,
+                                       axis.title = 13,
+                                       legend.text = 15,
+                                       strip.text.x = 13,
+                                       strip.text.y = 9,
+                                       fill = "Covariate categories")
+    
+  }
   
 })
 
@@ -267,23 +285,22 @@ rls_map <- ggplot(data = world) +
   scale_x_continuous(limits = c(-180, 180)) +
   scale_y_continuous(limits = c(-60, 60)) +
   theme_classic() +
-  coord_sf(expand = FALSE) +
+  labs(title = "A.") +
   theme(legend.position = "none",
-        axis.text = element_text(size = 15))
+        axis.text = element_text(size = 15),
+        title = element_text(size = 13))
 
 map_contribution_merged_realm <- rls_map + 
-  patchwork::inset_element(merged_covariates_importance_all[[3]], left = 0.27, bottom = 0.53, right = 0.48, top = 1) +
-  patchwork::inset_element(merged_covariates_importance_all[[4]], left = 0.30, bottom = 0.07, right = 0.53, top = 0.52) +
-  patchwork::inset_element(merged_covariates_importance_all[[1]], left = 0.79, bottom = 0.26, right = 1, top = 0.74) +
-  patchwork::inset_element(merged_covariates_importance_all[[2]], left = 0.60, bottom = 0.003, right = 0.81, top = 0.41) +
-  patchwork::inset_element(merged_covariates_importance_all[[5]], left = 0.05, bottom = 0.14, right = 0.26, top = 0.61) +
+  patchwork::inset_element(merged_covariates_importance_all[[3]], left = 0.35, bottom = 0.53, right = 0.52, top = 1) +
+  patchwork::inset_element(merged_covariates_importance_all[[4]], left = 0.34, bottom = 0.07, right = 0.51, top = 0.52) +
+  patchwork::inset_element(merged_covariates_importance_all[[1]], left = 0.80, bottom = 0.26, right = 0.96, top = 0.74) +
+  patchwork::inset_element(merged_covariates_importance_all[[2]], left = 0.005, bottom = 0.14, right = 0.17, top = 0.61) +
+  patchwork::inset_element(merged_covariates_importance_all[[5]], left = 0.16, bottom = 0.3, right = 0.32, top = 0.77) +
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "right")
 
-ggplot2::ggsave("figures/map_contribution_merged_realm.png", map_contribution_merged_realm, height = 6, width = 15)
-
-covariates_importance_all_bind1 <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]])
-covariates_importance_all_bind2 <- (covariates_importance_all[[4]] + covariates_importance_all[[5]])
-covariates_importance_all_bind <- covariates_importance_all_bind1 / covariates_importance_all_bind2
+covariates_importance_all_bind <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]] + covariates_importance_all[[4]] + covariates_importance_all[[5]])
+covariates_importance_realm <- map_contribution_merged_realm / covariates_importance_all_bind
+ggplot2::ggsave("figures/covariates_importance_realm.png", covariates_importance_realm, height = 16, width = 20)
 
 ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 20)
