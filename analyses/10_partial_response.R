@@ -3,7 +3,9 @@ source("R/05_load_realm_contribution_function.R")
 partial_realm_rf <- load_realm_partial_function(files_path = "outputs/realm_partial_rf")
 partial_realm_sprf <- load_realm_partial_function(files_path = "outputs/realm_partial_sprf")
 partial_realm_gbm <- load_realm_partial_function(files_path = "outputs/realm_partial_gbm")
-partial_realm_list <- c(partial_realm_rf, partial_realm_sprf, partial_realm_gbm)
+partial_realm_glm <- load_realm_partial_function(files_path = "outputs/realm_partial_glm")
+partial_realm_gam <- load_realm_partial_function(files_path = "outputs/realm_partial_gam")
+partial_realm_list <- c(partial_realm_rf, partial_realm_sprf, partial_realm_gbm, partial_realm_glm, partial_realm_gam)
 
 partial_realm <- lapply(1:length(partial_realm_list), function(i) {
   
@@ -109,7 +111,7 @@ central_indo_pacific_mean <- partial_realm_mean |>
 
 eastern_indo_pacific_mean <- partial_realm_mean |> 
   dplyr::filter(var %in% c("MED", "GDP", "SSS mean", "SST min", "DHW max", "SST max"),
-                realm == "Eastern Indo-Pacific (n = 65)") |> 
+                realm == "Eastern Indo-Pacific (n = 68)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
   dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "GDP", "SSS mean", "SST min", "DHW max", "SST max"))) |> 
@@ -122,7 +124,7 @@ eastern_indo_pacific_mean <- partial_realm_mean |>
                                 "BIOT" = pal_contribution[3])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Eastern Indo-Pacific (n = 65)", x = "", y = "log10(Biomass+1)") +
+  labs(title = "Eastern Indo-Pacific (n = 68)", x = "", y = "log10(Biomass+1)") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -133,7 +135,7 @@ eastern_indo_pacific_mean <- partial_realm_mean |>
 
 tropical_atlantic_mean <- partial_realm_mean |> 
   dplyr::filter(var %in% c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)", "pH min"),
-                realm == "Tropical Atlantic (n = 44)") |> 
+                realm == "Tropical Atlantic (n = 46)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
   dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)", "pH min"))) |> 
@@ -146,7 +148,7 @@ tropical_atlantic_mean <- partial_realm_mean |>
                                 "BIOT" = pal_contribution[3])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Tropical Atlantic (n = 44)", x = "", y = "log10(Biomass+1)", color = " ") +
+  labs(title = "Tropical Atlantic (n = 46)", x = "", y = "log10(Biomass+1)", color = " ") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),
@@ -156,7 +158,7 @@ tropical_atlantic_mean <- partial_realm_mean |>
 
 tropical_eastern_pacific_mean <- partial_realm_mean |> 
   dplyr::filter(var %in% c("Depth", "Gravity", "MED", "SSS mean", "NPP mean", "Neartt"),
-                realm == "Tropical Eastern Pacific (n = 34)") |> 
+                realm == "Tropical Eastern Pacific (n = 37)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
   dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "Gravity", "MED", "SSS mean", "NPP mean", "Neartt"))) |> 
@@ -168,7 +170,7 @@ tropical_eastern_pacific_mean <- partial_realm_mean |>
                                 "HAB" = pal_contribution[13])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
-  labs(title = "Tropical Eastern Pacific (n = 34)", x = "", y = "log10(Biomass+1)") +
+  labs(title = "Tropical Eastern Pacific (n = 37)", x = "", y = "log10(Biomass+1)") +
   theme(axis.text.x = element_text(size = 8),
         axis.text.y = element_text(size = 8),
         axis.title = element_text(size = 12),

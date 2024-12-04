@@ -1,6 +1,9 @@
 load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
 load("data/new_derived_data/rls_covariates.RData")
+load("data/new_derived_data/rls_biomass.RData")
 load("data/new_raw_data/00_rls_surveys.Rdata")
+
+species <- colnames(rls_biomass)[!colnames(rls_biomass) %in% c("survey_id", "latitude", "longitude", "site_code")]
 
 rls_surveys$survey_id <- as.character(rls_surveys$survey_id)
 rls_fish_data <- dplyr::inner_join(RLS_actinopterygii_data, rls_surveys)
@@ -9,8 +12,9 @@ rls_coral_fish <- rls_fish_data |>
   dplyr::filter(survey_id %in% rls_covariates$survey_id)
 
 rls_coral_fish_mean_biomass <- rls_coral_fish |> 
-  dplyr::group_by(survey_id, site_code, species_name, latitude, longitude, survey_date, depth) |> 
+  dplyr::group_by(survey_id, site_code, species_name, latitude, longitude, survey_date, depth) |>
   dplyr::summarise(biomass = sum(biomass))
+
 
 rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::group_by(species_name) |>
@@ -18,7 +22,7 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass |>
   dplyr::filter(count >= 50) |>
   dplyr::select(survey_id, species_name, biomass, latitude, longitude)
 
-rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |> 
+rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
   dplyr::inner_join(rls_surveys)
 
 sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE)
@@ -49,6 +53,7 @@ phylo <- unique(phylo)
 
 n_phylo <- rls_coral_fish_mean_biomass_count |> 
   dplyr::inner_join(phylo, multiple = "first") |> 
+  dplyr::ungroup() |> 
   dplyr::select(species_name, family) |> 
   unique() |> 
   dplyr::group_by(family) |> 
@@ -58,27 +63,33 @@ phylo <- phylo |>
   dplyr::filter(n >= 10) |> 
   dplyr::select(-n)
 
-rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::inner_join(sp_car) |> 
-  dplyr::inner_join(rls_covariates) |> 
+rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
+  dplyr::inner_join(sp_car) |>
+  dplyr::inner_join(rls_covariates) |>
   dplyr::inner_join(phylo)
 
-realm_selec <- rls_coral_fish_mean_biomass_count |> 
+realm_selec <- rls_coral_fish_mean_biomass_count |>
   dplyr::ungroup() |>
-  dplyr::select(survey_id, realm) |> 
-  unique() |> 
-  dplyr::group_by(realm) |> 
-  dplyr::summarise(n = dplyr::n()) |> 
+  dplyr::select(survey_id, realm) |>
+  unique() |>
+  dplyr::group_by(realm) |>
+  dplyr::summarise(n = dplyr::n()) |>
   dplyr::filter(n > 100)
 
-rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::ungroup() |> 
+rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
+  dplyr::ungroup() |>
   dplyr::filter(realm %in% realm_selec$realm)
 
 mean_global <- mean(rls_coral_fish_mean_biomass_count$biomass)
 med_global <- median(rls_coral_fish_mean_biomass_count$biomass)
 min_global <- min(rls_coral_fish_mean_biomass_count$biomass)
 max_global <- max(rls_coral_fish_mean_biomass_count$biomass)
+
+rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
+  dplyr::group_by(species_name, ecoregion, realm) |> 
+  dplyr::summarise(biomass = sum(biomass)) |> 
+  dplyr::inner_join(phylo) |> 
+  dplyr::inner_join(sp_car)
 
 stat_biomass_eco <- rls_coral_fish_mean_biomass_count |> 
   dplyr::group_by(ecoregion) |> 
@@ -109,21 +120,23 @@ stat_biomass_realm_fam <- rls_coral_fish_mean_biomass_count |>
                    q75_biomass = quantile(biomass, probs = 0.75),
                    inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
 
-rls_coral_fish_mean_biomass_count$biomass <- log10(rls_coral_fish_mean_biomass_count$biomass + 1)
-
 library(ggplot2)
 
 pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), RColorBrewer::brewer.pal(n = 5, name = "Set3"))
 
-troph_realm <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::mutate(troph_reordered = tidytext::reorder_within(Trophic_guild_name, biomass, realm, fun = median))
+
+troph_realm <- stat_biomass_realm_troph |> 
+  dplyr::mutate(med_biomass = log10(med_biomass + 1)) |> 
+  dplyr::inner_join(rls_coral_fish_mean_biomass_count) |>
+  dplyr::mutate(troph_reordered = tidytext::reorder_within(Trophic_guild_name, med_biomass, realm),
+                biomass = log10(biomass + 1))
 
 biomass_realm_troph_plot <- ggplot(troph_realm, aes(x = troph_reordered, y = biomass)) +
   geom_point(position = "jitter", alpha = 0.2, size = 0.5) +
   geom_boxplot(aes(fill = Trophic_guild_name), alpha = 0.9, outlier.shape = NA) +
-  facet_wrap(~ realm, scales = "free_x") +
-  theme_bw() +
   scale_fill_manual(values = pal_contribution) +
+  theme_bw() +
+  facet_wrap(~ realm, scales = "free_x") +
   tidytext::scale_x_reordered() +
   labs(y = "log10(Biomass + 1)", x = "", fill = "Trophic group", title = "A.") +
   theme(title = element_text(size = 15),
@@ -136,13 +149,15 @@ biomass_realm_troph_plot <- ggplot(troph_realm, aes(x = troph_reordered, y = bio
         strip.text.y = element_text(size = 15),
         strip.background = element_blank())
 
-fam_realm <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::mutate(fam_reordered = tidytext::reorder_within(family, biomass, realm, fun = median))
+fam_realm <- stat_biomass_realm_fam |> 
+  dplyr::mutate(med_biomass = log10(med_biomass + 1)) |> 
+  dplyr::inner_join(rls_coral_fish_mean_biomass_count) |>
+  dplyr::mutate(fam_reordered = tidytext::reorder_within(family, med_biomass, realm),
+                biomass = log10(biomass + 1))
 
 biomass_realm_fam_plot <- ggplot(fam_realm, aes(x = fam_reordered, y = biomass)) +
   geom_point(position = "jitter", alpha = 0.2, size = 0.5) +
   geom_boxplot(aes(fill = family), alpha = 0.9, outlier.shape = NA) +
-  geom_smooth(method = "lm", se = FALSE) +
   facet_wrap(~ realm, scales = "free_x") +
   theme_bw() +
   scale_fill_manual(values = pal_contribution) +
@@ -164,12 +179,16 @@ troph_fam_biomass_realm_plot <- biomass_realm_troph_plot / biomass_realm_fam_plo
 
 ggsave("figures/troph_fam_biomass_realm_plot.png", troph_fam_biomass_realm_plot, width = 12, height = 16)
 
-biomass_realm_ecoregion_plot <- rls_coral_fish_mean_biomass_count |> 
-  dplyr::mutate(ecoregion = reorder(ecoregion, biomass, FUN = median)) |>
-  ggplot(aes(x = ecoregion, y = biomass, fill = realm)) +
-  geom_point(position = "jitter", alpha = 0.2, size = 0.5) +
-  geom_boxplot(alpha = 0.9, outlier.shape = NA) +
-  geom_abline(slope = 0, intercept = median(rls_coral_fish_mean_biomass_count$biomass), color = "red", linewidth = 1.3, linetype = 2) +
+
+biomass_realm_ecoregion_plot <- stat_biomass_eco |> 
+  dplyr::mutate(med_biomass = log10(med_biomass + 1)) |> 
+  dplyr::inner_join(rls_coral_fish_mean_biomass_count) |> 
+  dplyr::mutate(ecoregion = reorder(ecoregion, med_biomass),
+                biomass = log10(biomass + 1)) |> 
+  ggplot() +
+  geom_point(aes(x = ecoregion, y = biomass), size = 0.5, position = "jitter", alpha = 0.5) +
+  geom_boxplot(aes(x = ecoregion, y = biomass, fill = realm), alpha = 0.9, outlier.shape = NA) +
+  geom_abline(slope = 0, intercept = log10(med_global + 1), color = "red", linewidth = 1.3, linetype = 2) +
   scale_fill_manual(values = pal_contribution) +
   theme_classic() +
   labs(y = "log10(Biomass + 1)", x = "Ecoregion", fill = "Realm") +

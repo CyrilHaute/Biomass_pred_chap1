@@ -246,10 +246,8 @@ merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), fu
 
 covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
-  if(i == 1) {
-  
   covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
-                                     title = "B.",
+                                     title = "",
                                      legend.position = "none",
                                      title.size = 13,
                                      axis.text.x = 11,
@@ -259,22 +257,6 @@ covariates_importance_all <- lapply(1:length(contribution_realm_data), function(
                                      strip.text.x = 13,
                                      strip.text.y = 9,
                                      fill = "Covariate categories")
-    
-  }else{
-    
-    covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
-                                       title = "",
-                                       legend.position = "none",
-                                       title.size = 13,
-                                       axis.text.x = 11,
-                                       axis.text.y = 11,
-                                       axis.title = 13,
-                                       legend.text = 15,
-                                       strip.text.x = 13,
-                                       strip.text.y = 9,
-                                       fill = "Covariate categories")
-    
-  }
   
 })
 
@@ -285,7 +267,7 @@ rls_map <- ggplot(data = world) +
   scale_x_continuous(limits = c(-180, 180)) +
   scale_y_continuous(limits = c(-60, 60)) +
   theme_classic() +
-  labs(title = "A.") +
+  labs(title = "") +
   theme(legend.position = "none",
         axis.text = element_text(size = 15),
         title = element_text(size = 13))
@@ -300,7 +282,7 @@ map_contribution_merged_realm <- rls_map +
   theme(legend.position = "right")
 
 covariates_importance_all_bind <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]] + covariates_importance_all[[4]] + covariates_importance_all[[5]])
-covariates_importance_realm <- map_contribution_merged_realm / covariates_importance_all_bind
-ggplot2::ggsave("figures/covariates_importance_realm.png", covariates_importance_realm, height = 16, width = 20)
+
+ggplot2::ggsave("figures/covariates_importance_map.png", map_contribution_merged_realm, height = 6, width = 15)
 
 ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 20)
