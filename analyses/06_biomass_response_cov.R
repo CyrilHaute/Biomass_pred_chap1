@@ -110,12 +110,12 @@ for(i in 1:length(rls_biomass_realm)) {
   
 }
 
-########### Species-specific biomass models per realm with GAM ###########
+########### Species-specific biomass models per realm with SPAMM ###########
 
 base_dir <- "outputs/realm_partial_spamm/"
 species_name_spamm <- best_models[best_models$best_model == "spamm",]$species_name
 
-for(i in 1:length(rls_biomass_realm)) {
+for(i in 2:length(rls_biomass_realm)) {
   
   realm <- rls_biomass_realm[[i]]
   

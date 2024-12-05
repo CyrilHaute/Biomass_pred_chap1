@@ -30,10 +30,13 @@ partial_function_spamm <- function(biomass,
   covnames_new <- names(covariates)
   covnames_new <- covnames_new[-which(covnames_new %in% c("survey_id", "protection_status2"))]
   covnames_new <- c(covnames_new, "factor(protection_status2)", "Matern(1 | longitude + latitude)")
-  
+  covnames_new_bis <- covnames_new[-which(covnames_new %in% c("factor(protection_status2)"))]
+
   covnames_combined <- paste0(covnames_new, collapse = " + ")
+  covnames_combined2 <- paste0(covnames_new_bis, collapse = " + ")
   
   model_formula <- as.formula(paste0(response, covnames_combined))
+  model_formula2 <- as.formula(paste0(response, covnames_combined2))
   
   # First, select only zero within the living area of the species considered
   
@@ -79,9 +82,20 @@ partial_function_spamm <- function(biomass,
   # add covariates
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id")
   
+  sp$protection_status2 <- as.factor(as.character(sp$protection_status2))
+  
   # Fit the model
   
-  model_fit <- spaMM::fitme(model_formula, data = sp, method = "ML")
+  if(length(unique(sp$protection_status2)) == 1){
+    
+    model_fit <- spaMM::fitme(model_formula2, data = sp, method = "ML")
+    
+  }else{
+    
+
+    model_fit <- spaMM::fitme(model_formula, data = sp, method = "ML")
+    
+  }
   
   cov <- sp[!colnames(sp) %in% c("survey_id", "biomass", "longitude", "latitude", "site_code")]
   
