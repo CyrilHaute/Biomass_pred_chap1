@@ -85,34 +85,34 @@ med_global <- median(rls_coral_fish_mean_biomass_count$biomass)
 min_global <- min(rls_coral_fish_mean_biomass_count$biomass)
 max_global <- max(rls_coral_fish_mean_biomass_count$biomass)
 
-rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
-  dplyr::group_by(species_name, ecoregion, realm) |> 
-  dplyr::summarise(biomass = sum(biomass)) |> 
-  dplyr::inner_join(phylo) |> 
+rls_coral_fish_mean_biomass_count2 <- rls_coral_fish_mean_biomass_count |>
+  dplyr::group_by(species_name, ecoregion, realm) |>
+  dplyr::summarise(biomass = mean(biomass)) |>
+  dplyr::inner_join(phylo) |>
   dplyr::inner_join(sp_car)
 
-stat_biomass_eco <- rls_coral_fish_mean_biomass_count |> 
+stat_biomass_eco <- rls_coral_fish_mean_biomass_count2 |> 
   dplyr::group_by(ecoregion) |> 
   dplyr::summarise(med_biomass = median(biomass),
                    sd_biomass = sd(biomass),
                    max_biomass = max(biomass),
                    min_biomass = min(biomass),
                    inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
-stat_biomass_realm <- rls_coral_fish_mean_biomass_count |> 
+stat_biomass_realm <- rls_coral_fish_mean_biomass_count2 |> 
   dplyr::group_by(realm) |> 
   dplyr::summarise(med_biomass = median(biomass),
                    max_biomass = max(biomass),
                    q95_biomass = quantile(biomass, probs = 0.95),
                    q75_biomass = quantile(biomass, probs = 0.75),
                    inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
-stat_biomass_realm_troph <- rls_coral_fish_mean_biomass_count |> 
+stat_biomass_realm_troph <- rls_coral_fish_mean_biomass_count2 |> 
   dplyr::group_by(realm, Trophic_guild_name) |> 
   dplyr::summarise(med_biomass = median(biomass),
                    max_biomass = max(biomass),
                    q95_biomass = quantile(biomass, probs = 0.95),
                    q75_biomass = quantile(biomass, probs = 0.75),
                    inf_med = ifelse(med_biomass < med_global, TRUE, FALSE))
-stat_biomass_realm_fam <- rls_coral_fish_mean_biomass_count |> 
+stat_biomass_realm_fam <- rls_coral_fish_mean_biomass_count2 |> 
   dplyr::group_by(realm, family) |> 
   dplyr::summarise(med_biomass = median(biomass),
                    max_biomass = max(biomass),
@@ -127,7 +127,7 @@ pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), RColorBrew
 
 troph_realm <- stat_biomass_realm_troph |> 
   dplyr::mutate(med_biomass = log10(med_biomass + 1)) |> 
-  dplyr::inner_join(rls_coral_fish_mean_biomass_count) |>
+  dplyr::inner_join(rls_coral_fish_mean_biomass_count2) |>
   dplyr::mutate(troph_reordered = tidytext::reorder_within(Trophic_guild_name, med_biomass, realm),
                 biomass = log10(biomass + 1))
 
@@ -151,7 +151,7 @@ biomass_realm_troph_plot <- ggplot(troph_realm, aes(x = troph_reordered, y = bio
 
 fam_realm <- stat_biomass_realm_fam |> 
   dplyr::mutate(med_biomass = log10(med_biomass + 1)) |> 
-  dplyr::inner_join(rls_coral_fish_mean_biomass_count) |>
+  dplyr::inner_join(rls_coral_fish_mean_biomass_count2) |>
   dplyr::mutate(fam_reordered = tidytext::reorder_within(family, med_biomass, realm),
                 biomass = log10(biomass + 1))
 
@@ -182,13 +182,13 @@ ggsave("figures/troph_fam_biomass_realm_plot.png", troph_fam_biomass_realm_plot,
 
 biomass_realm_ecoregion_plot <- stat_biomass_eco |> 
   dplyr::mutate(med_biomass = log10(med_biomass + 1)) |> 
-  dplyr::inner_join(rls_coral_fish_mean_biomass_count) |> 
+  dplyr::inner_join(rls_coral_fish_mean_biomass_count2) |> 
   dplyr::mutate(ecoregion = reorder(ecoregion, med_biomass),
                 biomass = log10(biomass + 1)) |> 
   ggplot() +
   geom_point(aes(x = ecoregion, y = biomass), size = 0.5, position = "jitter", alpha = 0.5) +
   geom_boxplot(aes(x = ecoregion, y = biomass, fill = realm), alpha = 0.9, outlier.shape = NA) +
-  geom_abline(slope = 0, intercept = log10(med_global + 1), color = "red", linewidth = 1.3, linetype = 2) +
+  geom_abline(slope = 0, intercept = log10(med_global + 1), color = "black", linewidth = 1.3, linetype = 2) +
   scale_fill_manual(values = pal_contribution) +
   theme_classic() +
   labs(y = "log10(Biomass + 1)", x = "Ecoregion", fill = "Realm") +
