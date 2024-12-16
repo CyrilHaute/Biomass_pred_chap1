@@ -80,16 +80,16 @@ rls_coral_fish_mean_biomass_count <- rls_coral_fish_mean_biomass_count |>
   dplyr::ungroup() |>
   dplyr::filter(realm %in% realm_selec$realm)
 
-mean_global <- mean(rls_coral_fish_mean_biomass_count$biomass)
-med_global <- median(rls_coral_fish_mean_biomass_count$biomass)
-min_global <- min(rls_coral_fish_mean_biomass_count$biomass)
-max_global <- max(rls_coral_fish_mean_biomass_count$biomass)
-
 rls_coral_fish_mean_biomass_count2 <- rls_coral_fish_mean_biomass_count |>
   dplyr::group_by(species_name, ecoregion, realm) |>
   dplyr::summarise(biomass = mean(biomass)) |>
   dplyr::inner_join(phylo) |>
   dplyr::inner_join(sp_car)
+
+mean_global <- mean(rls_coral_fish_mean_biomass_count2$biomass)
+med_global <- median(rls_coral_fish_mean_biomass_count2$biomass)
+min_global <- min(rls_coral_fish_mean_biomass_count2$biomass)
+max_global <- max(rls_coral_fish_mean_biomass_count2$biomass)
 
 stat_biomass_eco <- rls_coral_fish_mean_biomass_count2 |> 
   dplyr::group_by(ecoregion) |> 
@@ -189,7 +189,7 @@ biomass_realm_ecoregion_plot <- stat_biomass_eco |>
   geom_point(aes(x = biomass, y = ecoregion), size = 0.5, position = "jitter", alpha = 0.5) +
   geom_boxplot(aes(x = biomass, y = ecoregion, fill = realm), alpha = 0.9, outlier.shape = NA) +
   # geom_abline(slope = 0, intercept = log10(med_global + 1), color = "black", linewidth = 1.3, linetype = 2) +
-  geom_vline(xintercept = log10(med_global + 1), color = "black", linewidth = 1.3, linetype = 2) +
+  geom_vline(xintercept = log10(med_global + 1), color = "black", linewidth = 2, linetype = 2) +
   scale_fill_manual(values = pal_contribution) +
   theme_classic() +
   labs(x = "log10(Biomass + 1)", y = "Ecoregion", fill = "Realm") +

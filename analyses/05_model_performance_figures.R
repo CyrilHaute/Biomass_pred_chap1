@@ -1,10 +1,12 @@
 # script to produce figures that evaluate model performances
 
 library(ggplot2)
+library(GGally)
 
 # source functions ----
 
 source("R/04_model_performance_functions.R")
+source("R/10_model_correlation_function.R")
 
 # Set palette colors for performance figures
 
@@ -94,16 +96,38 @@ perf_corr <- lapply(1:length(perf_corr), function(i) {
 })
 perf_corr <- purrr::reduce(perf_corr, dplyr::full_join) |> 
   tidyr::drop_na()
+perf_corr <- perf_corr[, c("species_name", "GLM", "GAM", "SPAMM", "GBM", "RF", "SPRF")]
 
-library(ggplot2)
+legend_plot <- ggplot(data.frame(x = 0, y = 0, cor = c(0.35, 0.85)), aes(fill = cor)) +
+  geom_tile(aes(x = 1, y = cor)) +
+  scale_fill_gradient2(
+    low = "#3B9AB2", mid = "#EEEEEE", high = "#F21A00",
+    midpoint = 0.6, limits = c(0.35, 0.85),
+    name = "Pearson"
+  ) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.key.height = unit(1, "cm"),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 12)
+  )
 
-model_corr_plot <- GGally::ggcorr(perf_corr, 
-                                  label = TRUE,
-                                  limits = c(0.35, 0.85),
-                                  midpoint = mean(c(0.35, 0.85)),
-                                  name = "Pearson")
+# Extraire la légende
+legend <- grab_legend(legend_plot)
 
-ggsave(model_corr_plot, filename = "figures/model_corr_plot.png", width = 7, height = 7)
+corr_plot <- ggpairs(perf_corr[,-1], 
+                     lower = list(continuous = custom_ggally_scat),
+                     upper = list(continuous = custom_ggally_cor),
+                     diag = list(continuous = custom_diag_text),
+                     legend = legend)  +
+  theme(
+    strip.text = element_blank(),
+    strip.background = element_blank(),
+    panel.spacing = unit(-0.2, "cm")
+  )
+
+ggsave(corr_plot, filename = "figures/model_corr_plot.png", width = 10, height = 7)
 
 # Select only the best model for each species
 
