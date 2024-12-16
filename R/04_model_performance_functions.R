@@ -57,8 +57,8 @@ aggregate_metrics <- function(plot_data,
 
 performance_plot <- function(plot_data,
                              metrics_sel, #options are pearson, spearman, slope and intercept
-                             slope,
-                             intercept,
+                             # slope,
+                             # intercept,
                              color,
                              ylim,
                              legend.position,
@@ -69,11 +69,11 @@ performance_plot <- function(plot_data,
   
   plot_perf <- plot_data |> 
     dplyr::filter(metric == metrics_sel) |> 
-    dplyr::mutate(model = forcats::fct_relevel(model, "glm", "gam", "spamm", "gbm", "sprf", "rf")) |> 
+    dplyr::mutate(model = forcats::fct_relevel(model, "GLM", "GAM", "SPAMM", "GBM", "SPRF", "RF")) |> 
     ggplot() +
     # geom_boxplot(alpha = 0.9, outlier.shape = NA, size = 1) +
     geom_boxplot(aes(x = model, y = value, fill = cat), alpha = 0.8, outlier.shape = NA, size = 0.9) +
-    geom_abline(slope = slope, intercept = intercept, linetype = 2, size = 1.25, color = "red") +
+    # geom_abline(slope = slope, intercept = intercept, linetype = 2, size = 1.25, color = "red") +
     scale_fill_manual(values = c("Best models" = pal_perf[6],
                                  "All models" = pal_perf[2])) +
     theme_bw() +
@@ -81,13 +81,13 @@ performance_plot <- function(plot_data,
     theme(legend.position = legend.position,
           legend.direction = "horizontal") +
     labs(y = metrics_sel, x = "", title = plot_title, fill = "") +
-    theme(title = element_text(size=20),
-          axis.text=element_text(size=25),
-          axis.title=element_text(size=30),
-          legend.text=element_text(size=20), 
-          legend.title=element_text(size=25),
-          strip.text.x = element_text(size = 20),
-          strip.text.y = element_text(size = 20),
+    theme(title = element_text(size=15),
+          axis.text=element_text(size=20),
+          axis.title=element_text(size=25),
+          legend.text=element_text(size=15), 
+          legend.title=element_text(size=20),
+          strip.text.x = element_text(size = 15),
+          strip.text.y = element_text(size = 15),
           strip.background = element_blank(),
           panel.background = element_rect(fill = "white", colour = "grey50",
                                           size = 1, linetype = "solid"),

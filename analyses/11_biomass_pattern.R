@@ -186,20 +186,21 @@ biomass_realm_ecoregion_plot <- stat_biomass_eco |>
   dplyr::mutate(ecoregion = reorder(ecoregion, med_biomass),
                 biomass = log10(biomass + 1)) |> 
   ggplot() +
-  geom_point(aes(x = ecoregion, y = biomass), size = 0.5, position = "jitter", alpha = 0.5) +
-  geom_boxplot(aes(x = ecoregion, y = biomass, fill = realm), alpha = 0.9, outlier.shape = NA) +
-  geom_abline(slope = 0, intercept = log10(med_global + 1), color = "black", linewidth = 1.3, linetype = 2) +
+  geom_point(aes(x = biomass, y = ecoregion), size = 0.5, position = "jitter", alpha = 0.5) +
+  geom_boxplot(aes(x = biomass, y = ecoregion, fill = realm), alpha = 0.9, outlier.shape = NA) +
+  # geom_abline(slope = 0, intercept = log10(med_global + 1), color = "black", linewidth = 1.3, linetype = 2) +
+  geom_vline(xintercept = log10(med_global + 1), color = "black", linewidth = 1.3, linetype = 2) +
   scale_fill_manual(values = pal_contribution) +
   theme_classic() +
-  labs(y = "log10(Biomass + 1)", x = "Ecoregion", fill = "Realm") +
+  labs(x = "log10(Biomass + 1)", y = "Ecoregion", fill = "Realm") +
   theme(title = element_text(size = 18),
-        axis.text.x = element_text(size = 10, angle = 55, hjust = 1),
+        axis.text.x = element_text(size = 10, hjust = 1),
         axis.text.y = element_text(size = 12),
         axis.title = element_text(size = 14),
         legend.text = element_text(size = 10),
         strip.text.x = element_text(size = 20),
         strip.text.y = element_text(size = 20))
 # ggsave("figures/biomass_realm_ecoregion_plot.pdf", biomass_realm_ecoregion_plot, width = 20, height = 8)  
-ggsave("figures/biomass_realm_ecoregion_plot.png", biomass_realm_ecoregion_plot, width = 20, height = 8)  
+ggsave("figures/biomass_realm_ecoregion_plot.png", biomass_realm_ecoregion_plot, width = 11, height = 15)  
 
 

@@ -35,7 +35,8 @@ performance_bind <- performance_bind |>
   dplyr::select(species_name, pearson, spearman, model) |> 
   dplyr::inner_join(sp_car) |> 
   dplyr::inner_join(sp_count) |> 
-  dplyr::inner_join(phylo)
+  dplyr::inner_join(phylo) |> 
+  dplyr::select(-species_name)
 
 pearson_model <- ranger::ranger(x = performance_bind[!colnames(performance_bind) %in% c("pearson", "spearman")],
                                 y = unlist(performance_bind[colnames(performance_bind) %in% "pearson"]),
@@ -48,16 +49,22 @@ spearman_model <- ranger::ranger(x = performance_bind[!colnames(performance_bind
 var_imp <- data.frame(pearson = pearson_model$variable.importance,
                       spearman = spearman_model$variable.importance,
                       covariates = unique(names(c(pearson_model$variable.importance, spearman_model$variable.importance))))
-var_imp[var_imp$covariates == "species_name",]$covariates <- "Species"
 var_imp[var_imp$covariates == "model",]$covariates <- "Model"
-var_imp[var_imp$covariates == "MaxLength",]$covariates <- "Maximum Length (cm)"
-var_imp[var_imp$covariates == "Trophic_guild_name",]$covariates <- "Trophic classes"
-var_imp[var_imp$covariates == "count",]$covariates <- "Occurrence"
+var_imp[var_imp$covariates == "MaxLength",]$covariates <- "Maximum body length"
+var_imp[var_imp$covariates == "Trophic_guild_name",]$covariates <- "Trophic class"
+var_imp[var_imp$covariates == "count",]$covariates <- "Number of occurrences"
 var_imp[var_imp$covariates == "order",]$covariates <- "Order"
 var_imp[var_imp$covariates == "family",]$covariates <- "Family"
-var_imp[var_imp$covariates == "Water.column",]$covariates <- "Water Column"
+var_imp[var_imp$covariates == "Water.column",]$covariates <- "Water column position"
+colnames(var_imp)[colnames(var_imp) == "pearson"] <- "Pearson"
+colnames(var_imp)[colnames(var_imp) == "spearman"] <- "Spearman"
+var_imp$cov_type <- NA
 var_imp <- var_imp |> 
-  tidyr::pivot_longer(c("pearson", "spearman"),
+  dplyr::mutate(cov_type = dplyr::case_when(covariates %in% c("Order", "Family") ~ "Taxonomy",
+                                           covariates %in% c("Maximum body length", "Trophic class", "Number of occurrences", "Habitat", "Water column position") ~ "Traits",
+                                           covariates %in% c("Model") ~ "Model"))
+var_imp <- var_imp |> 
+  tidyr::pivot_longer(c("Pearson", "Spearman"),
                       names_to = "peformance")
 
 var_imp <- var_imp |> 
@@ -65,8 +72,13 @@ var_imp <- var_imp |>
 
 library(ggplot2)
 
+pal <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
+
 perf_imp_var <- ggplot(var_imp) +
-  geom_col(aes(x = reorder(covariates, value), y = value)) +
+  geom_col(aes(x = reorder(covariates, value), y = value, fill = cov_type)) +
+  scale_fill_manual(values = c("Traits" = pal[2],
+                               "Taxonomy" = pal[4],
+                               "Model" = pal[6])) + 
   theme_minimal() +
   coord_flip() +
   facet_wrap(~ peformance, scales = "free_y") +
@@ -76,7 +88,7 @@ perf_imp_var <- ggplot(var_imp) +
         axis.title = element_text(size = 12),
         strip.text.x = element_text(size = 10),
         strip.text.y = element_text(size = 10)) + 
-  labs(x = "", y = "Importance", title = "A.")
+  labs(x = "", y = "Importance", title = "A.", fill = "")
 
 patial_pear_count <- pdp::partial(pearson_model, train = performance_bind, pred.var = c("count")) |> 
   dplyr::rename(pearson = yhat)
@@ -84,17 +96,17 @@ patial_spear_count <- pdp::partial(spearman_model, train = performance_bind, pre
   dplyr::rename(spearman = yhat)
 patial_count <- patial_pear_count |> 
   dplyr::inner_join(patial_spear_count) |>
-  tidyr::pivot_longer(c("pearson", "spearman"),
+  dplyr::rename(Pearson = pearson,
+                Spearman = spearman) |> 
+  tidyr::pivot_longer(c("Pearson", "Spearman"),
                       names_to = "performance")
-
-pal <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
 
 patial_count_plot <- patial_count |> 
   ggplot() +
   geom_line(aes(x = count, y = value, color = performance), size = 1.2) +
-  scale_color_manual(values = c("pearson" = pal[6],
-                                "spearman" = pal[2])) +
-  labs(y = "", x = "Occurrence", color = "", title = "B.") +
+  scale_color_manual(values = c("Pearson" = pal[6],
+                                "Spearman" = pal[2])) +
+  labs(y = "", x = "Number of occurrences", color = "", title = "B.") +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),
@@ -109,15 +121,17 @@ patial_spear_ml <- pdp::partial(spearman_model, train = performance_bind, pred.v
   dplyr::rename(spearman = yhat)
 patial_ml <- patial_pear_ml |> 
   dplyr::inner_join(patial_spear_ml) |>
-  tidyr::pivot_longer(c("pearson", "spearman"),
+  dplyr::rename(Pearson = pearson,
+                Spearman = spearman) |> 
+  tidyr::pivot_longer(c("Pearson", "Spearman"),
                       names_to = "performance")
 
 patial_ml_plot <- patial_ml |> 
   ggplot() +
   geom_line(aes(x = MaxLength, y = value, color = performance), size = 1.2) +
-  scale_color_manual(values = c("pearson" = pal[6],
-                                "spearman" = pal[2])) +
-  labs(y = "", x = "Maximum Length (cm)", color = "") +
+  scale_color_manual(values = c("Pearson" = pal[6],
+                                "Spearman" = pal[2])) +
+  labs(y = "", x = "Maximum body length", color = "") +
   theme_minimal() +
   theme(axis.text.x = element_text(size = 10),
         axis.text.y = element_text(size = 10),

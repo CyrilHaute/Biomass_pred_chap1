@@ -44,27 +44,41 @@ best_models_pr[best_models_pr$best_model == "gbm",4]$colors <- pal_best[4]
 best_models_pr[best_models_pr$best_model == "sprf",4]$colors <- pal_best[5]
 best_models_pr[best_models_pr$best_model == "rf",4]$colors <- pal_best[6]
 
+best_models_pr[best_models_pr$best_model == "gam",]$best_model <- "GAM"
+best_models_pr[best_models_pr$best_model == "gbm",]$best_model <- "GBM"
+best_models_pr[best_models_pr$best_model == "glm",]$best_model <- "GLM"
+best_models_pr[best_models_pr$best_model == "rf",]$best_model <- "RF"
+best_models_pr[best_models_pr$best_model == "spamm",]$best_model <- "SPAMM"
+best_models_pr[best_models_pr$best_model == "sprf",]$best_model <- "SPRF"
+
 best_model <- best_models_pr |> 
   dplyr::mutate(best_model = forcats::fct_reorder(best_model, pr)) |> 
   ggplot(aes(x = best_model, y = pr, fill = best_model)) +
   geom_bar(width = 0.8, stat = 'identity') +
-  scale_fill_manual(values = c("glm" = pal_best[1],
-                               "gam" = pal_best[2],
-                               "spamm" = pal_best[3],
-                               "gbm" = pal_best[4],
-                               "sprf" = pal_best[5],
-                               "rf" = pal_best[6])) +
-  labs(x = "Statistic methods", y = "Best model (%)", fill = "Method", title = "B.") +
-  theme(title = element_text(size = 20),
-        axis.text = element_text(size = 25),
-        axis.title = element_text(size = 30),
-        legend.text = element_text(size = 20), 
-        legend.title = element_text(size = 25),
+  scale_fill_manual(values = c("GLM" = pal_best[1],
+                               "GAM" = pal_best[2],
+                               "SPAMM" = pal_best[3],
+                               "GBM" = pal_best[4],
+                               "SPRF" = pal_best[5],
+                               "RF" = pal_best[6])) +
+  labs(x = "Statistical model", y = "Best model (%)", fill = "Method", title = "B.") +
+  theme(title = element_text(size = 15),
+        axis.text = element_text(size = 20),
+        axis.title = element_text(size = 20),
+        legend.text = element_text(size = 15), 
+        legend.title = element_text(size = 20),
         legend.position = "none",
         panel.background = element_rect(fill = "white", colour = "grey50",
                                         size = 1, linetype = "solid"),
         panel.grid.major = element_blank(), 
         panel.grid.minor = element_blank())
+
+performance_bind[performance_bind$model == "gam",]$model <- "GAM"
+performance_bind[performance_bind$model == "gbm",]$model <- "GBM"
+performance_bind[performance_bind$model == "glm",]$model <- "GLM"
+performance_bind[performance_bind$model == "rf",]$model <- "RF"
+performance_bind[performance_bind$model == "spamm",]$model <- "SPAMM"
+performance_bind[performance_bind$model == "sprf",]$model <- "SPRF"
 
 perf_corr <- performance_bind |> 
   tidyr::drop_na() |> 
@@ -83,7 +97,11 @@ perf_corr <- purrr::reduce(perf_corr, dplyr::full_join) |>
 
 library(ggplot2)
 
-model_corr_plot <- GGally::ggcorr(perf_corr, label = TRUE)
+model_corr_plot <- GGally::ggcorr(perf_corr, 
+                                  label = TRUE,
+                                  limits = c(0.35, 0.85),
+                                  midpoint = mean(c(0.35, 0.85)),
+                                  name = "Pearson")
 
 ggsave(model_corr_plot, filename = "figures/model_corr_plot.png", width = 7, height = 7)
 
@@ -141,19 +159,29 @@ performance_all_best$cat <- NA
 performance_all_best[which(performance_all_best$model == performance_all_best$best_model),6] <- "Best models"
 performance_all_best[which(is.na(performance_all_best$cat) == TRUE),6] <- "All models"
 
+performance_all_best[performance_all_best$model == "gam",]$model <- "GAM"
+performance_all_best[performance_all_best$model == "gbm",]$model <- "GBM"
+performance_all_best[performance_all_best$model == "glm",]$model <- "GLM"
+performance_all_best[performance_all_best$model == "rf",]$model <- "RF"
+performance_all_best[performance_all_best$model == "spamm",]$model <- "SPAMM"
+performance_all_best[performance_all_best$model == "sprf",]$model <- "SPRF"
+
+performance_all_best[performance_all_best$metric == "pearson",]$metric <- "Pearson"
+performance_all_best[performance_all_best$metric == "spearman",]$metric <- "Spearman"
+
 plot_pearson <- performance_plot(performance_all_best,
-                                 metrics_sel = "pearson",
-                                 slope = 0,
-                                 intercept = 1,
+                                 metrics_sel = "Pearson",
+                                 # slope = 0,
+                                 # intercept = 1,
                                  color = pal_perf,
                                  ylim = c(-0.4, 1),
                                  legend.position = 'none',
                                  plot_title = "A.")
 
 plot_spearman <- performance_plot(performance_all_best,
-                                  metrics_sel = "spearman",
-                                  slope = 0,
-                                  intercept = 1,
+                                  metrics_sel = "Spearman",
+                                  # slope = 0,
+                                  # intercept = 1,
                                   color = pal_perf,
                                   ylim = c(-0.4, 1),
                                   legend.position = c(0.5, 0.1),

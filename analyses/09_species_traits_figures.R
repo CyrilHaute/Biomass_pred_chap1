@@ -478,7 +478,7 @@ plot_scaridae <- ggplot(scaridae) +
   geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
   theme_bw() +
   coord_flip() +
-  facet_wrap(~species_name, scales = "free_y", ncol = 5) +
+  facet_wrap(~species_name, scales = "free_y", ncol = 4) +
   tidytext::scale_x_reordered() +
   scale_fill_manual(values = c("ENV" = pal_sp_trait[2],
                                "HUM" = pal_sp_trait[1],
@@ -495,7 +495,7 @@ plot_scaridae <- ggplot(scaridae) +
     axis.title = element_text(size = 15),
     legend.text = element_text(size = 15),
     legend.title = element_text(size = 15),
-    strip.text.x = element_text(size = 12),
+    strip.text.x = element_text(size = 12, face = "italic"),
     strip.text.y = element_text(size = 15),
     strip.background = element_blank(),
     panel.background = element_rect(fill = "white", colour = "grey50",
@@ -503,7 +503,7 @@ plot_scaridae <- ggplot(scaridae) +
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank())
 
-ggsave("figures/plot_scaridae.png", plot_scaridae, height = 10, width = 16)
+ggsave("figures/plot_scaridae.png", plot_scaridae, height = 10, width = 13)
 
 
 pomacentridae <- bind_files |>
