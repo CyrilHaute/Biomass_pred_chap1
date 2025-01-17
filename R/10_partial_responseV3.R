@@ -68,10 +68,6 @@ partial_realm$values <- as.numeric(partial_realm$values)
 pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors::pnw_palette("Bay", 6, type = "continuous"))
 
 partial_realm_mean <- partial_realm |>
-  dplyr::group_by(var, id, realm) |>
-  dplyr::summarise(mean_values = median(values),
-                   mean_biomass = median(biomass),
-                   sd_biomass = sd(biomass)) |>
   dplyr::mutate(var_type = dplyr::case_when(var %in% c("SST max", "SST min", "DHW max", "NPP mean", "SSS mean", "pH min") ~ "ENV",
                                             var %in% c("MPA", "GDP", "Gravity", "Fishing", "Neartt", "MED") ~ "HUM",
                                             var %in% c("Rock (%)", "Sand (%)", "Coral/Algae (%)", "Coral (RLS)", "Depth", "Reef extent") ~ "HAB"))
@@ -93,13 +89,12 @@ central_indo_pacific_mean <- partial_realm_mean |>
   dplyr::select(-id) |> 
   dplyr::mutate(var = forcats::fct_relevel(var, c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max"))) |> 
   ggplot() +
-  geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
-  # geom_line(aes(x = mean_values, y = mean_biomass, color = var_type), size = 1) +
-  geom_smooth(aes(x = mean_values, y = mean_biomass, color = var_type), se = FALSE) +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.8, stat = "smooth",  alpha = 0.5) +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), se = FALSE) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
-                               "HUM" = pal_contribution[1],
-                               "HAB" = pal_contribution[13],
-                               "BIOT" = pal_contribution[3])) +
+                                "HUM" = pal_contribution[1],
+                                "HAB" = pal_contribution[13],
+                                "BIOT" = pal_contribution[3])) +
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
   labs(title = "Central Indo-Pacific (n = 32)", x = "", y = "log10(Biomass+1)") +
@@ -211,4 +206,3 @@ temperate_northern_atlantic_mean <- partial_realm_mean |>
 realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean / temperate_northern_atlantic_mean
 
 ggsave("figures/realm_partial_mean_plot2.png", realm_partial_mean_plot, width = 11, height = 13)
-

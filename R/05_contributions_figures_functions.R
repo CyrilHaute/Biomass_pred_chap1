@@ -76,8 +76,9 @@ covariates_importance_all_function <- function(plot_data,
 
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
-    dplyr::full_join(SOC) |> 
-    dplyr::mutate(realm = stringr::str_replace_all(unique(only_model_best$realm), c("_" = " ")))
+    dplyr::full_join(SOC)
+  # |> 
+  #   dplyr::mutate(realm = stringr::str_replace_all(unique(only_model_best$realm), c("_" = " ")))
 
   importance_plot <- ggplot(cont) +
     geom_col(aes(x = reorder(variable, value), y = value, fill = VAR)) +
@@ -88,7 +89,7 @@ covariates_importance_all_function <- function(plot_data,
                                  "HAB" = pal_contribution[13])) +
     theme_minimal() +
     coord_flip() +
-    facet_wrap(~ realm) +
+    # facet_wrap(~ realm) +
     labs(y = "Relative importance (RMSE)", x = "", fill = fill, title = title) +
     theme(legend.position = legend.position) +
     theme(title = element_text(size = title.size),
@@ -572,7 +573,8 @@ plot_merged_covariates_importance_function <- function(plot_data,
 }
 
 
-species_covariates_importance_function <- function(plot_data){
+species_covariates_importance_function <- function(plot_data,
+                                                   group_by){
   
   require(ggplot2)
   
@@ -585,23 +587,23 @@ species_covariates_importance_function <- function(plot_data){
   
   ENV <- plot_data |> 
     dplyr::filter(variable %in% env_var) |>
-    dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::group_by(!!dplyr::sym(group_by)) |> 
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "ENV")
   
   SOC <- plot_data |> 
     dplyr::filter(variable %in% hum_var) |> 
-    dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::group_by(!!dplyr::sym(group_by)) |> 
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HUM")
   
   HAB <- plot_data |> 
     dplyr::filter(variable %in% hab_var) |> 
-    dplyr::group_by(species_name) |> 
-    dplyr::summarise(value = median(Dropout_loss),
-                     sd = median(sd_dropout_loss),
+    dplyr::group_by(!!dplyr::sym(group_by)) |> 
+    dplyr::summarise(value = mean(Dropout_loss),
+                     sd = mean(sd_dropout_loss),
                      VAR = "HAB")
 
 

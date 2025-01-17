@@ -76,8 +76,6 @@ gbm <- do.call(rbind, gbm)
 bind_files <- list(glm, gam, spamm, sprf, rf, gbm)
 bind_files <- purrr::reduce(bind_files, dplyr::full_join)
 
-##### For bind_files
-
 covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
                                                                 title = "A.",
                                                                 legend.position = "none",
@@ -286,3 +284,172 @@ covariates_importance_all_bind <- (covariates_importance_all[[1]] + covariates_i
 ggplot2::ggsave("figures/covariates_importance_map.png", map_contribution_merged_realm, height = 6, width = 15)
 
 ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 20)
+
+##################### Contribution per species #####################
+
+load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
+phylo <- RLS_actinopterygii_data |> 
+  dplyr::select(species_name, order, family)
+phylo <- unique(phylo)
+n_phylo <- bind_files |> 
+  dplyr::inner_join(phylo, multiple = "first") |> 
+  dplyr::select(species_name, family) |> 
+  unique() |> 
+  dplyr::group_by(family) |> 
+  dplyr::summarise(n = dplyr::n())
+phylo <- phylo |> 
+  dplyr::inner_join(n_phylo, by = "family") |> 
+  dplyr::filter(n >= 10) |> 
+  dplyr::select(-n)
+
+scaridae <- bind_files |>
+  dplyr::inner_join(phylo, multiple = "first") |>
+  dplyr::filter(family == "Scaridae") |>
+  dplyr::ungroup() |>
+  dplyr::select(-c(order, family))
+
+scaridae <- species_covariates_importance_function(plot_data = scaridae,
+                                                   group_by = "species_name")
+
+scaridae <- scaridae |>
+  dplyr::mutate(var_reordered = tidytext::reorder_within(VAR, value, species_name))
+
+plot_scaridae <- ggplot(scaridae) +
+  geom_col(aes(x = var_reordered, y = value, fill = VAR)) +
+  geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
+  theme_bw() +
+  coord_flip() +
+  facet_wrap(~species_name, scales = "free_y", ncol = 4) +
+  tidytext::scale_x_reordered() +
+  scale_fill_manual(values = c("ENV" = pal_contribution[2],
+                               "HUM" = pal_contribution[1],
+                               "HAB" = pal_contribution[13])) +
+  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
+  theme(
+    legend.direction = "vertical",
+    legend.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white", color = NA),
+    title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    strip.text.x = element_text(size = 12, face = "italic"),
+    strip.text.y = element_text(size = 15),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white", colour = "grey50",
+                                    size = 1, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+ggsave("figures/plot_scaridae2.png", plot_scaridae, height = 10, width = 13)
+
+# Load species traits
+sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE) |> 
+  dplyr::rename(species_name = Species) |> 
+  dplyr::filter(species_name %in% unique(bind_files$species_name))
+
+sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
+
+sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "Herbivores"
+sp_car[sp_car$Trophic_guild_name == "planktivore",]$Trophic_guild_name <- "Planktivores"
+sp_car[sp_car$Trophic_guild_name == "piscivore",]$Trophic_guild_name <- "Piscivores"
+sp_car[sp_car$Trophic_guild_name == "microinvertivore",]$Trophic_guild_name <- "Microinvertivores"
+sp_car[sp_car$Trophic_guild_name == "macroinvertivore",]$Trophic_guild_name <- "Macroinvertivores"
+sp_car[sp_car$Trophic_guild_name == "sessile invertivores",]$Trophic_guild_name <- "Sessile invertivores"
+sp_car[sp_car$Trophic_guild_name == "corallivore",]$Trophic_guild_name <- "Corallivores"
+sp_car[sp_car$Trophic_guild_name == "crustacivore",]$Trophic_guild_name <- "Crustacivores"
+
+trophic_group <- bind_files |> 
+  dplyr::inner_join(sp_car[colnames(sp_car) %in% c("species_name", "Trophic_guild_name")])
+
+
+trophic_group <- bind_files |> 
+  dplyr::inner_join(sp_car[colnames(sp_car) %in% c("species_name", "Trophic_guild_name")]) |> 
+  dplyr::mutate(VAR = dplyr::case_when(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week",
+                                                       "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst",
+                                                       "min_5year_ph") ~ "ENV",
+                                       variable %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth",
+                                                       "reef_extent") ~ "HAB",
+                                       variable %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
+                                                       "neartt", "protection_status2") ~ "HUM"))
+trophic_group <- trophic_group |> 
+  dplyr::group_by(species_name, Trophic_guild_name, VAR) |> 
+  dplyr::summarise(value = median(Dropout_loss),
+                   sd = median(sd_dropout_loss))
+
+trophic_group <- trophic_group |> 
+  dplyr::filter(!species_name == "Chrysiptera notialis")
+
+plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = value, fill = VAR)) +
+  geom_boxplot(outlier.shape = NA) +
+  theme_bw() +
+  scale_fill_manual(values = c("ENV" = pal_contribution[2],
+                               "HUM" = pal_contribution[1],
+                               "HAB" = pal_contribution[13])) +
+  scale_y_continuous(limits = c(0, 0.15)) + 
+  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
+  theme(
+    legend.direction = "vertical",
+    legend.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white", color = NA),
+    title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    strip.text.x = element_text(size = 12),
+    strip.text.y = element_text(size = 15),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white", colour = "grey50",
+                                    size = 1, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+# Test ANOVA
+anova_result <- aov(value ~ interaction(Trophic_guild_name, VAR), data = trophic_group)
+
+# Test post-hoc Tukey
+tukey_result <- TukeyHSD(anova_result)
+tukey_table <- as.data.frame(tukey_result$`interaction(Trophic_guild_name, VAR)`)
+
+diff <- tukey_table$`p adj` < 0.05
+names(diff) <- rownames(tukey_table)
+
+# Conversion en lettres avec multcompView
+significance_letters <- multcompView::multcompLetters(diff,
+                                                      Letters = letters)$Letters
+
+y <- trophic_group |>
+  dplyr::group_by(Trophic_guild_name, VAR) |>
+  dplyr::summarise(y = quantile(value, probs = 0.75) + 0.05*quantile(value, probs = 0.75)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(interaction = paste0(Trophic_guild_name, ".", VAR))
+
+label_data <- data.frame(
+  interaction = names(significance_letters),
+  Letter = significance_letters
+) |>
+  dplyr::inner_join(y)
+
+label_data <- label_data |> 
+  dplyr::arrange(interaction)
+
+label_data$x <- gsub("\\..*", "", label_data$interaction)
+
+label_data$x <- as.numeric(as.factor(label_data$x))
+
+label_data <- label_data |> 
+  dplyr::mutate(x = ifelse(VAR == "ENV", x - 0.35,
+                           ifelse(VAR == "HUM", x + 0.35, x + 0.08)))
+
+plot_trophic_group_letter <- plot_trophic_group + geom_text(data = label_data,
+                                                            aes(x = x, y = y, label = Letter),
+                                                            inherit.aes = FALSE,
+                                                            size = 5)
+
+ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
