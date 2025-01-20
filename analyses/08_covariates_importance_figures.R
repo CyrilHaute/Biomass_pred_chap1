@@ -453,3 +453,115 @@ plot_trophic_group_letter <- plot_trophic_group + geom_text(data = label_data,
                                                             size = 5)
 
 ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
+
+
+
+load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
+phylo <- RLS_actinopterygii_data |> 
+  dplyr::select(species_name, order, family)
+phylo <- unique(phylo)
+n_phylo <- bind_files |> 
+  dplyr::inner_join(phylo, multiple = "first") |> 
+  dplyr::select(species_name, family) |> 
+  unique() |> 
+  dplyr::group_by(family) |> 
+  dplyr::summarise(n = dplyr::n())
+phylo <- phylo |> 
+  dplyr::inner_join(n_phylo, by = "family") |> 
+  dplyr::filter(n >= 10) |> 
+  dplyr::select(-n)
+row_to_remove <- c(rownames(phylo[phylo$species_name == "Chlorurus microrhinos" & phylo$family == "Labridae",]),
+                   rownames(phylo[phylo$species_name == "Oxycheilinus digramma" & phylo$order == "Eupercaria incertae sedis",]),
+                   rownames(phylo[phylo$species_name == "Stegastes lacrymatus" & phylo$order == "Ovalentaria incertae sedis",]))
+phylo <- phylo[-as.numeric(row_to_remove),]
+
+phylo_bind <- bind_files |> 
+  dplyr::inner_join(phylo)
+
+
+phylo_bind <- phylo_bind |> 
+  dplyr::mutate(VAR = dplyr::case_when(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week",
+                                                       "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst",
+                                                       "min_5year_ph") ~ "ENV",
+                                       variable %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth",
+                                                       "reef_extent") ~ "HAB",
+                                       variable %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
+                                                       "neartt", "protection_status2") ~ "HUM"))
+phylo_bind <- phylo_bind |> 
+  dplyr::group_by(species_name, family, VAR) |> 
+  dplyr::summarise(value = median(Dropout_loss),
+                   sd = median(sd_dropout_loss))
+
+phylo_bind <- phylo_bind |> 
+  dplyr::filter(!species_name == "Chrysiptera notialis")
+
+plot_family <- ggplot(phylo_bind, aes(x = family, y = value, fill = VAR)) +
+  geom_boxplot(outlier.shape = NA) +
+  theme_bw() +
+  scale_fill_manual(values = c("ENV" = pal_contribution[2],
+                               "HUM" = pal_contribution[1],
+                               "HAB" = pal_contribution[13])) +
+  scale_y_continuous(limits = c(0, 0.15)) + 
+  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
+  theme(
+    legend.direction = "vertical",
+    legend.background = element_rect(fill = "white"),
+    legend.key = element_rect(fill = "white", color = NA),
+    title = element_text(size = 15),
+    axis.text = element_text(size = 15),
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+    axis.title = element_text(size = 15),
+    legend.text = element_text(size = 15),
+    legend.title = element_text(size = 15),
+    strip.text.x = element_text(size = 12),
+    strip.text.y = element_text(size = 15),
+    strip.background = element_blank(),
+    panel.background = element_rect(fill = "white", colour = "grey50",
+                                    size = 1, linetype = "solid"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank())
+
+# Test ANOVA
+anova_result <- aov(value ~ interaction(family, VAR), data = phylo_bind)
+
+# Test post-hoc Tukey
+tukey_result <- TukeyHSD(anova_result)
+tukey_table <- as.data.frame(tukey_result$`interaction(family, VAR)`)
+
+diff <- tukey_table$`p adj` < 0.05
+names(diff) <- rownames(tukey_table)
+
+# Conversion en lettres avec multcompView
+significance_letters <- multcompView::multcompLetters(diff,
+                                                      Letters = letters)$Letters
+
+y <- phylo_bind |>
+  dplyr::group_by(family, VAR) |>
+  dplyr::summarise(y = quantile(value, probs = 0.75) + 0.05*quantile(value, probs = 0.75)) |>
+  dplyr::ungroup() |>
+  dplyr::mutate(interaction = paste0(family, ".", VAR))
+
+label_data <- data.frame(
+  interaction = names(significance_letters),
+  Letter = significance_letters
+) |>
+  dplyr::inner_join(y)
+
+label_data <- label_data |> 
+  dplyr::arrange(interaction)
+
+label_data$x <- gsub("\\..*", "", label_data$interaction)
+
+label_data$x <- as.numeric(as.factor(label_data$x))
+
+label_data <- label_data |> 
+  dplyr::mutate(x = ifelse(VAR == "ENV", x - 0.35,
+                           ifelse(VAR == "HUM", x + 0.35, x + 0.08)))
+
+plot_family_letter <- plot_family + geom_text(data = label_data,
+                                              aes(x = x, y = y, label = Letter),
+                                              inherit.aes = FALSE,
+                                              size = 5)
+
+ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)

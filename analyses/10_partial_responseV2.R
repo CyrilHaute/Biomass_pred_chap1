@@ -84,15 +84,15 @@ partial_realm <- partial_realm |>
   dplyr::mutate(realm = paste0(realm, " (n = ", n, ")"))
 
 central_indo_pacific_mean <- partial_realm |> 
-  dplyr::filter(var %in% c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max", "Gravity"),
+  dplyr::filter(var %in% c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max"),
                 realm == "Central Indo-Pacific (n = 21)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
-  dplyr::mutate(var = forcats::fct_relevel(var, c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max", "Gravity"))) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max"))) |> 
   ggplot() +
   # geom_line(aes(x = values, y = biomass, color = var_type), size = 1) +
   geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25) +
-  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "gam") +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 1) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
                                 "HAB" = pal_contribution[13],
