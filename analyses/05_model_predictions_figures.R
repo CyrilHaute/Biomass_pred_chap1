@@ -46,8 +46,8 @@ read_sp_eco_best <- read_sp_eco |>
   dplyr::filter(best_model == model)
 
 # create plots 
-observed_predicted_best_plot(input_data = read_sp_eco_best, 
-                             nbins = 25)
+observed_predicted_best_plot <- observed_predicted_best_plot(input_data = read_sp_eco_best, 
+                                                             nbins = 25)
 
 # create plots 
 observed_predicted_plot(input_data = read_sp_eco, 

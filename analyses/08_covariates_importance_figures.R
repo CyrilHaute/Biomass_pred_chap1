@@ -1,6 +1,7 @@
 # source functions ----
 
 library(patchwork)
+library(ggplot2)
 
 source("R/05_contributions_figures_functions.R")
 source("R/05_load_realm_contribution_function.R")
@@ -90,7 +91,7 @@ covariates_importance_all <- covariates_importance_all_function(plot_data = bind
 
 merged_covariates_importance_all <- merged_covariates_importance_all_function(plot_data = bind_files,
                                                                               title = "B.",
-                                                                              legend.position = c(0.85, 0.16),
+                                                                              legend.position = "none",
                                                                               title.size = 18,
                                                                               axis.text.x = 15,
                                                                               axis.text.y = 17,
@@ -287,65 +288,6 @@ ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind
 
 ##################### Contribution per species #####################
 
-load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
-phylo <- RLS_actinopterygii_data |> 
-  dplyr::select(species_name, order, family)
-phylo <- unique(phylo)
-n_phylo <- bind_files |> 
-  dplyr::inner_join(phylo, multiple = "first") |> 
-  dplyr::select(species_name, family) |> 
-  unique() |> 
-  dplyr::group_by(family) |> 
-  dplyr::summarise(n = dplyr::n())
-phylo <- phylo |> 
-  dplyr::inner_join(n_phylo, by = "family") |> 
-  dplyr::filter(n >= 10) |> 
-  dplyr::select(-n)
-
-scaridae <- bind_files |>
-  dplyr::inner_join(phylo, multiple = "first") |>
-  dplyr::filter(family == "Scaridae") |>
-  dplyr::ungroup() |>
-  dplyr::select(-c(order, family))
-
-scaridae <- species_covariates_importance_function(plot_data = scaridae,
-                                                   group_by = "species_name")
-
-scaridae <- scaridae |>
-  dplyr::mutate(var_reordered = tidytext::reorder_within(VAR, value, species_name))
-
-plot_scaridae <- ggplot(scaridae) +
-  geom_col(aes(x = var_reordered, y = value, fill = VAR)) +
-  geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
-  theme_bw() +
-  coord_flip() +
-  facet_wrap(~species_name, scales = "free_y", ncol = 4) +
-  tidytext::scale_x_reordered() +
-  scale_fill_manual(values = c("ENV" = pal_contribution[2],
-                               "HUM" = pal_contribution[1],
-                               "HAB" = pal_contribution[13])) +
-  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
-  theme(
-    legend.direction = "vertical",
-    legend.background = element_rect(fill = "white"),
-    legend.key = element_rect(fill = "white", color = NA),
-    title = element_text(size = 15),
-    axis.text = element_text(size = 15),
-    axis.text.x = element_text(size = 15),
-    axis.text.y = element_text(size = 15),
-    axis.title = element_text(size = 15),
-    legend.text = element_text(size = 15),
-    legend.title = element_text(size = 15),
-    strip.text.x = element_text(size = 12, face = "italic"),
-    strip.text.y = element_text(size = 15),
-    strip.background = element_blank(),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank())
-
-ggsave("figures/plot_scaridae2.png", plot_scaridae, height = 10, width = 13)
-
 # Load species traits
 sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE) |> 
   dplyr::rename(species_name = Species) |> 
@@ -399,11 +341,11 @@ plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = valu
     axis.text = element_text(size = 15),
     axis.text.x = element_text(size = 15),
     axis.text.y = element_text(size = 15),
-    axis.title = element_text(size = 15),
-    legend.text = element_text(size = 15),
+    axis.title = element_text(size = 20),
+    legend.text = element_text(size = 10),
     legend.title = element_text(size = 15),
-    strip.text.x = element_text(size = 12),
-    strip.text.y = element_text(size = 15),
+    strip.text.x = element_text(size = 10),
+    strip.text.y = element_text(size = 10),
     strip.background = element_blank(),
     panel.background = element_rect(fill = "white", colour = "grey50",
                                     size = 1, linetype = "solid"),
@@ -565,3 +507,64 @@ plot_family_letter <- plot_family + geom_text(data = label_data,
                                               size = 5)
 
 ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
+
+
+
+# load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
+# phylo <- RLS_actinopterygii_data |> 
+#   dplyr::select(species_name, order, family)
+# phylo <- unique(phylo)
+# n_phylo <- bind_files |> 
+#   dplyr::inner_join(phylo, multiple = "first") |> 
+#   dplyr::select(species_name, family) |> 
+#   unique() |> 
+#   dplyr::group_by(family) |> 
+#   dplyr::summarise(n = dplyr::n())
+# phylo <- phylo |> 
+#   dplyr::inner_join(n_phylo, by = "family") |> 
+#   dplyr::filter(n >= 10) |> 
+#   dplyr::select(-n)
+# 
+# scaridae <- bind_files |>
+#   dplyr::inner_join(phylo, multiple = "first") |>
+#   dplyr::filter(family == "Scaridae") |>
+#   dplyr::ungroup() |>
+#   dplyr::select(-c(order, family))
+# 
+# scaridae <- species_covariates_importance_function(plot_data = scaridae,
+#                                                    group_by = "species_name")
+# 
+# scaridae <- scaridae |>
+#   dplyr::mutate(var_reordered = tidytext::reorder_within(VAR, value, species_name))
+# 
+# plot_scaridae <- ggplot(scaridae) +
+#   geom_col(aes(x = var_reordered, y = value, fill = VAR)) +
+#   geom_errorbar(aes(x = var_reordered, y = value, ymin = value - sd, ymax = value + sd), width = .1, position = position_dodge(.9)) +
+#   theme_bw() +
+#   coord_flip() +
+#   facet_wrap(~species_name, scales = "free_y", ncol = 4) +
+#   tidytext::scale_x_reordered() +
+#   scale_fill_manual(values = c("ENV" = pal_contribution[2],
+#                                "HUM" = pal_contribution[1],
+#                                "HAB" = pal_contribution[13])) +
+#   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
+#   theme(
+#     legend.direction = "vertical",
+#     legend.background = element_rect(fill = "white"),
+#     legend.key = element_rect(fill = "white", color = NA),
+#     title = element_text(size = 15),
+#     axis.text = element_text(size = 15),
+#     axis.text.x = element_text(size = 15),
+#     axis.text.y = element_text(size = 15),
+#     axis.title = element_text(size = 15),
+#     legend.text = element_text(size = 15),
+#     legend.title = element_text(size = 15),
+#     strip.text.x = element_text(size = 12, face = "italic"),
+#     strip.text.y = element_text(size = 15),
+#     strip.background = element_blank(),
+#     panel.background = element_rect(fill = "white", colour = "grey50",
+#                                     size = 1, linetype = "solid"),
+#     panel.grid.major = element_blank(),
+#     panel.grid.minor = element_blank())
+# 
+# ggsave("figures/plot_scaridae2.png", plot_scaridae, height = 10, width = 13)

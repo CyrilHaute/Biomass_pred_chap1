@@ -136,8 +136,8 @@ patial_count_plot_pear <- patial_count |>
   scale_color_manual(values = c("Pearson" = pal[1])) +
   labs(y = "Pearson", x = "Number of occurrences", color = "") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 6),
-        axis.text.y = element_text(size = 6),
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
         axis.title = element_text(size = 10),
         strip.text.x = element_text(size = 6),
         strip.text.y = element_text(size = 6),
@@ -149,8 +149,8 @@ patial_count_plot_spear <- patial_count |>
   scale_color_manual(values = c("Spearman" = pal[1])) +
   labs(y = "Spearman", x = "Number of occurrences", color = "") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 6),
-        axis.text.y = element_text(size = 6),
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
         axis.title = element_text(size = 10),
         strip.text.x = element_text(size = 6),
         strip.text.y = element_text(size = 6),
@@ -163,8 +163,8 @@ patial_ml_plot_pear <- patial_ml |>
   scale_color_manual(values = c("Pearson" = pal[1])) +
   labs(y = "Pearson", x = "Maximum body length", color = "") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 6),
-        axis.text.y = element_text(size = 6),
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
         axis.title = element_text(size = 10),
         strip.text.x = element_text(size = 6),
         strip.text.y = element_text(size = 6),
@@ -176,8 +176,8 @@ patial_ml_plot_spear <- patial_ml |>
   scale_color_manual(values = c("Spearman" = pal[1])) +
   labs(y = "Spearman", x = "Maximum body length", color = "") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 6),
-        axis.text.y = element_text(size = 6),
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
         axis.title = element_text(size = 10),
         strip.text.x = element_text(size = 6),
         strip.text.y = element_text(size = 6),
@@ -185,13 +185,13 @@ patial_ml_plot_spear <- patial_ml |>
 
 library(patchwork)
 
-partial_pear <- patial_count_plot_pear + patial_ml_plot_pear
-partial_spear <- patial_count_plot_spear + patial_ml_plot_spear
+partial_pear <- patial_count_plot_pear / patial_ml_plot_pear
+partial_spear <- patial_count_plot_spear / patial_ml_plot_spear
 
 imp_patial_plot_pear <- perf_imp_var_pear + 
-  patchwork::inset_element(partial_pear, left = 0.2, bottom = 0.00, right = 1, top = 0.37)
+  patchwork::inset_element(partial_pear, left = 0.3, bottom = 0.00, right = 1, top = 0.5)
 imp_patial_plot_spear <- perf_imp_var_spear + 
-  patchwork::inset_element(partial_spear, left = 0.2, bottom = 0.00, right = 1, top = 0.37)
+  patchwork::inset_element(partial_spear, left = 0.3, bottom = 0.00, right = 1, top = 0.5)
 
 
 imp_patial_plot <- imp_patial_plot_pear + imp_patial_plot_spear

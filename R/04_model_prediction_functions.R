@@ -191,20 +191,19 @@ observed_predicted_best_plot <- function(input_data,
     geom_abline(slope = 1, intercept = 0)
 
   plot_levels_plot <- base_plot +
-    labs(x = "Observed", y = "Predicted") +
+    labs(x = "Observed", y = "Predicted", title = "B.") +
     theme(legend.position = "none",
-          axis.text = element_text(size = 15),
-          axis.title = element_text(size = 25),
-          legend.text = element_text(size = 10),
-          legend.title = element_text(size = 10),
-          strip.text.x = element_text(size = 20),
-          strip.text.y = element_text(size = 20),
+          title = element_text(size = 15),
+          axis.text=element_text(size = 15),
+          axis.title=element_text(size = 20),
+          legend.text=element_text(size = 10),
+          legend.title=element_text(size = 15),
+          strip.text.x = element_text(size = 10),
+          strip.text.y = element_text(size = 10),
           strip.background = element_blank(),
           panel.background = element_rect(fill = "white", colour = "grey50",
                                           size = 1, linetype = "solid"),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank())
-  
-  ggsave("figures/all_predictions_pred_best.png", plot_levels_plot, width = 7, height = 7)
 
 }
