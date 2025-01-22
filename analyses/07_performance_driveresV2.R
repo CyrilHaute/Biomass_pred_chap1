@@ -1,198 +1,243 @@
-load("outputs/performance_model.Rdata")
-load("data/new_derived_data/species_count.Rdata")
-load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
+source("R/05_load_realm_contribution_function.R")
 
-# Load species traits
-sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE) |> 
-  dplyr::rename(species_name = Species)
-sp_car$ML_cat <- NA
-sp_car <- sp_car[which(is.na(sp_car$MaxLength) == FALSE),]
-sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
+partial_realm_rf <- load_realm_partial_function(files_path = "outputs/realm_partial_rf")
+partial_realm_sprf <- load_realm_partial_function(files_path = "outputs/realm_partial_sprf")
+partial_realm_gbm <- load_realm_partial_function(files_path = "outputs/realm_partial_gbm")
+# partial_realm_glm <- load_realm_partial_function(files_path = "outputs/realm_partial_glm")
+# partial_realm_gam <- load_realm_partial_function(files_path = "outputs/realm_partial_gam")
+# partial_realm_spamm <- load_realm_partial_function(files_path = "outputs/realm_partial_spamm")
+# partial_realm_list <- c(partial_realm_rf, partial_realm_sprf, partial_realm_gbm, partial_realm_glm, partial_realm_gam, partial_realm_spamm)
+partial_realm_list <- c(partial_realm_rf, partial_realm_sprf, partial_realm_gbm)
 
-sp_car[sp_car$MaxLength > 0 & sp_car$MaxLength <= 20,]$ML_cat <- "0-20 cm"
-sp_car[sp_car$MaxLength > 20 & sp_car$MaxLength <= 40,]$ML_cat <- "20-40 cm"
-sp_car[sp_car$MaxLength > 40 & sp_car$MaxLength <= 60,]$ML_cat <- "40-60 cm"
-sp_car[sp_car$MaxLength > 60 & sp_car$MaxLength <= 80,]$ML_cat <- "60-80 cm"
-sp_car[sp_car$MaxLength > 80 & sp_car$MaxLength <= 300,]$ML_cat <- "80-300 cm"
+partial_realm <- lapply(1:length(partial_realm_list), function(i) {
+  
+  realm_i <- partial_realm_list[[i]]
+  
+  partial_cov <- lapply(1:18, function(j) {
+    
+    partial_cov_j <- lapply(realm_i, '[[', j)
+    partial_cov_j <- lapply(1:length(partial_cov_j), function(k) {
+      
+      data_k <- partial_cov_j[[k]]
+      data_k$id <- 1:nrow(data_k)
+      data_k
+      
+    })
+    partial_cov_j <- do.call(rbind, partial_cov_j)
+    partial_cov_j <- partial_cov_j |> 
+      dplyr::mutate(var = colnames(partial_cov_j)[1])
+    colnames(partial_cov_j)[1] <- "values"
+    partial_cov_j
+    
+  })
+  partial_cov <- do.call(rbind, partial_cov)
+  
+})
+partial_realm <- do.call(rbind, partial_realm)
 
-sp_car[sp_car$Water.column == "Demersal",]$Water.column <- "demersal"
-sp_car[sp_car$Water.column == "pelagic non-site attached",]$Water.column <- "pelagic"
-sp_car[sp_car$Water.column == "pelagic site attached",]$Water.column <- "pelagic"
+partial_realm <- partial_realm |> 
+  dplyr::mutate(var_type = dplyr::case_when(var %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week", "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst", "min_5year_ph") ~ "ENV",
+                                            var %in% c("protection_status2", "gdp", "gravtot2", "n_fishing_vessels", "neartt", "marine_ecosystem_dependency") ~ "HUM",
+                                            var %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth", "reef_extent") ~ "HAB"))
 
-sp_car[sp_car$Habitat == "Coral",]$Habitat <- "coral"
+partial_realm[partial_realm$var == "max_1year_analysed_sst",]$var <- "SST max"
+partial_realm[partial_realm$var == "min_1year_analysed_sst",]$var <- "SST min"
+partial_realm[partial_realm$var == "max_5year_degree_heating_week",]$var <- "DHW max"
+partial_realm[partial_realm$var == "mean_1year_nppv",]$var <- "NPP mean"
+partial_realm[partial_realm$var == "mean_1year_so_mean",]$var <- "SSS mean"
+partial_realm[partial_realm$var == "min_5year_ph",]$var <- "pH min"
 
-sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "herbivores"
+partial_realm[partial_realm$var == "protection_status2",]$var <- "MPA"
+partial_realm[partial_realm$var == "gdp",]$var <- "GDP"
+partial_realm[partial_realm$var == "gravtot2",]$var <- "Gravity"
+partial_realm[partial_realm$var == "n_fishing_vessels",]$var <- "Fishing"
+partial_realm[partial_realm$var == "neartt",]$var <- "Neartt"
+partial_realm[partial_realm$var == "marine_ecosystem_dependency",]$var <- "MED"
 
-sp_car <- sp_car |> 
-  dplyr::select(species_name, MaxLength, Water.column, Habitat, Trophic_guild_name)
-
-phylo <- RLS_actinopterygii_data |> 
-  dplyr::select(species_name, order, family)
-phylo <- unique(phylo)
-
-performance_bind <- performance_bind |> 
-  tidyr::drop_na() |> 
-  dplyr::select(species_name, pearson, spearman, model) |> 
-  dplyr::inner_join(sp_car) |> 
-  dplyr::inner_join(sp_count) |> 
-  dplyr::inner_join(phylo) |> 
-  dplyr::select(-species_name)
-
-pearson_model <- ranger::ranger(x = performance_bind[!colnames(performance_bind) %in% c("pearson", "spearman")],
-                                y = unlist(performance_bind[colnames(performance_bind) %in% "pearson"]),
-                                num.trees = 1000,
-                                importance = "impurity")
-spearman_model <- ranger::ranger(x = performance_bind[!colnames(performance_bind) %in% c("pearson", "spearman")],
-                                 y = unlist(performance_bind[colnames(performance_bind) %in% "spearman"]),
-                                 num.trees = 1000,
-                                 importance = "impurity")
-var_imp <- data.frame(pearson = pearson_model$variable.importance,
-                      spearman = spearman_model$variable.importance,
-                      covariates = unique(names(c(pearson_model$variable.importance, spearman_model$variable.importance))))
-var_imp[var_imp$covariates == "model",]$covariates <- "Model"
-var_imp[var_imp$covariates == "MaxLength",]$covariates <- "Maximum body length"
-var_imp[var_imp$covariates == "Trophic_guild_name",]$covariates <- "Trophic class"
-var_imp[var_imp$covariates == "count",]$covariates <- "Number of occurrences"
-var_imp[var_imp$covariates == "order",]$covariates <- "Order"
-var_imp[var_imp$covariates == "family",]$covariates <- "Family"
-var_imp[var_imp$covariates == "Water.column",]$covariates <- "Water column position"
-colnames(var_imp)[colnames(var_imp) == "pearson"] <- "Pearson"
-colnames(var_imp)[colnames(var_imp) == "spearman"] <- "Spearman"
-var_imp$cov_type <- NA
-var_imp <- var_imp |> 
-  dplyr::mutate(cov_type = dplyr::case_when(covariates %in% c("Order", "Family") ~ "Taxonomy",
-                                            covariates %in% c("Maximum body length", "Trophic class", "Number of occurrences", "Habitat", "Water column position") ~ "Traits",
-                                            covariates %in% c("Model") ~ "Model"))
-var_imp <- var_imp |> 
-  tidyr::pivot_longer(c("Pearson", "Spearman"),
-                      names_to = "peformance")
-
-var_imp <- var_imp |> 
-  dplyr::mutate(covariates = tidytext::reorder_within(covariates, value, peformance))
+partial_realm[partial_realm$var == "Rock_500m",]$var <- "Rock (%)"
+partial_realm[partial_realm$var == "Sand_500m",]$var <- "Sand (%)"
+partial_realm[partial_realm$var == "coral_algae_500m",]$var <- "Coral/Algae (%)"
+partial_realm[partial_realm$var == "coral",]$var <- "Coral (RLS)"
+partial_realm[partial_realm$var == "depth",]$var <- "Depth"
+partial_realm[partial_realm$var == "reef_extent",]$var <- "Reef extent"
 
 library(ggplot2)
-
-pal <- PNWColors::pnw_palette("Bay", 6, type = "continuous")
-
-perf_imp_var_pear <- ggplot(var_imp |> 
-                              dplyr::filter(peformance == "Pearson")) +
-  geom_col(aes(x = reorder(covariates, value), y = value, fill = cov_type)) +
-  scale_fill_manual(values = c("Traits" = pal[2],
-                               "Taxonomy" = pal[4],
-                               "Model" = pal[6])) + 
-  theme_classic() +
-  coord_flip() +
-  tidytext::scale_x_reordered() +
-  theme(axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 15),
-        axis.title = element_text(size = 18),
-        strip.text.x = element_text(size = 12),
-        strip.text.y = element_text(size = 12),
-        title = element_text(size = 18),
-        legend.position = "none") + 
-  labs(x = "", y = "Importance", title = "A.     Pearson r² = 0.39", fill = "")
-perf_imp_var_spear <- ggplot(var_imp |> 
-                               dplyr::filter(peformance == "Spearman")) +
-  geom_col(aes(x = reorder(covariates, value), y = value, fill = cov_type)) +
-  scale_fill_manual(values = c("Traits" = pal[2],
-                               "Taxonomy" = pal[4],
-                               "Model" = pal[6])) + 
-  theme_classic() +
-  coord_flip() +
-  tidytext::scale_x_reordered() +
-  theme(axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 15),
-        axis.title = element_text(size = 18),
-        strip.text.x = element_text(size = 12),
-        strip.text.y = element_text(size = 12),
-        title = element_text(size = 18)) + 
-  labs(x = "", y = "Importance", title = "B.     Spearman r² = 0.75", fill = "")
-
-patial_pear_count <- pdp::partial(pearson_model, train = performance_bind, pred.var = c("count")) |> 
-  dplyr::rename(pearson = yhat)
-patial_spear_count <- pdp::partial(spearman_model, train = performance_bind, pred.var = c("count")) |> 
-  dplyr::rename(spearman = yhat)
-patial_pear_ml <- pdp::partial(pearson_model, train = performance_bind, pred.var = c("MaxLength")) |> 
-  dplyr::rename(pearson = yhat)
-patial_spear_ml <- pdp::partial(spearman_model, train = performance_bind, pred.var = c("MaxLength")) |> 
-  dplyr::rename(spearman = yhat)
-patial_count <- patial_pear_count |> 
-  dplyr::inner_join(patial_spear_count) |>
-  dplyr::rename(Pearson = pearson,
-                Spearman = spearman) |> 
-  tidyr::pivot_longer(c("Pearson", "Spearman"),
-                      names_to = "performance")
-patial_ml <- patial_pear_ml |> 
-  dplyr::inner_join(patial_spear_ml) |>
-  dplyr::rename(Pearson = pearson,
-                Spearman = spearman) |> 
-  tidyr::pivot_longer(c("Pearson", "Spearman"),
-                      names_to = "performance")
-
-patial_count_plot_pear <- patial_count |> 
-  dplyr::filter(performance == "Pearson") |> 
-  ggplot() +
-  geom_line(aes(x = count, y = value, color = performance), size = 1.2) +
-  scale_color_manual(values = c("Pearson" = pal[1])) +
-  labs(y = "Pearson", x = "Number of occurrences", color = "") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 10),
-        strip.text.x = element_text(size = 6),
-        strip.text.y = element_text(size = 6),
-        legend.position = "none")
-patial_count_plot_spear <- patial_count |> 
-  dplyr::filter(performance == "Spearman") |> 
-  ggplot() +
-  geom_line(aes(x = count, y = value, color = performance), size = 1.2) +
-  scale_color_manual(values = c("Spearman" = pal[1])) +
-  labs(y = "Spearman", x = "Number of occurrences", color = "") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 10),
-        strip.text.x = element_text(size = 6),
-        strip.text.y = element_text(size = 6),
-        legend.position = "none")
-
-patial_ml_plot_pear <- patial_ml |> 
-  dplyr::filter(performance == "Pearson") |> 
-  ggplot() +
-  geom_line(aes(x = MaxLength, y = value, color = performance), size = 1.2) +
-  scale_color_manual(values = c("Pearson" = pal[1])) +
-  labs(y = "Pearson", x = "Maximum body length", color = "") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 10),
-        strip.text.x = element_text(size = 6),
-        strip.text.y = element_text(size = 6),
-        legend.position = "none")
-patial_ml_plot_spear <- patial_ml |> 
-  dplyr::filter(performance == "Spearman") |> 
-  ggplot() +
-  geom_line(aes(x = MaxLength, y = value, color = performance), size = 1.2) +
-  scale_color_manual(values = c("Spearman" = pal[1])) +
-  labs(y = "Spearman", x = "Maximum body length", color = "") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 10),
-        strip.text.x = element_text(size = 6),
-        strip.text.y = element_text(size = 6),
-        legend.position = "none")
-
 library(patchwork)
 
-partial_pear <- patial_count_plot_pear / patial_ml_plot_pear
-partial_spear <- patial_count_plot_spear / patial_ml_plot_spear
+partial_realm$values <- as.numeric(partial_realm$values)
 
-imp_patial_plot_pear <- perf_imp_var_pear + 
-  patchwork::inset_element(partial_pear, left = 0.3, bottom = 0.00, right = 1, top = 0.5)
-imp_patial_plot_spear <- perf_imp_var_spear + 
-  patchwork::inset_element(partial_spear, left = 0.3, bottom = 0.00, right = 1, top = 0.5)
+pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors::pnw_palette("Bay", 6, type = "continuous"))
 
+partial_realm_mean <- partial_realm |>
+  dplyr::group_by(var, id, realm) |>
+  dplyr::summarise(mean_values = median(values),
+                   mean_biomass = median(biomass),
+                   sd_biomass = sd(biomass)) |>
+  dplyr::mutate(var_type = dplyr::case_when(var %in% c("SST max", "SST min", "DHW max", "NPP mean", "SSS mean", "pH min") ~ "ENV",
+                                            var %in% c("MPA", "GDP", "Gravity", "Fishing", "Neartt", "MED") ~ "HUM",
+                                            var %in% c("Rock (%)", "Sand (%)", "Coral/Algae (%)", "Coral (RLS)", "Depth", "Reef extent") ~ "HAB"))
 
-imp_patial_plot <- imp_patial_plot_pear + imp_patial_plot_spear
-ggsave("figures/imp_patial_plot_pear2.png", imp_patial_plot, width = 17.5, height = 10)
+sp_n_realm <- partial_realm |> 
+  dplyr::select(realm, species_name) |> 
+  unique() |> 
+  dplyr::group_by(realm) |> 
+  dplyr::summarise(n = dplyr::n())
+
+partial_realm_mean <- partial_realm_mean |> 
+  dplyr::inner_join(sp_n_realm) |> 
+  dplyr::mutate(realm = paste0(realm, " (n = ", n, ")"))
+
+partial_realm_all <- partial_realm |> 
+  dplyr::mutate(var_type = dplyr::case_when(var %in% c("SST max", "SST min", "DHW max", "NPP mean", "SSS mean", "pH min") ~ "ENV",
+                                            var %in% c("MPA", "GDP", "Gravity", "Fishing", "Neartt", "MED") ~ "HUM",
+                                            var %in% c("Rock (%)", "Sand (%)", "Coral/Algae (%)", "Coral (RLS)", "Depth", "Reef extent") ~ "HAB"))
+
+sp_n_realm_all <- partial_realm_all |> 
+  dplyr::select(realm, species_name) |> 
+  unique() |> 
+  dplyr::group_by(realm) |> 
+  dplyr::summarise(n = dplyr::n())
+
+partial_realm_all <- partial_realm_all |> 
+  dplyr::inner_join(sp_n_realm) |> 
+  dplyr::mutate(realm = paste0(realm, " (n = ", n, ")"))
+
+partial_realm_all <- partial_realm_all |> 
+  dplyr::inner_join(partial_realm_mean)
+
+partial_realm_all <- partial_realm_all[!partial_realm_all$biomass < 0,]
+partial_realm_all <- partial_realm_all[partial_realm_all$biomass < quantile(partial_realm_all$biomass, 0.997),]
+partial_realm_all <- partial_realm_all |> 
+  tidyr::drop_na()
+
+central_indo_pacific_mean <- partial_realm_all |> 
+  dplyr::filter(var %in% c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max"),
+                realm == "Central Indo-Pacific (n = 21)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max"))) |> 
+  ggplot() +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.3, alpha = 0.5, stat = "smooth") +
+  geom_line(aes(x = values, y = biomass, color = var_type), size = 1.5, stat = "smooth", method = "lm") +
+  scale_color_manual(values = c("ENV" = pal_contribution[2],
+                                "HUM" = pal_contribution[1],
+                                "HAB" = pal_contribution[13],
+                                "BIOT" = pal_contribution[3])) +
+  scale_x_continuous(n.breaks = 4) + 
+  facet_wrap(~var, scales = "free", nrow = 1) +
+  theme_bw() +
+  labs(title = "Central Indo-Pacific (n = 21)", x = "", y = "log10(Biomass+1)") +
+  theme(axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_text(size = 12),
+        strip.text.x = element_text(size = 10),
+        strip.text.y = element_text(size = 10),
+        legend.text = element_text(size = 12),
+        legend.position = "none",
+        strip.background = element_rect(fill = "white", colour = "black"))
+
+eastern_indo_pacific_mean <- partial_realm_all |> 
+  dplyr::filter(var %in% c("MED", "GDP", "SSS mean", "SST min", "DHW max"),
+                realm == "Eastern Indo-Pacific (n = 65)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "GDP", "SSS mean", "SST min", "DHW max"))) |> 
+  ggplot() +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.3, alpha = 0.5, stat = "smooth") +
+  geom_line(aes(x = values, y = biomass, color = var_type), size = 1.5, stat = "smooth", method = "lm") +
+  scale_color_manual(values = c("ENV" = pal_contribution[2],
+                                "HUM" = pal_contribution[1],
+                                "HAB" = pal_contribution[13],
+                                "BIOT" = pal_contribution[3])) +
+  scale_x_continuous(n.breaks = 4) + 
+  facet_wrap(~var, scales = "free", nrow = 1) +
+  theme_bw() +
+  labs(title = "Eastern Indo-Pacific (n = 65)", x = "", y = "log10(Biomass+1)") +
+  theme(axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_text(size = 12),
+        strip.text.x = element_text(size = 10),
+        strip.text.y = element_text(size = 10),
+        legend.text = element_text(size = 12),
+        legend.position = "none",
+        strip.background = element_rect(fill = "white", colour = "black"))
+
+tropical_atlantic_mean <- partial_realm_all |> 
+  dplyr::filter(var %in% c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)"),
+                realm == "Tropical Atlantic (n = 44)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)"))) |> 
+  ggplot() +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.3, alpha = 0.5, stat = "smooth") +
+  geom_line(aes(x = values, y = biomass, color = var_type), size = 1.5, stat = "smooth", method = "lm") +
+  scale_color_manual(values = c("ENV" = pal_contribution[2],
+                                "HUM" = pal_contribution[1],
+                                "HAB" = pal_contribution[13],
+                                "BIOT" = pal_contribution[3])) +
+  scale_x_continuous(n.breaks = 4) + 
+  facet_wrap(~var, scales = "free", nrow = 1) +
+  theme_bw() +
+  labs(title = "Tropical Atlantic (n = 44)", x = "", y = "log10(Biomass+1)", color = " ") +
+  theme(axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_text(size = 12),
+        strip.text.x = element_text(size = 10),
+        strip.text.y = element_text(size = 10),
+        legend.text = element_text(size = 12),
+        strip.background = element_rect(fill = "white", colour = "black"))
+
+tropical_eastern_pacific_mean <- partial_realm_all |> 
+  dplyr::filter(var %in% c("Depth", "Gravity", "MED", "SSS mean", "NPP mean"),
+                realm == "Tropical Eastern Pacific (n = 34)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "Gravity", "MED", "SSS mean", "NPP mean"))) |> 
+  ggplot() +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.3, alpha = 0.5, stat = "smooth") +
+  geom_line(aes(x = values, y = biomass, color = var_type), size = 1.5, stat = "smooth", method = "lm") +
+  scale_color_manual(values = c("ENV" = pal_contribution[2],
+                                "HUM" = pal_contribution[1],
+                                "HAB" = pal_contribution[13])) +
+  scale_x_continuous(n.breaks = 4) + 
+  facet_wrap(~var, scales = "free", nrow = 1) +
+  theme_bw() +
+  labs(title = "Tropical Eastern Pacific (n = 34)", x = "", y = "log10(Biomass+1)") +
+  theme(axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_text(size = 12),
+        strip.text.x = element_text(size = 10),
+        strip.text.y = element_text(size = 10),
+        legend.text = element_text(size = 12),
+        legend.position = "none",
+        strip.background = element_rect(fill = "white", colour = "black"))
+
+temperate_northern_atlantic_mean <- partial_realm_all |> 
+  dplyr::filter(var %in% c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)"),
+                realm == "Temperate Northern Atlantic (n = 8)") |> 
+  dplyr::ungroup() |> 
+  dplyr::select(-id) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)"))) |> 
+  ggplot() +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.3, alpha = 0.5, stat = "smooth") +
+  geom_line(aes(x = values, y = biomass, color = var_type), size = 1.5, stat = "smooth", method = "lm") +
+  scale_color_manual(values = c("ENV" = pal_contribution[2],
+                                "HUM" = pal_contribution[1],
+                                "HAB" = pal_contribution[13])) +
+  scale_x_continuous(n.breaks = 4) + 
+  facet_wrap(~var, scales = "free", nrow = 1) +
+  theme_bw() +
+  labs(title = "Temperate Northern Atlantic (n = 8)", x = "", y = "log10(Biomass+1)") +
+  theme(axis.text.x = element_text(size = 8),
+        axis.text.y = element_text(size = 8),
+        axis.title = element_text(size = 12),
+        strip.text.x = element_text(size = 10),
+        strip.text.y = element_text(size = 10),
+        legend.text = element_text(size = 12),
+        legend.position = "none",
+        strip.background = element_rect(fill = "white", colour = "black"))
+
+realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean / temperate_northern_atlantic_mean
+
+ggsave("figures/realm_partial_mean_plot4.png", realm_partial_mean_plot, width = 10, height = 13)
+
