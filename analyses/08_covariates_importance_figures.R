@@ -27,6 +27,14 @@ glm <- lapply(1:length(glm), function(i) {
   
 })
 glm <- do.call(rbind, glm)
+glm_inf <- list.files("outputs/glm_contribution_benthos_infered", full.names = TRUE)
+glm_inf <- lapply(1:length(glm_inf), function(i) {
+  
+  load(glm_inf[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+glm_inf <- do.call(rbind, glm_inf)
 
 gam <- list.files("outputs/gam_contribution", full.names = TRUE)
 gam <- lapply(1:length(gam), function(i) {
@@ -36,6 +44,14 @@ gam <- lapply(1:length(gam), function(i) {
   
 })
 gam <- do.call(rbind, gam)
+gam_inf <- list.files("outputs/gam_contribution_benthos_infered", full.names = TRUE)
+gam_inf <- lapply(1:length(gam_inf), function(i) {
+  
+  load(gam_inf[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+gam_inf <- do.call(rbind, gam_inf)
 
 spamm <- list.files("outputs/spamm_contribution", full.names = TRUE)
 spamm <- lapply(1:length(spamm), function(i) {
@@ -45,6 +61,14 @@ spamm <- lapply(1:length(spamm), function(i) {
   
 })
 spamm <- do.call(rbind, spamm)
+spamm_inf <- list.files("outputs/spamm_contribution_benthos_infered", full.names = TRUE)
+spamm_inf <- lapply(1:length(spamm_inf), function(i) {
+  
+  load(spamm_inf[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+spamm_inf <- do.call(rbind, spamm_inf)
 
 rf <- list.files("outputs/rf_contribution", full.names = TRUE)
 rf <- lapply(1:length(rf), function(i) {
@@ -54,6 +78,14 @@ rf <- lapply(1:length(rf), function(i) {
   
 })
 rf <- do.call(rbind, rf)
+rf_inf <- list.files("outputs/rf_contribution_benthos_infered", full.names = TRUE)
+rf_inf <- lapply(1:length(rf_inf), function(i) {
+  
+  load(rf_inf[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+rf_inf <- do.call(rbind, rf_inf)
 
 sprf <- list.files("outputs/sprf_contribution", full.names = TRUE)
 sprf <- lapply(1:length(sprf), function(i) {
@@ -64,6 +96,15 @@ sprf <- lapply(1:length(sprf), function(i) {
 })
 sprf <- do.call(rbind, sprf)
 colnames(sprf)[colnames(sprf) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
+sprf_inf <- list.files("outputs/sprf_contribution_benthos_infered", full.names = TRUE)
+sprf_inf <- lapply(1:length(sprf_inf), function(i) {
+  
+  load(sprf_inf[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+sprf_inf <- do.call(rbind, sprf_inf)
+colnames(sprf_inf)[colnames(sprf_inf) %in% c("global_dropout_loss", "global_sd_dropout_loss")] <- c("Dropout_loss", "sd_dropout_loss")
 
 gbm <- list.files("outputs/brt_contribution", full.names = TRUE)
 gbm <- lapply(1:length(gbm), function(i) {
@@ -73,9 +114,20 @@ gbm <- lapply(1:length(gbm), function(i) {
   
 })
 gbm <- do.call(rbind, gbm)
+gbm_inf <- list.files("outputs/brt_contribution_benthos_infered", full.names = TRUE)
+gbm_inf <- lapply(1:length(gbm_inf), function(i) {
+  
+  load(gbm_inf[i])
+  assign(paste0("model_", i), extracted_contributions)
+  
+})
+gbm_inf <- do.call(rbind, gbm_inf)
 
 bind_files <- list(glm, gam, spamm, sprf, rf, gbm)
 bind_files <- purrr::reduce(bind_files, dplyr::full_join)
+
+bind_files_inf <- list(glm_inf, gam_inf, spamm_inf, sprf_inf, rf_inf, gbm_inf)
+bind_files_inf <- purrr::reduce(bind_files_inf, dplyr::full_join)
 
 covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
                                                                 title = "A.",
@@ -507,6 +559,34 @@ plot_family_letter <- plot_family + geom_text(data = label_data,
                                               size = 5)
 
 ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
+
+
+##################### Test inferred benthos #####################
+
+covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
+                                                                title = "With benthos inferred",
+                                                                legend.position = "none",
+                                                                title.size = 18,
+                                                                axis.text.x = 15,
+                                                                axis.text.y = 17,
+                                                                axis.title = 21,
+                                                                legend.text = 15,
+                                                                strip.text.x = 20,
+                                                                strip.text.y = 20,
+                                                                fill = "")
+covariates_importance_all_inf <- covariates_importance_all_function(plot_data = bind_files_inf,
+                                                                    title = "Without benthos inferred",
+                                                                    legend.position = "none",
+                                                                    title.size = 18,
+                                                                    axis.text.x = 15,
+                                                                    axis.text.y = 17,
+                                                                    axis.title = 21,
+                                                                    legend.text = 15,
+                                                                    strip.text.x = 20,
+                                                                    strip.text.y = 20,
+                                                                    fill = "")
+test_benthos_infered <- covariates_importance_all + covariates_importance_all_inf
+ggsave("figures/test_benthos_inferred.png", test_benthos_infered, height = 7, width = 20)
 
 
 

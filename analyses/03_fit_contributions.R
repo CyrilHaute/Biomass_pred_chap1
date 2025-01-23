@@ -341,3 +341,115 @@ for(i in 1:length(rls_biomass_realm)) {
   }, mc.cores = 1)
   
 }
+
+
+########### Species-specific biomass models without infered benthos ###########
+
+# Load data without infered benthos
+
+load("data/new_raw_data/raw_covariates_all_surveys.Rdata")
+
+cov_without_NA_PQ <- raw_covariates_all |>
+  dplyr::select(survey_id, coral) |>
+  tidyr::drop_na()
+
+rls_biomass <- rls_biomass |> 
+  dplyr::filter(survey_id %in% unique(cov_without_NA_PQ$survey_id))
+rls_covariates <- rls_covariates |> 
+  dplyr::filter(survey_id %in% unique(cov_without_NA_PQ$survey_id))
+
+# run glm for covariates contribution
+print("glm biomass contribution")
+
+base_dir <- "outputs/glm_contribution_benthos_infered/"
+
+pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  glm_function_cont(biomass = rls_biomass_i,
+                    covariates = rls_covariates,
+                    species_name = species_name[i],
+                    base_dir_cont = base_dir)
+  
+}, mc.cores = 1)
+
+# run random Forest for covariates contribution
+print("rf biomass contribution")
+
+base_dir <- "outputs/rf_contribution_benthos_infered/"
+
+unlist(pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  rf_function_cont(biomass = rls_biomass_i,
+                   covariates = rls_covariates,
+                   species_name = species_name[i],
+                   base_dir_cont = base_dir)
+  
+}, mc.cores = 1))
+
+# run gbm for covariates contribution
+print("gbm biomass contribution")
+
+base_dir <- "outputs/brt_contribution_benthos_infered/"
+
+unlist(pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  brt_function_cont(biomass = rls_biomass_i,
+                    covariates = rls_covariates,
+                    species_name = species_name[i],
+                    base_dir_cont = base_dir)
+  
+}, mc.cores = 1))
+
+# run gam for covariates contribution
+print("gam biomass contribution")
+
+base_dir <- "outputs/gam_contribution_benthos_infered/"
+
+unlist(pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  gam_function_cont(biomass = rls_biomass_i,
+                    covariates = rls_covariates,
+                    species_name = species_name[i],
+                    base_dir_cont = base_dir)
+  
+}, mc.cores = 1))
+
+# run spamm for covariates contribution
+print("spamm biomass contribution")
+
+base_dir <- "outputs/spamm_contribution_benthos_infered/"
+
+unlist(pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "longitude", "latitude", "site_code", species_name[i])]
+  
+  spamm_function_cont(biomass = rls_biomass_i,
+                      covariates = rls_covariates,
+                      species_name = species_name[i],
+                      base_dir_cont = base_dir)
+  
+}, mc.cores = 1))
+
+# run spatial Random Forest for covariates contribution
+print("sprf biomass contribution")
+
+base_dir <- "outputs/sprf_contribution_benthos_infered/"
+
+unlist(pbmcapply::pbmclapply(1:length(species_name), function(i) {
+  
+  rls_biomass_i <- rls_biomass[, c("survey_id", "latitude", "longitude", "site_code", species_name[i])]
+  
+  spatialrf_function_cont(biomass = rls_biomass_i,
+                          covariates = rls_covariates,
+                          species_name = species_name[i],
+                          base_dir_cont = base_dir)
+  
+}, mc.cores = 1))

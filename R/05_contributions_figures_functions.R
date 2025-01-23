@@ -55,7 +55,7 @@ covariates_importance_all_function <- function(plot_data,
                      sd = mean(sd_dropout_loss),
                      VAR = "HUM")
   SOC[SOC$variable == "protection_status2",]$variable <- "MPA status"
-  SOC[SOC$variable == "gdp",]$variable <- "Growth Development Product"
+  SOC[SOC$variable == "gdp",]$variable <- "Gross Domestic Product"
   SOC[SOC$variable == "gravtot2",]$variable <- "Human Gravity"
   SOC[SOC$variable == "n_fishing_vessels",]$variable <- "Fishing Vessels Density"
   SOC[SOC$variable == "neartt",]$variable <- "Nearest Population"
@@ -308,7 +308,7 @@ covariates_importance_function <- function(plot_data
                      VAR = "HUM",
                      plot_level = plot_level)
   SOC[SOC$variable == "protection_status2",]$variable <- "MPA status"
-  SOC[SOC$variable == "gdp",]$variable <- "Growth Development Product"
+  SOC[SOC$variable == "gdp",]$variable <- "Gross Domestic Product"
   SOC[SOC$variable == "gravtot2",]$variable <- "Human Gravity"
   SOC[SOC$variable == "n_fishing_vessels",]$variable <- "Fishing Vessels Density"
   SOC[SOC$variable == "neartt",]$variable <- "Nearest Population"
