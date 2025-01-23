@@ -142,56 +142,67 @@ performance_all_best[performance_all_best$model == "sprf",]$model <- "SPRF"
 performance_all_best[performance_all_best$metric == "pearson",]$metric <- "Pearson"
 performance_all_best[performance_all_best$metric == "spearman",]$metric <- "Spearman"
 
-plot_perf_pearson <- performance_all_best |> 
-  dplyr::filter(metric %in% c("Pearson")) |> 
-  dplyr::mutate(model = forcats::fct_relevel(model, "GLM", "GAM", "SPAMM", "GBM", "SPRF", "RF")) |> 
+performance_all_best <- performance_all_best |> 
+  dplyr::mutate(model2 = paste0(model, "_", metric))
+
+
+performance_all_best <- performance_all_best |> 
+  dplyr::filter(metric != c("r2"))
+
+performance_all_best$model2 <- factor(performance_all_best$model2, levels = c("GLM_Pearson", "GAM_Pearson", "SPAMM_Pearson", "GBM_Pearson", "SPRF_Pearson", "RF_Pearson", "",
+                                                                              "GLM_Spearman", "GAM_Spearman", "SPAMM_Spearman", "GBM_Spearman", "SPRF_Spearman", "RF_Spearman"))
+
+mean_pearson <- mean(performance_all_best[performance_all_best$metric == "Pearson" & performance_all_best$cat == "All models",]$value)
+mean_spearman <- mean(performance_all_best[performance_all_best$metric == "Spearman" & performance_all_best$cat == "All models",]$value)
+
+plot_perf <- performance_all_best |> 
+  dplyr::mutate(model2 = forcats::fct_relevel(model2, "GLM_Pearson", "GAM_Pearson", "SPAMM_Pearson", "GBM_Pearson", "SPRF_Pearson", "RF_Pearson", "",
+                                              "GLM_Spearman", "GAM_Spearman", "SPAMM_Spearman", "GBM_Spearman", "SPRF_Spearman", "RF_Spearman")) |>
   ggplot() +
-  geom_boxplot(aes(x = model, y = value, fill = cat), 
+  geom_boxplot(aes(x = model2, y = value, fill = cat), 
                alpha = 0.8, 
                outlier.shape = NA, 
-               size = 0.6, 
+               size = 0.4, 
                position = position_dodge(width = 0.9)) +
+  geom_segment(
+    aes(x = 0, xend = 6.5, y = mean_pearson, yend = mean_pearson),
+    color = "red",
+    size = 2,
+    linetype = "dashed"
+  ) +
+  geom_segment(
+    aes(x = 7.5, xend = 13.5, y = mean_spearman, yend = mean_spearman),
+    color = "red",
+    size = 2,
+    linetype = "dashed"
+  ) +
+  scale_x_discrete(drop = FALSE,
+                   labels = c("GLM_Pearson" = "GLM",
+                              "GAM_Pearson" = "GAM",
+                              "SPAMM_Pearson" = "SPAMM",
+                              "GBM_Pearson" = "GBM", 
+                              "SPRF_Pearson" = "SPRF",
+                              "RF_Pearson" = "RF",
+                              "GLM_Spearman" = "GLM",
+                              "GAM_Spearman" = "GAM",
+                              "SPAMM_Spearman" = "SPAMM",
+                              "GBM_Spearman" = "GBM",
+                              "SPRF_Spearman" = "SPRF",
+                              "RF_Spearman" = "RF")) +
+  annotate("text", x = 3.5, y = 0.95, label = "Pearson", size = 5) +
+  annotate("text", x = 10.5, y = 0.95, label = "Spearman", size = 5) +
   scale_fill_manual(values = c("Best models" = pal_perf[6],
                                "All models" = pal_perf[2])) +
   coord_cartesian(ylim = c(-0.3, 1)) + 
-  labs(y = "Pearson", x = "", title = "C.", fill = "", linetype = "") +
+  labs(y = "Performance values", x = "", title = "C.", fill = "") +
   theme_minimal() + 
   theme(
-    legend.position = "none",
-    title = element_text(size = 15),
-    axis.text=element_text(size = 15),
-    axis.title=element_text(size = 20),
-    legend.text=element_text(size = 10),
-    legend.title=element_text(size = 15),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank())
-
-plot_perf_spearman <- performance_all_best |> 
-  dplyr::filter(metric %in% c("Spearman")) |> 
-  dplyr::mutate(model = forcats::fct_relevel(model, "GLM", "GAM", "SPAMM", "GBM", "SPRF", "RF")) |> 
-  ggplot() +
-  geom_boxplot(aes(x = model, y = value, fill = cat), 
-               alpha = 0.8, 
-               outlier.shape = NA, 
-               size = 0.6, 
-               position = position_dodge(width = 0.9)) +
-  scale_fill_manual(values = c("Best models" = pal_perf[6],
-                               "All models" = pal_perf[2])) +
-  coord_cartesian(ylim = c(-0.3, 1)) + 
-  labs(y = "Spearman", x = "", title = "", fill = "", linetype = "") +
-  theme_minimal() + 
-  theme(
-    legend.position = c(0.7, 0.1),
+    legend.position = c(0.8, 0.1),
     legend.direction = "horizontal",
     title = element_text(size = 15),
-    axis.text=element_text(size = 15),
-    axis.title=element_text(size = 20),
-    legend.text=element_text(size = 10),
-    legend.title=element_text(size = 15),
+    axis.text = element_text(size = 15),
+    axis.title = element_text(size = 20),
+    legend.text = element_text(size = 15),
     strip.text.x = element_text(size = 10),
     strip.text.y = element_text(size = 10),
     panel.background = element_rect(fill = "white", colour = "grey50",
@@ -199,90 +210,6 @@ plot_perf_spearman <- performance_all_best |>
     panel.grid.major = element_blank(), 
     panel.grid.minor = element_blank())
 
-library(patchwork)
+plot_perf_best <- (best_model + observed_predicted_best_plot) / (plot_perf)
 
-plot_perf_best <- (best_model + observed_predicted_best_plot) / (plot_perf_pearson + plot_perf_spearman)
-
-ggplot2::ggsave("figures/test.png", plot_perf_best, height = 13, width = 12)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-plot_perf_all <- performance_all_best |> 
-  dplyr::filter(cat %in% c("All models"),
-                metric %in% c("Pearson", "Spearman")) |> 
-  dplyr::mutate(model = forcats::fct_relevel(model, "GLM", "GAM", "SPAMM", "GBM", "SPRF", "RF")) |> 
-  ggplot() +
-  geom_boxplot(aes(x = model, y = value, fill = metric), 
-               alpha = 0.8, 
-               outlier.shape = NA, 
-               size = 0.6, 
-               position = position_dodge(width = 0.9)) +
-  scale_fill_manual(values = c("Pearson" = pal_perf[6],
-                               "Spearman" = pal_perf[2])) +
-  coord_cartesian(ylim = c(-0.3, 1)) + 
-  labs(y = "Performance value", x = "", title = "C.    All models", fill = "", linetype = "") +
-  theme_minimal() + 
-  theme(
-    legend.position = "none",
-    title = element_text(size = 15),
-    axis.text=element_text(size = 15),
-    axis.title=element_text(size = 20),
-    legend.text=element_text(size = 10),
-    legend.title=element_text(size = 15),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank())
-
-plot_perf_best <- performance_all_best |> 
-  dplyr::filter(cat %in% c("Best models"),
-                metric %in% c("Pearson", "Spearman")) |> 
-  dplyr::mutate(model = forcats::fct_relevel(model, "GLM", "GAM", "SPAMM", "GBM", "SPRF", "RF")) |> 
-  ggplot() +
-  geom_boxplot(aes(x = model, y = value, fill = metric), 
-               alpha = 0.8, 
-               outlier.shape = NA, 
-               size = 0.6, 
-               position = position_dodge(width = 0.9)) +
-  scale_fill_manual(values = c("Pearson" = pal_perf[6],
-                               "Spearman" = pal_perf[2])) +
-  coord_cartesian(ylim = c(-0.3, 1)) + 
-  labs(y = "Performance value", x = "", title = "Best models", fill = "", linetype = "") +
-  theme_minimal() + 
-  theme(
-    legend.position = c(0.7, 0.1),
-    legend.direction = "horizontal",
-    title = element_text(size = 15),
-    axis.text=element_text(size = 15),
-    axis.title=element_text(size = 20),
-    legend.text=element_text(size = 10),
-    legend.title=element_text(size = 15),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank())
-
-plot_perf_best2 <- (best_model + observed_predicted_best_plot) / (plot_perf_all + plot_perf_best)
-
-ggplot2::ggsave("figures/test2.png", plot_perf_best2, height = 13, width = 12)
-
+ggplot2::ggsave("figures/test3.png", plot_perf_best, height = 13, width = 12)

@@ -564,9 +564,9 @@ ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, heigh
 ##################### Test inferred benthos #####################
 
 covariates_importance_all <- covariates_importance_all_function(plot_data = bind_files,
-                                                                title = "With benthos inferred",
+                                                                title = "With benthos inferred (n = 4684)",
                                                                 legend.position = "none",
-                                                                title.size = 18,
+                                                                title.size = 16,
                                                                 axis.text.x = 15,
                                                                 axis.text.y = 17,
                                                                 axis.title = 21,
@@ -575,9 +575,9 @@ covariates_importance_all <- covariates_importance_all_function(plot_data = bind
                                                                 strip.text.y = 20,
                                                                 fill = "")
 covariates_importance_all_inf <- covariates_importance_all_function(plot_data = bind_files_inf,
-                                                                    title = "Without benthos inferred",
+                                                                    title = "Without benthos inferred (n = 3363)",
                                                                     legend.position = "none",
-                                                                    title.size = 18,
+                                                                    title.size = 16,
                                                                     axis.text.x = 15,
                                                                     axis.text.y = 17,
                                                                     axis.title = 21,

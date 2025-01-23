@@ -168,7 +168,6 @@ rls_env_selec <- rls_env_selec[,which(grepl(pattern = paste0(c("survey_id", "max
 cor_env <- stats::cor(rls_env_selec[!colnames(rls_env_selec) %in% c("survey_id", "longitude", "latitude")]) #Look at correlation between covariates
 corrplot::corrplot(cor_env, type = "upper") 
 
-# rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_chl", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week", "max_5year_nppv", "min_7days_o2")]
 rls_env_selec2 <- rls_env_selec[,c("min_5year_ph", "mean_1year_nppv", "mean_1year_so_mean" , "min_1year_analysed_sst", "max_1year_analysed_sst", "max_5year_degree_heating_week")]
 cor_env2 <- stats::cor(rls_env_selec2)
 corrplot::corrplot(cor_env2, type = "upper")
@@ -183,17 +182,14 @@ rls_soc_selec <- rls_fish_cov[,colnames(rls_soc)]
 rls_soc_selec$gdp <- log10(rls_soc_selec$gdp + 1)
 rls_soc_selec$gravtot2 <- log10(rls_soc_selec$gravtot2 + mean(rls_soc_selec$gravtot2))
 
-# cor_soc <- stats::cor(rls_soc_selec[!colnames(rls_soc_selec) %in% c("survey_id", "longitude", "latitude", "effectiveness")])
 cor_soc <- stats::cor(rls_soc_selec[!colnames(rls_soc_selec) %in% c("survey_id", "longitude", "latitude", "protection_status2")])
 corrplot::corrplot(cor_soc, type = "upper")
 
-# rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "natural_ressource_rent")]
 rls_soc_selec2 <- rls_soc_selec[,c("gravtot2", "neartt", "gdp", "marine_ecosystem_dependency", "n_fishing_vessels")]
 
 cor_soc2 <- stats::cor(rls_soc_selec2)
 corrplot::corrplot(cor_soc2, type = "upper")
 
-# rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "no_violence", "marine_ecosystem_dependency", "n_fishing_vessels", "effectiveness")]
 rls_soc_final <- rls_soc_selec[,c("survey_id", "gravtot2", "neartt", "gdp", "marine_ecosystem_dependency", "n_fishing_vessels", "protection_status2")]
 
 
@@ -206,12 +202,29 @@ cor_hab <- stats::cor(rls_hab_selec[!colnames(rls_hab_selec) %in% c("survey_id",
 corrplot::corrplot(cor_hab, type = "upper")
 
 colnames(inferred_benthos)[-c(1:3)]
-# rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "Rubble_500m", "coral", "seagrass")]
 rls_hab_selec2 <- rls_hab_selec[,c("depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "coral")]
 cor_hab2 <- stats::cor(rls_hab_selec2)
 corrplot::corrplot(cor_hab2, type = "upper")
 
 rls_hab_final <- rls_hab_selec[,c("survey_id", "depth", "reef_extent", "coral_algae_500m", "Sand_500m", "Rock_500m", "coral")]
+
+rls_cov <- rls_env_final |> 
+  dplyr::inner_join(rls_soc_final) |> 
+  dplyr::inner_join(rls_hab_final)
+cor_cov <- stats::cor(rls_cov[!colnames(rls_cov) %in% c("survey_id", "protection_status2")])
+corrplot::corrplot(cor_cov,
+                   type = "upper",
+                   method = "color",
+                   tl.pos = "lt", 
+                   cl.pos = "r")
+
+corrplot::corrplot(cor_cov,
+                   type = "lower",
+                   method = "number",
+                   add = TRUE,    
+                   number.digits = 1,
+                   tl.pos = "n",
+                   cl.pos = "n")
 
 #####################################################################
 ##############  Create biomass and covariates dataset  ##############
