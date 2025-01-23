@@ -277,13 +277,18 @@ contribution_realm_data <- list(do.call(rbind, lapply(contribution_realm_data, '
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 3)),
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 4)),
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 5)))
+contribution_realm_data[[1]]$realm <- paste0(contribution_realm_data[[1]]$realm, " (n = 3527)")
+contribution_realm_data[[2]]$realm <- paste0(contribution_realm_data[[2]]$realm, " (n = 205)")
+contribution_realm_data[[3]]$realm <- paste0(contribution_realm_data[[3]]$realm, " (n = 186)")
+contribution_realm_data[[4]]$realm <- paste0(contribution_realm_data[[4]]$realm, " (n = 246)")
+contribution_realm_data[[5]]$realm <- paste0(contribution_realm_data[[5]]$realm, " (n = 338)")
 
 merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
   merged_covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
                                             title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ")),
                                             legend.position = "none",
-                                            title.size = 10,
+                                            title.size = 8,
                                             axis.text.x = 9,
                                             axis.text.y = 9,
                                             axis.title = 10,
@@ -298,9 +303,9 @@ merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), fu
 covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
   covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
-                                     title = "",
+                                     title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), "_", " "),
                                      legend.position = "none",
-                                     title.size = 13,
+                                     title.size = 10,
                                      axis.text.x = 11,
                                      axis.text.y = 11,
                                      axis.title = 13,
