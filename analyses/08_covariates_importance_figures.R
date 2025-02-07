@@ -156,7 +156,7 @@ merged_covariates_importance_all <- merged_covariates_importance_all_function(pl
 
 covariates_importance_all_and_merged <- covariates_importance_all + merged_covariates_importance_all
 
-ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 15)
+ggsave("figures/covariates_importance_all_and_merged2.png", covariates_importance_all_and_merged, height = 7, width = 15)
 
 covariates_importance_GLM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = glm),
                                                                  color = pal_contribution,
