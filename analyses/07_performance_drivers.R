@@ -90,6 +90,11 @@ perf_imp_var <- ggplot(var_imp) +
         strip.text.y = element_text(size = 10)) + 
   labs(x = "", y = "Importance", title = "A.", fill = "")
 
+# yhat <- function(X.model, newdata) as.numeric(predict(X.model, newdata)$predictions) 
+# ALEPlot::ALEPlot(as.data.frame(performance_bind), pearson_model, pred.fun=yhat, J = 8, K = 100,
+#                  NA.plot = TRUE)
+# https://christophm.github.io/interpretable-ml-book/pdp.html#disadvantages-5
+
 patial_pear_count <- pdp::partial(pearson_model, train = performance_bind, pred.var = c("count")) |> 
   dplyr::rename(pearson = yhat)
 patial_spear_count <- pdp::partial(spearman_model, train = performance_bind, pred.var = c("count")) |> 

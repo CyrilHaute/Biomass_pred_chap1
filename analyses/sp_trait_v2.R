@@ -155,8 +155,60 @@ trophic_group <- trophic_group |>
 
 trophic_group <- trophic_group[trophic_group$best_model == trophic_group$fitted_model,]
 
+trophic_group |> 
+  dplyr::group_by(Trophic_guild_name) |> 
+  dplyr::summarise(n = dplyr::n() / length(unique(variable)))
+
+trophic_group$Trophic_guild_name <- as.factor(trophic_group$Trophic_guild_name)
+
 trophic_group <- trophic_group |> 
-  dplyr::inner_join(sp_car[colnames(sp_car) %in% c("species_name", "Trophic_guild_name")]) |> 
+  dplyr::filter(Dropout_loss < mean(Dropout_loss) * 10)
+
+# Test ANOVA
+anova_result <- aov(Dropout_loss ~ interaction(Trophic_guild_name, variable), data = trophic_group)
+
+tukey_result <- agricolae::HSD.test(anova_result, "interaction(Trophic_guild_name, variable)", group = TRUE, alpha = 0.05)$groups |> 
+  dplyr::mutate(x = gsub("\\..*", "", row.names(tukey_result)),
+                y = gsub(".*\\.", "", row.names(tukey_result)))
+
+tukey_result <- tukey_result |> 
+  dplyr::mutate(VAR = dplyr::case_when(y %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week",
+                                                "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst",
+                                                "min_5year_ph") ~ "ENV",
+                                       y %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth",
+                                                "reef_extent") ~ "HAB",
+                                       y %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
+                                                "neartt", "protection_status2") ~ "HUM"))
+
+tukey_result[tukey_result$y == "max_1year_analysed_sst",]$y <- "Sea Surface Temperature (max 1 year)"
+tukey_result[tukey_result$y == "min_1year_analysed_sst",]$y <- "Sea Surface Temperature (min 1 year)"
+tukey_result[tukey_result$y == "max_5year_degree_heating_week",]$y <- "Degree Heating Week (max 5 year)"
+tukey_result[tukey_result$y == "mean_1year_nppv",]$y <- "Net Primary Productivity (mean 1 year)"
+tukey_result[tukey_result$y == "mean_1year_so_mean",]$y <- "Sea Surface Salinity (mean 1 year)"
+tukey_result[tukey_result$y == "min_5year_ph",]$y <- "pH (min 5 year)"
+tukey_result[tukey_result$y == "protection_status2",]$y <- "MPA status"
+tukey_result[tukey_result$y == "gdp",]$y <- "Gross Domestic Product"
+tukey_result[tukey_result$y == "gravtot2",]$y <- "Human Gravity"
+tukey_result[tukey_result$y == "n_fishing_vessels",]$y <- "Fishing Vessels Density"
+tukey_result[tukey_result$y == "neartt",]$y <- "Nearest Population"
+tukey_result[tukey_result$y == "marine_ecosystem_dependency",]$y <- "Marine Ecosystem Dependency"
+tukey_result[tukey_result$y == "Rock_500m",]$y <- "Rock (%)"
+tukey_result[tukey_result$y == "Sand_500m",]$y <- "Sand (%)"
+tukey_result[tukey_result$y == "coral_algae_500m",]$y <- "Coral/Algae (%)"
+tukey_result[tukey_result$y == "coral",]$y <- "Coral (RLS)"
+tukey_result[tukey_result$y == "depth",]$y <- "Depth"
+tukey_result[tukey_result$y == "reef_extent",]$y <- "Reef extent"
+
+tukey_result <- tukey_result|> 
+  dplyr::mutate(color = dplyr::case_when(VAR == "HAB" ~ pal_contribution[13],
+                                         VAR == "ENV" ~ pal_contribution[2],
+                                         VAR == "HUM" ~ pal_contribution[1]),
+                y = paste0("<span style='color:",
+                           color,
+                           "; font-size: 35px;'>&#9679;</span> ",
+                           y))
+
+trophic_group <- trophic_group |> 
   dplyr::mutate(VAR = dplyr::case_when(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week",
                                                        "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst",
                                                        "min_5year_ph") ~ "ENV",
@@ -190,41 +242,53 @@ trophic_group[trophic_group$variable == "reef_extent",]$variable <- "Reef extent
 
 trophic_group$variable <- as.factor(trophic_group$variable)
 
+trophic_group <- trophic_group |> 
+  dplyr::mutate(color = dplyr::case_when(VAR == "HAB" ~ pal_contribution[13],
+                                         VAR == "ENV" ~ pal_contribution[2],
+                                         VAR == "HUM" ~ pal_contribution[1]),
+                variable = paste0("<span style='color:",
+                                  color,
+                                  "; font-size: 35px;'>&#9679;</span> ",
+                                  variable))
+
+trophic_group$variable <- as.factor(trophic_group$variable)
+
 trophic_group_plot <- trophic_group |> 
-  dplyr::mutate(variable = forcats::fct_relevel(variable, "MPA status",
-                                                "Fishing Vessels Density",
-                                                "Marine Ecosystem Dependency",
-                                                "Gross Domestic Product",
-                                                "Degree Heating Week (max 5 year)",
-                                                "Sea Surface Temperature (max 1 year)",
-                                                "pH (min 5 year)",
-                                                "Sand (%)",
-                                                "Coral/Algae (%)",
-                                                "Rock (%)",
-                                                "Nearest Population",
-                                                "Sea Surface Temperature (min 1 year)",
-                                                "Coral (RLS)",
-                                                "Reef extent",
-                                                "Human Gravity",
-                                                "Depth",
-                                                "Sea Surface Salinity (mean 1 year)",
-                                                "Net Primary Productivity (mean 1 year)")) |>
-  ggplot(aes(x = Trophic_guild_name, y = variable, fill = value)) + 
-  geom_tile() + 
+  dplyr::mutate(variable = forcats::fct_relevel(variable, 
+                                                "<span style='color:#E41A1C; font-size: 35px;'>&#9679;</span> Fishing Vessels Density",
+                                                "<span style='color:#E41A1C; font-size: 35px;'>&#9679;</span> MPA status",
+                                                "<span style='color:#E41A1C; font-size: 35px;'>&#9679;</span> Gross Domestic Product",
+                                                "<span style='color:#E41A1C; font-size: 35px;'>&#9679;</span> Marine Ecosystem Dependency",
+                                                "<span style='color:#EDB829; font-size: 35px;'>&#9679;</span> Coral/Algae (%)",
+                                                "<span style='color:#EDB829; font-size: 35px;'>&#9679;</span> Sand (%)",
+                                                "<span style='color:#377EB8; font-size: 35px;'>&#9679;</span> Degree Heating Week (max 5 year)",
+                                                "<span style='color:#377EB8; font-size: 35px;'>&#9679;</span> pH (min 5 year)",
+                                                "<span style='color:#EDB829; font-size: 35px;'>&#9679;</span> Rock (%)",
+                                                "<span style='color:#EDB829; font-size: 35px;'>&#9679;</span> Coral (RLS)",
+                                                "<span style='color:#377EB8; font-size: 35px;'>&#9679;</span> Sea Surface Temperature (max 1 year)",
+                                                "<span style='color:#EDB829; font-size: 35px;'>&#9679;</span> Reef extent",
+                                                "<span style='color:#377EB8; font-size: 35px;'>&#9679;</span> Sea Surface Temperature (min 1 year)",
+                                                "<span style='color:#E41A1C; font-size: 35px;'>&#9679;</span> Nearest Population",
+                                                "<span style='color:#EDB829; font-size: 35px;'>&#9679;</span> Depth",
+                                                "<span style='color:#377EB8; font-size: 35px;'>&#9679;</span> Sea Surface Salinity (mean 1 year)",
+                                                "<span style='color:#E41A1C; font-size: 35px;'>&#9679;</span> Human Gravity",
+                                                "<span style='color:#377EB8; font-size: 35px;'>&#9679;</span> Net Primary Productivity (mean 1 year)")) |>
+  ggplot() + 
+  geom_point(aes(x = Trophic_guild_name, y = variable, color = VAR), size = 3) +
+  geom_tile(aes(x = Trophic_guild_name, y = variable, fill = value)) + 
+  geom_text(data = tukey_result, aes(x = x, y = y, label = groups)) +
   scale_fill_distiller(palette = "Reds", direction = 1) +
-  labs(y = "", x = "", fill = "Relative importance (RMSE)") +
+  scale_color_manual(values = c(pal_contribution[2], pal_contribution[13], pal_contribution[1])) + 
+  labs(y = "", x = "", fill = "Relative importance (RMSE)", color = "") +
   theme(
     legend.direction = "vertical",
     legend.background = element_rect(fill = "white"),
     legend.key = element_rect(fill = "white", color = NA),
-    axis.text = element_text(size = 10),
-    axis.text.x = element_text(size = 10),
-    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10, angle = 45, hjust = 1),
     axis.title = element_text(size = 15),
     legend.text = element_text(size = 10),
     legend.title = element_text(size = 10),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
+    axis.text.y = ggtext::element_markdown(size = 10),
     strip.background = element_blank(),
     panel.background = element_rect(fill = "white", colour = "grey50",
                                     size = 1, linetype = "solid"),

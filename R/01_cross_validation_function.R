@@ -18,7 +18,6 @@
 scv_function <- function(dats, 
                          n.folds){
   
-  # flexible object for storing folds
   folds <- list()
   
   fold.size <- nrow(dats)/n.folds
@@ -28,10 +27,8 @@ scv_function <- function(dats,
   
   for(i in 1:n.folds) {
     
-    # randomly sample “fold_size” from the ‘remaining observations’
     select.val <- sample(remain, fold.size, replace = FALSE)
     
-    # store indices
     folds[[i]] <- select.val
     
     if (i == n.folds){
@@ -40,7 +37,6 @@ scv_function <- function(dats,
       
     }
     
-    # update remaining indices to reflect what was taken out
     remain <- setdiff(remain, select.val)
     
   }
@@ -49,8 +45,6 @@ scv_function <- function(dats,
   
   for(i in 1:n.folds) {
     
-    # fold i
-    # unpack into a vector
     indis <- folds[[i]]
     
     train <- dats[-indis,]
