@@ -212,4 +212,4 @@ plot_perf <- performance_all_best |>
 
 plot_perf_best <- (best_model + observed_predicted_best_plot) / (plot_perf)
 
-ggplot2::ggsave("figures/test3.png", plot_perf_best, height = 13, width = 12)
+ggplot2::ggsave("figures/test3.pdf", plot_perf_best, height = 13, width = 12)

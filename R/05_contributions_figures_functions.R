@@ -91,11 +91,11 @@ covariates_importance_all_function <- function(plot_data,
     coord_flip() +
     # facet_wrap(~ realm) +
     labs(y = "Relative importance (RMSE)", x = "", fill = fill, title = title) +
-    theme(legend.position = legend.position) +
-    theme(title = element_text(size = title.size),
+    theme(legend.position = legend.position,
+          title = element_text(size = title.size),
           axis.text.x = element_text(size = axis.text.x),
           axis.text.y = element_text(size = axis.text.y),
-          axis.title = element_text(axis.title),
+          axis.title = element_text(size = axis.title),
           legend.text = element_text(size = legend.text),
           strip.text.x = element_text(size = strip.text.x),
           strip.text.y = element_text(size = strip.text.y))

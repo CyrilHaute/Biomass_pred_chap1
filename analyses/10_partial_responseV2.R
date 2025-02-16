@@ -91,12 +91,13 @@ central_indo_pacific_mean <- partial_realm |>
   dplyr::mutate(var = forcats::fct_relevel(var, c("NPP mean", "Neartt", "SST min", "Reef extent", "SST max"))) |> 
   ggplot() +
   # geom_line(aes(x = values, y = biomass, color = var_type), size = 1) +
-  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25) +
-  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 1) +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25, stat = "smooth") +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "lm", se = FALSE) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
                                 "HAB" = pal_contribution[13],
                                 "BIOT" = pal_contribution[3])) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) + 
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
   labs(title = "Central Indo-Pacific (n = 21)", x = "", y = "log10(Biomass+1)") +
@@ -109,19 +110,20 @@ central_indo_pacific_mean <- partial_realm |>
         legend.position = "none")
 
 eastern_indo_pacific_mean <- partial_realm |> 
-  dplyr::filter(var %in% c("MED", "GDP", "SSS mean", "SST min", "DHW max", "SST max"),
+  dplyr::filter(var %in% c("MED", "GDP", "SSS mean", "SST min", "DHW max"),
                 realm == "Eastern Indo-Pacific (n = 65)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
-  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "GDP", "SSS mean", "SST min", "DHW max", "SST max"))) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "GDP", "SSS mean", "SST min", "DHW max"))) |> 
   ggplot() +
   # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
-  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25) +
-  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "gam") +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25, stat = "smooth") +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "lm", se = FALSE) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
                                 "HAB" = pal_contribution[13],
                                 "BIOT" = pal_contribution[3])) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) + 
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
   labs(title = "Eastern Indo-Pacific (n = 65)", x = "", y = "log10(Biomass+1)") +
@@ -134,19 +136,20 @@ eastern_indo_pacific_mean <- partial_realm |>
         legend.position = "none")
 
 tropical_atlantic_mean <- partial_realm |> 
-  dplyr::filter(var %in% c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)", "pH min"),
+  dplyr::filter(var %in% c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)"),
                 realm == "Tropical Atlantic (n = 44)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
-  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)", "pH min"))) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("MED", "SST min", "Depth", "Rock (%)", "Coral (RLS)"))) |> 
   ggplot() +
   # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
-  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25) +
-  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "gam") +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25, stat = "smooth") +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "lm", se = FALSE) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
                                 "HAB" = pal_contribution[13],
                                 "BIOT" = pal_contribution[3])) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) + 
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
   labs(title = "Tropical Atlantic (n = 44)", x = "", y = "log10(Biomass+1)", color = " ") +
@@ -158,18 +161,19 @@ tropical_atlantic_mean <- partial_realm |>
         legend.text = element_text(size = 12))
 
 tropical_eastern_pacific_mean <- partial_realm |> 
-  dplyr::filter(var %in% c("Depth", "Gravity", "MED", "SSS mean", "NPP mean", "Neartt"),
+  dplyr::filter(var %in% c("Depth", "Gravity", "MED", "SSS mean", "NPP mean"),
                 realm == "Tropical Eastern Pacific (n = 34)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
-  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "Gravity", "MED", "SSS mean", "NPP mean", "Neartt"))) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "Gravity", "MED", "SSS mean", "NPP mean"))) |> 
   ggplot() +
   # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
-  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25) +
-  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "gam") +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25, stat = "smooth") +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "lm", se = FALSE) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
                                 "HAB" = pal_contribution[13])) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) + 
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
   labs(title = "Tropical Eastern Pacific (n = 34)", x = "", y = "log10(Biomass+1)") +
@@ -182,18 +186,19 @@ tropical_eastern_pacific_mean <- partial_realm |>
         legend.position = "none")
 
 temperate_northern_atlantic_mean <- partial_realm |> 
-  dplyr::filter(var %in% c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)", "Reef extent"),
+  dplyr::filter(var %in% c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)"),
                 realm == "Temperate Northern Atlantic (n = 8)") |> 
   dplyr::ungroup() |> 
   dplyr::select(-id) |> 
-  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)", "Reef extent"))) |> 
+  dplyr::mutate(var = forcats::fct_relevel(var, c("Depth", "MED", "SSS mean", "Coral/Algae (%)", "Rock (%)"))) |> 
   ggplot() +
   # geom_ribbon(aes(x = mean_values, y = mean_biomass, ymin = mean_biomass - sd_biomass, ymax = mean_biomass + sd_biomass), fill = "grey", alpha = 0.5) +
-  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25) +
-  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "gam") +
+  geom_line(aes(x = values, y = biomass, group = species_name), size = 0.4, alpha = 0.25, stat = "smooth") +
+  geom_smooth(aes(x = values, y = biomass, color = var_type), size = 2, method = "lm", se = FALSE) +
   scale_color_manual(values = c("ENV" = pal_contribution[2],
                                 "HUM" = pal_contribution[1],
                                 "HAB" = pal_contribution[13])) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 4)) + 
   facet_wrap(~var, scales = "free", nrow = 1) +
   theme_bw() +
   labs(title = "Temperate Northern Atlantic (n = 8)", x = "", y = "log10(Biomass+1)") +
@@ -207,5 +212,5 @@ temperate_northern_atlantic_mean <- partial_realm |>
 
 realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean / temperate_northern_atlantic_mean
 
-ggsave("figures/realm_partial_mean_plot2.png", realm_partial_mean_plot, width = 11, height = 13)
+ggsave("figures/realm_partial_mean_plot2.png", realm_partial_mean_plot, width = 12, height = 13)
 

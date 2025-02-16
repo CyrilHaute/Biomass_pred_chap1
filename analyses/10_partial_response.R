@@ -244,5 +244,5 @@ temperate_northern_atlantic_mean <- partial_realm_all |>
 
 realm_partial_mean_plot <- central_indo_pacific_mean / eastern_indo_pacific_mean / tropical_atlantic_mean / tropical_eastern_pacific_mean / temperate_northern_atlantic_mean
 
-ggsave("figures/realm_partial_mean_plot3.png", realm_partial_mean_plot, width = 9, height = 13)
+ggsave("figures/realm_partial_mean_plot3.pdf", realm_partial_mean_plot, width = 9, height = 13)
 

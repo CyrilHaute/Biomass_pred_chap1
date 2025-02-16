@@ -156,7 +156,7 @@ merged_covariates_importance_all <- merged_covariates_importance_all_function(pl
 
 covariates_importance_all_and_merged <- covariates_importance_all + merged_covariates_importance_all
 
-ggsave("figures/covariates_importance_all_and_merged2.png", covariates_importance_all_and_merged, height = 7, width = 15)
+ggsave("figures/covariates_importance_all_and_merged2.pdf", covariates_importance_all_and_merged, height = 7, width = 15)
 
 covariates_importance_GLM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = glm),
                                                                  color = pal_contribution,
@@ -288,14 +288,14 @@ merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), fu
   merged_covariates_importance_all_function(plot_data = contribution_realm_data[[i]],
                                             title = stringr::str_replace_all(unique(contribution_realm_data[[i]]$realm), c("_" = " ")),
                                             legend.position = "none",
-                                            title.size = 8,
+                                            title.size = 11,
                                             axis.text.x = 9,
-                                            axis.text.y = 9,
+                                            axis.text.y = 12,
                                             axis.title = 10,
                                             legend.text = 15,
-                                            strip.text.x = 9,
-                                            strip.text.y = 9,
-                                            geom.text.size = 3,
+                                            strip.text.x = 11,
+                                            strip.text.y = 11,
+                                            geom.text.size = 3.5,
                                             fill = "")
 
 })
@@ -339,9 +339,9 @@ map_contribution_merged_realm <- rls_map +
 
 covariates_importance_all_bind <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]] + covariates_importance_all[[4]] + covariates_importance_all[[5]])
 
-ggplot2::ggsave("figures/covariates_importance_map.png", map_contribution_merged_realm, height = 6, width = 15)
+ggplot2::ggsave("figures/covariates_importance_map.pdf", map_contribution_merged_realm, height = 6, width = 16)
 
-ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 20)
+ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 22)
 
 ##################### Contribution per species #####################
 
@@ -451,7 +451,7 @@ plot_trophic_group_letter <- plot_trophic_group + geom_text(data = label_data,
                                                             inherit.aes = FALSE,
                                                             size = 5)
 
-ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
+ggsave("figures/plot_trophic_group_letter.pdf", plot_trophic_group_letter, height = 8, width = 18)
 
 
 
