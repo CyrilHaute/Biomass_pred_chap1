@@ -1,3 +1,5 @@
+# Script to produce biomass response to covariates figure
+
 source("R/08_load_realm_contribution_function.R")
 
 partial_realm_rf <- load_realm_partial_function(files_path = "outputs/realm_partial_rf")

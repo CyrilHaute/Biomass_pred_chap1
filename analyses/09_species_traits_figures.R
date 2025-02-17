@@ -1,3 +1,5 @@
+# This script generate trophic group vs covariates importance figures
+
 library(ggplot2)
 
 pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors::pnw_palette("Bay", 6, type = "continuous"))
@@ -85,7 +87,9 @@ sp_car[sp_car$Trophic_guild_name == "sessile invertivores",]$Trophic_guild_name 
 sp_car[sp_car$Trophic_guild_name == "corallivore",]$Trophic_guild_name <- "Corallivores"
 sp_car[sp_car$Trophic_guild_name == "crustacivore",]$Trophic_guild_name <- "Crustacivores"
 
-bind_files_best <- bind_files |> 
+# Plot covariates importance categories vs trophic group
+
+bind_files_best <- bind_files |>
   dplyr::inner_join(best_models)
 
 bind_files_best <- bind_files_best[bind_files_best$fitted_model == bind_files_best$best_model,]
@@ -99,21 +103,17 @@ trophic_group <- bind_files_best |>
                                                        "reef_extent") ~ "HAB",
                                        variable %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
                                                        "neartt", "protection_status2") ~ "HUM"))
-trophic_group <- trophic_group |> 
-  dplyr::group_by(species_name, Trophic_guild_name, VAR) |> 
-  dplyr::summarise(value = mean(Dropout_loss),
-                   sd = mean(sd_dropout_loss))
 
-# trophic_group <- trophic_group |> 
-#   dplyr::filter(!species_name == "Chrysiptera notialis")
+trophic_group <- trophic_group |>
+  dplyr::filter(Dropout_loss < mean(Dropout_loss) * 10)
 
-plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = value, fill = VAR)) +
+plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = Dropout_loss, fill = VAR)) +
   geom_boxplot(outlier.shape = NA) +
   theme_bw() +
   scale_fill_manual(values = c("ENV" = pal_contribution[2],
                                "HUM" = pal_contribution[1],
                                "HAB" = pal_contribution[13])) +
-  scale_y_continuous(limits = c(0, 0.15)) + 
+  scale_y_continuous(limits = c(0, 0.3)) + 
   labs(y = "Relative importance (RMSE)", x = "", fill = "") +
   theme(
     legend.direction = "vertical",
@@ -135,7 +135,8 @@ plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = valu
     panel.grid.minor = element_blank())
 
 # Test ANOVA
-anova_result <- aov(value ~ interaction(Trophic_guild_name, VAR), data = trophic_group)
+# anova_result <- aov(value ~ interaction(Trophic_guild_name, VAR), data = trophic_group)
+anova_result <- aov(Dropout_loss ~ interaction(Trophic_guild_name, VAR), data = trophic_group)
 
 # Test post-hoc Tukey
 tukey_result <- TukeyHSD(anova_result)
@@ -150,7 +151,7 @@ significance_letters <- multcompView::multcompLetters(diff,
 
 y <- trophic_group |>
   dplyr::group_by(Trophic_guild_name, VAR) |>
-  dplyr::summarise(y = quantile(value, probs = 0.74)) |>
+  dplyr::summarise(y = quantile(Dropout_loss, probs = 0.75) + 0.05 * quantile(Dropout_loss, probs = 0.75)) |>
   dplyr::ungroup() |>
   dplyr::mutate(interaction = paste0(Trophic_guild_name, ".", VAR))
 
@@ -176,9 +177,11 @@ plot_trophic_group_letter <- plot_trophic_group + geom_text(data = label_data,
                                                             inherit.aes = FALSE,
                                                             size = 5)
 
-ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
+ggsave("figures/plot_trophic_group_letter.pdf", plot_trophic_group_letter, height = 8, width = 18)
 
 
+
+# Plot heat map (all covariates importance vs trophic group)
 
 trophic_group <- bind_files |> 
   dplyr::inner_join(sp_car[colnames(sp_car) %in% c("species_name", "Trophic_guild_name")])
@@ -250,10 +253,10 @@ trophic_group <- trophic_group |>
                                                        "reef_extent") ~ "HAB",
                                        variable %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
                                                        "neartt", "protection_status2") ~ "HUM"))
-trophic_group <- trophic_group |> 
-  dplyr::group_by(Trophic_guild_name, variable, VAR) |> 
-  dplyr::summarise(value = median(Dropout_loss),
-                   sd = median(sd_dropout_loss))
+trophic_group <- trophic_group |>
+  dplyr::group_by(Trophic_guild_name, variable, VAR) |>
+  dplyr::summarise(value = mean(Dropout_loss),
+                   sd = mean(sd_dropout_loss))
 
 trophic_group[trophic_group$variable == "max_1year_analysed_sst",]$variable <- "Sea Surface Temperature (max 1 year)"
 trophic_group[trophic_group$variable == "min_1year_analysed_sst",]$variable <- "Sea Surface Temperature (min 1 year)"
