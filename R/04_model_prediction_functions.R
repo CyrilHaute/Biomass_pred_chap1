@@ -7,39 +7,13 @@ rescale_01 = function(x){
   
   }
 
-# function to unnest large data from as a data.table ----
-
-unnest_dt2 <- function(tbl, ...) {
-  
-  tbl <- data.table::as.data.table(tbl)
-
-  col <- ensyms(...)
-
-  clnms <- syms(setdiff(colnames(tbl), as.character(col)))
-  
-  tbl <- data.table::as.data.table(tbl)
-  
-  tbl <- eval(
-    expr(tbl[, lapply(.SD, unlist), by = list(!!!clnms), .SDcols = as.character(col)])
-  )
-  
-  colnames(tbl) <- c(as.character(clnms), as.character(col))
-  
-  tbl
-}
-
-
-# input_data = read_sp_eco
-# nbins = 25
-# levels = c("glm", "gam", "spamm", "rf", "gbm", "sprf")
 
 observed_predicted_plot <- function(input_data, 
                                     nbins,
                                     levels){
   
   require(ggplot2)
-  require(patchwork)
-  
+
   model_outputs <- input_data
   
   sp <- unique(model_outputs$species_name)
@@ -131,19 +105,15 @@ observed_predicted_plot <- function(input_data,
     
   })
   
-  all_plots <- (plot_levels_plot[[1]] + plot_levels_plot[[2]]) / (plot_levels_plot[[3]] + plot_levels_plot[[4]]) / (plot_levels_plot[[5]] + plot_levels_plot[[6]])
+  all_plots <- patchwork::wrap_plots((plot_levels_plot[[1]] + plot_levels_plot[[2]]) / (plot_levels_plot[[3]] + plot_levels_plot[[4]]) / (plot_levels_plot[[5]] + plot_levels_plot[[6]]))
 
-  ggsave("figures/all_predictions_pres.png", all_plots, width = 9, height = 11)
-  
 }
-
 
 
 observed_predicted_best_plot <- function(input_data,
                                          nbins){
 
   require(ggplot2)
-  require(patchwork)
 
   model_outputs <- input_data
 

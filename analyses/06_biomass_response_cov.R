@@ -1,15 +1,15 @@
-# This script run the six biomass prediction models (glm, gam, rf, sprf, spamm and brt)
+# This script run the six biomass partial plot models (glm, gam, rf, sprf, spamm and brt)
 
 # General functions to run models
 source("R/01_noise_function.R")
 
 # Model functions
-source("R/09_partial_function_rf.R")
-source("R/09_partial_function_sprf.R")
-source("R/09_partial_function_gbm.R")
-source("R/09_partial_function_glm.R")
-source("R/09_partial_function_gam.R")
-source("R/09_partial_function_spamm.R")
+source("R/06_partial_function_rf.R")
+source("R/06_partial_function_sprf.R")
+source("R/06_partial_function_gbm.R")
+source("R/06_partial_function_glm.R")
+source("R/06_partial_function_gam.R")
+source("R/06_partial_function_spamm.R")
 
 # load fish biomass data and covariates
 load("data/new_derived_data/rls_biomass.RData")
@@ -115,7 +115,7 @@ for(i in 1:length(rls_biomass_realm)) {
 base_dir <- "outputs/realm_partial_spamm/"
 species_name_spamm <- best_models[best_models$best_model == "spamm",]$species_name
 
-for(i in 2:length(rls_biomass_realm)) {
+for(i in 1:length(rls_biomass_realm)) {
   
   realm <- rls_biomass_realm[[i]]
   

@@ -1,5 +1,5 @@
 # This script load all the needed data, (covariates and fish biomass data), 
-# select the covariates used in the models and create a spatial cross validation dataset
+# select the covariates used in the models
 
 #########################################################
 ############# Load environmental covariates #############
@@ -126,8 +126,6 @@ rls_fish_data <- dplyr::inner_join(RLS_actinopterygii_data, rls_surveys)
 
 rls_coral_fish <- rls_fish_data |>
   dplyr::filter(survey_id %in% rls_covariates$survey_id)
-
-# rls_coral_fish$biomass <- log10(rls_coral_fish$biomass + 1)
 
 rls_coral_fish_mean_biomass <- rls_coral_fish |> 
   dplyr::group_by(survey_id, site_code, species_name, latitude, longitude, survey_date, depth) |> 

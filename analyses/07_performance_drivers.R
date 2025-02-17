@@ -1,3 +1,5 @@
+# This script generate partial dependence plot of model performance
+
 load("outputs/performance_model.Rdata")
 load("data/new_derived_data/species_count.Rdata")
 load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
@@ -182,4 +184,3 @@ spearman_plot <- spearman_imp_var +
 pearson_spearman <- patchwork::wrap_plots(pearson_plot + spearman_plot)
 
 ggsave("figures/imp_patial_plot.png", pearson_spearman, width = 15, height = 11)
-

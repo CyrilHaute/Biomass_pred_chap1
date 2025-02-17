@@ -1,10 +1,9 @@
 # source functions ----
 
-library(patchwork)
 library(ggplot2)
 
-source("R/05_contributions_figures_functions.R")
-source("R/05_load_realm_contribution_function.R")
+source("R/08_contributions_figures_functions.R")
+source("R/08_load_realm_contribution_function.R")
 
 pal_contribution <- c(RColorBrewer::brewer.pal(n = 9, name = "Set1"), PNWColors::pnw_palette("Bay", 6, type = "continuous"))
 
@@ -154,9 +153,9 @@ merged_covariates_importance_all <- merged_covariates_importance_all_function(pl
                                                                               geom.text.size = 5,
                                                                               fill = "")
 
-covariates_importance_all_and_merged <- covariates_importance_all + merged_covariates_importance_all
+covariates_importance_all_and_merged <- patchwork::wrap_plots(covariates_importance_all + merged_covariates_importance_all)
 
-ggsave("figures/covariates_importance_all_and_merged2.pdf", covariates_importance_all_and_merged, height = 7, width = 15)
+ggsave("figures/covariates_importance_all_and_merged.png", covariates_importance_all_and_merged, height = 7, width = 15)
 
 covariates_importance_GLM <- plot_covariates_importance_function(plot_data = covariates_importance_function(plot_data = glm),
                                                                  color = pal_contribution,
@@ -200,7 +199,7 @@ covariates_importance_SPRF <- plot_covariates_importance_function(plot_data = co
                                                                   ylim = c(0, 0.4),
                                                                   legend.position = c(0.75, 0.16))
 
-covariates_importance_all <- (covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF)
+covariates_importance_all <- patchwork::wrap_plots((covariates_importance_GLM + covariates_importance_GAM) / (covariates_importance_SPAMM + covariates_importance_RF) / (covariates_importance_GBM + covariates_importance_SPRF))
 
 ggsave("figures/covariates_importance_all.png", covariates_importance_all, height = 16, width = 13)
 
@@ -252,7 +251,7 @@ merged_covariates_importance_SPRF <- plot_merged_covariates_importance_function(
                                                                                 legend.position = c(0.8, 0.18),
                                                                                 mul = 3)
 
-merged_covariates_importance <- (merged_covariates_importance_GLM + merged_covariates_importance_GAM) / (merged_covariates_importance_SPAMM + merged_covariates_importance_RF) / (merged_covariates_importance_GBM + merged_covariates_importance_SPRF)
+merged_covariates_importance <- patchwork::wrap_plots((merged_covariates_importance_GLM + merged_covariates_importance_GAM) / (merged_covariates_importance_SPAMM + merged_covariates_importance_RF) / (merged_covariates_importance_GBM + merged_covariates_importance_SPRF))
 
 ggsave("figures/merged_covariates_importance.png", merged_covariates_importance, height = 15, width = 11)
 
@@ -277,11 +276,11 @@ contribution_realm_data <- list(do.call(rbind, lapply(contribution_realm_data, '
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 3)),
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 4)),
                                 do.call(rbind, lapply(contribution_realm_data, '[[', 5)))
-contribution_realm_data[[1]]$realm <- paste0(contribution_realm_data[[1]]$realm, " (n = 3527)")
-contribution_realm_data[[2]]$realm <- paste0(contribution_realm_data[[2]]$realm, " (n = 205)")
-contribution_realm_data[[3]]$realm <- paste0(contribution_realm_data[[3]]$realm, " (n = 186)")
-contribution_realm_data[[4]]$realm <- paste0(contribution_realm_data[[4]]$realm, " (n = 246)")
-contribution_realm_data[[5]]$realm <- paste0(contribution_realm_data[[5]]$realm, " (n = 338)")
+# contribution_realm_data[[1]]$realm <- paste0(contribution_realm_data[[1]]$realm, " (n = 3527)")
+# contribution_realm_data[[2]]$realm <- paste0(contribution_realm_data[[2]]$realm, " (n = 205)")
+# contribution_realm_data[[3]]$realm <- paste0(contribution_realm_data[[3]]$realm, " (n = 186)")
+# contribution_realm_data[[4]]$realm <- paste0(contribution_realm_data[[4]]$realm, " (n = 246)")
+# contribution_realm_data[[5]]$realm <- paste0(contribution_realm_data[[5]]$realm, " (n = 338)")
 
 merged_covariates_importance_all <- lapply(1:length(contribution_realm_data), function(i) {
   
@@ -337,233 +336,11 @@ map_contribution_merged_realm <- rls_map +
   patchwork::plot_layout(guides = "collect") &
   theme(legend.position = "right")
 
-covariates_importance_all_bind <- (covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]] + covariates_importance_all[[4]] + covariates_importance_all[[5]])
+covariates_importance_all_bind <- patchwork::wrap_plots((covariates_importance_all[[1]] + covariates_importance_all[[2]] + covariates_importance_all[[3]] + covariates_importance_all[[4]] + covariates_importance_all[[5]]))
 
-ggplot2::ggsave("figures/covariates_importance_map.pdf", map_contribution_merged_realm, height = 6, width = 16)
+ggplot2::ggsave("figures/covariates_importance_map.png", map_contribution_merged_realm, height = 6, width = 16)
 
 ggplot2::ggsave("figures/contribution_realm.png", covariates_importance_all_bind, height = 10, width = 22)
-
-##################### Contribution per species #####################
-
-# Load species traits
-sp_car <- read.csv("data/new_raw_data/Traits_tropical_spp_1906.csv", header = TRUE) |> 
-  dplyr::rename(species_name = Species) |> 
-  dplyr::filter(species_name %in% unique(bind_files$species_name))
-
-sp_car <- sp_car[which(is.na(sp_car$Trophic_guild_name) == FALSE),]
-
-sp_car[sp_car$Trophic_guild_name == "Herbivores Microvores Detritivores",]$Trophic_guild_name <- "Herbivores"
-sp_car[sp_car$Trophic_guild_name == "planktivore",]$Trophic_guild_name <- "Planktivores"
-sp_car[sp_car$Trophic_guild_name == "piscivore",]$Trophic_guild_name <- "Piscivores"
-sp_car[sp_car$Trophic_guild_name == "microinvertivore",]$Trophic_guild_name <- "Microinvertivores"
-sp_car[sp_car$Trophic_guild_name == "macroinvertivore",]$Trophic_guild_name <- "Macroinvertivores"
-sp_car[sp_car$Trophic_guild_name == "sessile invertivores",]$Trophic_guild_name <- "Sessile invertivores"
-sp_car[sp_car$Trophic_guild_name == "corallivore",]$Trophic_guild_name <- "Corallivores"
-sp_car[sp_car$Trophic_guild_name == "crustacivore",]$Trophic_guild_name <- "Crustacivores"
-
-trophic_group <- bind_files |> 
-  dplyr::inner_join(sp_car[colnames(sp_car) %in% c("species_name", "Trophic_guild_name")])
-
-
-trophic_group <- bind_files |> 
-  dplyr::inner_join(sp_car[colnames(sp_car) %in% c("species_name", "Trophic_guild_name")]) |> 
-  dplyr::mutate(VAR = dplyr::case_when(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week",
-                                                       "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst",
-                                                       "min_5year_ph") ~ "ENV",
-                                       variable %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth",
-                                                       "reef_extent") ~ "HAB",
-                                       variable %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
-                                                       "neartt", "protection_status2") ~ "HUM"))
-trophic_group <- trophic_group |> 
-  dplyr::group_by(species_name, Trophic_guild_name, VAR) |> 
-  dplyr::summarise(value = median(Dropout_loss),
-                   sd = median(sd_dropout_loss))
-
-trophic_group <- trophic_group |> 
-  dplyr::filter(!species_name == "Chrysiptera notialis")
-
-plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = value, fill = VAR)) +
-  geom_boxplot(outlier.shape = NA) +
-  theme_bw() +
-  scale_fill_manual(values = c("ENV" = pal_contribution[2],
-                               "HUM" = pal_contribution[1],
-                               "HAB" = pal_contribution[13])) +
-  scale_y_continuous(limits = c(0, 0.15)) + 
-  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
-  theme(
-    legend.direction = "vertical",
-    legend.background = element_rect(fill = "white"),
-    legend.key = element_rect(fill = "white", color = NA),
-    title = element_text(size = 15),
-    axis.text = element_text(size = 15),
-    axis.text.x = element_text(size = 15),
-    axis.text.y = element_text(size = 15),
-    axis.title = element_text(size = 20),
-    legend.text = element_text(size = 10),
-    legend.title = element_text(size = 15),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
-    strip.background = element_blank(),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank())
-
-# Test ANOVA
-anova_result <- aov(value ~ interaction(Trophic_guild_name, VAR), data = trophic_group)
-
-# Test post-hoc Tukey
-tukey_result <- TukeyHSD(anova_result)
-tukey_table <- as.data.frame(tukey_result$`interaction(Trophic_guild_name, VAR)`)
-
-diff <- tukey_table$`p adj` < 0.05
-names(diff) <- rownames(tukey_table)
-
-# Conversion en lettres avec multcompView
-significance_letters <- multcompView::multcompLetters(diff,
-                                                      Letters = letters)$Letters
-
-y <- trophic_group |>
-  dplyr::group_by(Trophic_guild_name, VAR) |>
-  dplyr::summarise(y = quantile(value, probs = 0.75) + 0.05*quantile(value, probs = 0.75)) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(interaction = paste0(Trophic_guild_name, ".", VAR))
-
-label_data <- data.frame(
-  interaction = names(significance_letters),
-  Letter = significance_letters
-) |>
-  dplyr::inner_join(y)
-
-label_data <- label_data |> 
-  dplyr::arrange(interaction)
-
-label_data$x <- gsub("\\..*", "", label_data$interaction)
-
-label_data$x <- as.numeric(as.factor(label_data$x))
-
-label_data <- label_data |> 
-  dplyr::mutate(x = ifelse(VAR == "ENV", x - 0.35,
-                           ifelse(VAR == "HUM", x + 0.35, x + 0.08)))
-
-plot_trophic_group_letter <- plot_trophic_group + geom_text(data = label_data,
-                                                            aes(x = x, y = y, label = Letter),
-                                                            inherit.aes = FALSE,
-                                                            size = 5)
-
-ggsave("figures/plot_trophic_group_letter.pdf", plot_trophic_group_letter, height = 8, width = 18)
-
-
-
-load("data/new_raw_data/RLS_actinopterygii_data.Rdata")
-phylo <- RLS_actinopterygii_data |> 
-  dplyr::select(species_name, order, family)
-phylo <- unique(phylo)
-n_phylo <- bind_files |> 
-  dplyr::inner_join(phylo, multiple = "first") |> 
-  dplyr::select(species_name, family) |> 
-  unique() |> 
-  dplyr::group_by(family) |> 
-  dplyr::summarise(n = dplyr::n())
-phylo <- phylo |> 
-  dplyr::inner_join(n_phylo, by = "family") |> 
-  dplyr::filter(n >= 10) |> 
-  dplyr::select(-n)
-row_to_remove <- c(rownames(phylo[phylo$species_name == "Chlorurus microrhinos" & phylo$family == "Labridae",]),
-                   rownames(phylo[phylo$species_name == "Oxycheilinus digramma" & phylo$order == "Eupercaria incertae sedis",]),
-                   rownames(phylo[phylo$species_name == "Stegastes lacrymatus" & phylo$order == "Ovalentaria incertae sedis",]))
-phylo <- phylo[-as.numeric(row_to_remove),]
-
-phylo_bind <- bind_files |> 
-  dplyr::inner_join(phylo)
-
-
-phylo_bind <- phylo_bind |> 
-  dplyr::mutate(VAR = dplyr::case_when(variable %in% c("max_1year_analysed_sst", "max_5year_degree_heating_week",
-                                                       "mean_1year_nppv", "mean_1year_so_mean", "min_1year_analysed_sst",
-                                                       "min_5year_ph") ~ "ENV",
-                                       variable %in% c("Rock_500m", "Sand_500m", "coral", "coral_algae_500m", "depth",
-                                                       "reef_extent") ~ "HAB",
-                                       variable %in% c("gdp", "gravtot2", "marine_ecosystem_dependency", "n_fishing_vessels",            
-                                                       "neartt", "protection_status2") ~ "HUM"))
-phylo_bind <- phylo_bind |> 
-  dplyr::group_by(species_name, family, VAR) |> 
-  dplyr::summarise(value = median(Dropout_loss),
-                   sd = median(sd_dropout_loss))
-
-phylo_bind <- phylo_bind |> 
-  dplyr::filter(!species_name == "Chrysiptera notialis")
-
-plot_family <- ggplot(phylo_bind, aes(x = family, y = value, fill = VAR)) +
-  geom_boxplot(outlier.shape = NA) +
-  theme_bw() +
-  scale_fill_manual(values = c("ENV" = pal_contribution[2],
-                               "HUM" = pal_contribution[1],
-                               "HAB" = pal_contribution[13])) +
-  scale_y_continuous(limits = c(0, 0.15)) + 
-  labs(y = "Relative importance (RMSE)", x = "", fill = "") +
-  theme(
-    legend.direction = "vertical",
-    legend.background = element_rect(fill = "white"),
-    legend.key = element_rect(fill = "white", color = NA),
-    title = element_text(size = 15),
-    axis.text = element_text(size = 15),
-    axis.text.x = element_text(size = 15),
-    axis.text.y = element_text(size = 15),
-    axis.title = element_text(size = 15),
-    legend.text = element_text(size = 15),
-    legend.title = element_text(size = 15),
-    strip.text.x = element_text(size = 12),
-    strip.text.y = element_text(size = 15),
-    strip.background = element_blank(),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank())
-
-# Test ANOVA
-anova_result <- aov(value ~ interaction(family, VAR), data = phylo_bind)
-
-# Test post-hoc Tukey
-tukey_result <- TukeyHSD(anova_result)
-tukey_table <- as.data.frame(tukey_result$`interaction(family, VAR)`)
-
-diff <- tukey_table$`p adj` < 0.05
-names(diff) <- rownames(tukey_table)
-
-# Conversion en lettres avec multcompView
-significance_letters <- multcompView::multcompLetters(diff,
-                                                      Letters = letters)$Letters
-
-y <- phylo_bind |>
-  dplyr::group_by(family, VAR) |>
-  dplyr::summarise(y = quantile(value, probs = 0.75) + 0.05*quantile(value, probs = 0.75)) |>
-  dplyr::ungroup() |>
-  dplyr::mutate(interaction = paste0(family, ".", VAR))
-
-label_data <- data.frame(
-  interaction = names(significance_letters),
-  Letter = significance_letters
-) |>
-  dplyr::inner_join(y)
-
-label_data <- label_data |> 
-  dplyr::arrange(interaction)
-
-label_data$x <- gsub("\\..*", "", label_data$interaction)
-
-label_data$x <- as.numeric(as.factor(label_data$x))
-
-label_data <- label_data |> 
-  dplyr::mutate(x = ifelse(VAR == "ENV", x - 0.35,
-                           ifelse(VAR == "HUM", x + 0.35, x + 0.08)))
-
-plot_family_letter <- plot_family + geom_text(data = label_data,
-                                              aes(x = x, y = y, label = Letter),
-                                              inherit.aes = FALSE,
-                                              size = 5)
-
-ggsave("figures/plot_trophic_group_letter.png", plot_trophic_group_letter, height = 8, width = 18)
 
 
 ##################### Test inferred benthos #####################
@@ -590,5 +367,5 @@ covariates_importance_all_inf <- covariates_importance_all_function(plot_data = 
                                                                     strip.text.x = 20,
                                                                     strip.text.y = 20,
                                                                     fill = "")
-test_benthos_infered <- covariates_importance_all + covariates_importance_all_inf
+test_benthos_infered <- patchwork::wrap_plots(covariates_importance_all + covariates_importance_all_inf)
 ggsave("figures/test_benthos_inferred.png", test_benthos_infered, height = 7, width = 20)

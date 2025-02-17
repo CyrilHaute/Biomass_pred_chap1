@@ -1,17 +1,5 @@
 # function for evaluating covariates importance
 
-# plot_data = bind_files
-# title = "A."
-# legend.position = "none"
-# title.size = 18
-# axis.text.x = 15
-# axis.text.y = 17
-# axis.title = 21
-# legend.text = 15
-# strip.text.x = 20
-# strip.text.y = 20
-# fill = ""
-
 covariates_importance_all_function <- function(plot_data,
                                                title,
                                                legend.position,
@@ -77,8 +65,6 @@ covariates_importance_all_function <- function(plot_data,
   cont <- ENV |>  
     dplyr::full_join(HAB) |> 
     dplyr::full_join(SOC)
-  # |> 
-  #   dplyr::mutate(realm = stringr::str_replace_all(unique(only_model_best$realm), c("_" = " ")))
 
   importance_plot <- ggplot(cont) +
     geom_col(aes(x = reorder(variable, value), y = value, fill = VAR)) +
@@ -169,19 +155,6 @@ var_max_all_function <- function(plot_data)
   
 }
 
-# plot_data = bind_files
-# title = "B."
-# legend.position = c(0.85, 0.16)
-# title.size = 18
-# axis.text.x = 15
-# axis.text.y = 17
-# axis.title = 21
-# legend.text = 15
-# strip.text.x = 20
-# strip.text.y = 20
-# geom.text.size = 5
-# fill = ""
-
 merged_covariates_importance_all_function <- function(plot_data,
                                                       title,
                                                       legend.position,
@@ -264,15 +237,6 @@ merged_covariates_importance_all_function <- function(plot_data,
     scale_y_continuous(breaks = c(0, round(mean(cont_merge$value), 2), round(max(cont_merge$value) + (max(cont_merge$value) * 0.2), 2)))
     
 }
-
-# plot_data = rf
-# fitted_model = "rf"
-# color = pal_contribution
-# labs_y = ""
-# labs_fill = ""
-# ylim = c(0,0.1)
-# legend.position = "none"
-
 
 
 covariates_importance_function <- function(plot_data
@@ -366,10 +330,6 @@ plot_covariates_importance_function <- function(plot_data,
 
 }
 
-
-# plot_data = plot_data
-# fitted_model = plot_level
-
 var_max_function <- function(plot_data,
                              fitted_model
 ){
@@ -461,15 +421,6 @@ var_max_function <- function(plot_data,
   
 }
 
-
-# plot_data = scaridae
-# fitted_model = ""
-# color = pal_contribution
-# labs_y = ""
-# labs_fill = ""
-# legend.position = "none"
-# mul = 2
-
 merged_covariates_importance_function <- function(plot_data,
                                                   fitted_model,
                                                   color,
@@ -532,13 +483,6 @@ merged_covariates_importance_function <- function(plot_data,
   
 }
 
-# plot_data =  merged_covariates_importance_function(plot_data = rf,
-#                                                    fitted_model = "rf")
-# color = pal_contribution
-# labs_y = ""
-# labs_fill = ""
-# legend.position = "none"
-# mul = 2
 
 plot_merged_covariates_importance_function <- function(plot_data,
                                                        fitted_model,
@@ -570,45 +514,4 @@ plot_merged_covariates_importance_function <- function(plot_data,
           strip.text.x = element_text(size = 20),
           strip.text.y = element_text(size = 20))
   
-}
-
-
-species_covariates_importance_function <- function(plot_data,
-                                                   group_by){
-  
-  require(ggplot2)
-  
-  # covariates relative importance by median
-  
-  plot_data <- plot_data |> 
-    dplyr::inner_join(best_models)
-  plot_data <- plot_data |> 
-    dplyr::filter(fitted_model == best_model)
-  
-  ENV <- plot_data |> 
-    dplyr::filter(variable %in% env_var) |>
-    dplyr::group_by(!!dplyr::sym(group_by)) |> 
-    dplyr::summarise(value = mean(Dropout_loss),
-                     sd = mean(sd_dropout_loss),
-                     VAR = "ENV")
-  
-  SOC <- plot_data |> 
-    dplyr::filter(variable %in% hum_var) |> 
-    dplyr::group_by(!!dplyr::sym(group_by)) |> 
-    dplyr::summarise(value = mean(Dropout_loss),
-                     sd = mean(sd_dropout_loss),
-                     VAR = "HUM")
-  
-  HAB <- plot_data |> 
-    dplyr::filter(variable %in% hab_var) |> 
-    dplyr::group_by(!!dplyr::sym(group_by)) |> 
-    dplyr::summarise(value = mean(Dropout_loss),
-                     sd = mean(sd_dropout_loss),
-                     VAR = "HAB")
-
-
-  cont <- ENV |>
-    dplyr::full_join(HAB) |>
-    dplyr::full_join(SOC)
-
 }
