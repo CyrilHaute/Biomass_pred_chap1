@@ -1,4 +1,4 @@
-# source functions ----
+# This script generate covariates importance figure at global and realm scale
 
 library(ggplot2)
 
