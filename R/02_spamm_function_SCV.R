@@ -1,31 +1,5 @@
 # function to fit glmm (SPAMM)
 
-# biomass = biomass_scv
-# covariates = rls_covariates
-# species_name = colnames(biomass_scv[[1]]$fitting)[!colnames(biomass_scv[[1]]$fitting) %in% c("survey_id", "latitude", "longitude")]
-# base_dir = base_dir
-
-# 
-#' Title spamm_function
-#' 
-#' This function fit a glmm using the R package `spaMM` with a k fold spatial cross validation procedure
-#'
-#' @param biomass a list in which each elements is a fold of the spatial cross validation procededure. Each fold is split into two subset, the first one named "fitting" to
-#' train the model and the second one named "validation" to test the model
-#' @param covariates a datagrame containg all covariates to fit the model
-#' @param species_name a vector containg the name of all species contain in @param biomass
-#' @param base_dir the path to save the data
-#'
-#' @return a dataframe with as many row as the length of @param species_name . Each row is a species with its biomass observation and prediction from each cross validation fold
-#' @export
-#'
-#' @examples
-
-# biomass = rls_biomass_i
-# covariates = rls_covariates
-# species_name = species_name[i]
-# base_dir = base_dir
-
 spamm_function <- function(biomass, 
                            covariates,
                            species_name,
@@ -125,7 +99,7 @@ spamm_function <- function(biomass,
     # add covariates
     testing <- dplyr::inner_join(testing, test_covariates, by = "survey_id")
     
-    # Fit the model
+    # Fit the glmm model
     
     if(length(unique(training$protection_status2)) == 1){
       

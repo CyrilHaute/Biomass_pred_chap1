@@ -1,10 +1,5 @@
 # function to fit gam and assess covariates relative importance
 
-# biomass = rls_biomass_i
-# covariates = rls_covariates
-# species_name = species_name[i]
-# base_dir_cont = base_dir
-
 gam_function_cont <- function(biomass, 
                               covariates,
                               species_name,
@@ -78,7 +73,7 @@ gam_function_cont <- function(biomass,
   # add covariates
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id")
   
-  # Fit the model
+  # Fit the gam model
   
   if(length(unique(sp$protection_status2)) == 1){
     

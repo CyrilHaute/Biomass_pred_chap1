@@ -1,5 +1,6 @@
+# function to plot observed vs predicted biomass
 
-# function to rescale between 0 and 1 ----
+# function to rescale between 0 and 1
 
 rescale_01 = function(x){
   

@@ -1,4 +1,4 @@
-# function for evaluating covariates importance
+# function to plot covariates importance
 
 covariates_importance_all_function <- function(plot_data,
                                                title,

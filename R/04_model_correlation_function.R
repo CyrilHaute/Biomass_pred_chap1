@@ -1,3 +1,5 @@
+# functions to plot correlation plot
+
 custom_ggally_cor <- function(data, mapping, ...){
   
   x <- eval_data_col(data, mapping$x)

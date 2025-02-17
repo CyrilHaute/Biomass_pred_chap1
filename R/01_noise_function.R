@@ -1,6 +1,4 @@
-# data = scenario_l
-# avoid = c("survey_id", "scenario", "effectiveness", "biomass", "y", "x", "year")
-# limit = 6
+# This function add noise in covariates
 
 noise_function <- function(data,
                            avoid,

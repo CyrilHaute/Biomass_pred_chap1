@@ -1,10 +1,5 @@
 # function to fit Random Forest and assess covariates relative importance
 
-# biomass = rls_biomass_i
-# covariates = rls_covariates
-# species_name = species_name[i]
-# base_dir_cont = base_dir
-
 rf_function_cont <- function(biomass, 
                              covariates, 
                              species_name, 
@@ -56,7 +51,7 @@ rf_function_cont <- function(biomass,
   # add covariates
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id")
   
-  # Fit the model
+  # Fit the random forest model
   
   model_fit <- ranger::ranger(x = sp[!colnames(sp) %in% c("survey_id", "biomass", "longitude", "latitude", "site_code")],
                               y = unlist(sp[colnames(sp) %in% "biomass"]),

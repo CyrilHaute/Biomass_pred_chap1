@@ -1,4 +1,4 @@
-# function for producing a common scale of assessment criteria ----
+# function for producing a common scale of assessment criteria
 
 aggregate_metrics <- function(plot_data,
                               metrics){

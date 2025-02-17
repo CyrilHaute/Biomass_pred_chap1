@@ -1,10 +1,5 @@
 # function to fit glmm (SPAMM) and assess covariates relative importance
 
-# biomass = rls_biomass_i
-# covariates = rls_covariates
-# species_name = species_name[i]
-# base_dir_cont = base_dir
-
 spamm_function_cont <- function(biomass, 
                                 covariates,
                                 species_name,
@@ -71,7 +66,7 @@ spamm_function_cont <- function(biomass,
     dplyr::rename(X = longitude,
                   Y = latitude)
   
-  # Fit the model
+  # Fit the glmm model
   
   if(length(unique(sp$protection_status2)) == 1){
     

@@ -1,3 +1,4 @@
+# Function to load covariates importance output by realm
 
 load_realm_cont_function <- function(files_path) {
   

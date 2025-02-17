@@ -1,10 +1,5 @@
 # function to fit boosted regression tree and assess covariates relative importance
 
-# biomass = rls_biomass_i
-# covariates = rls_covariates
-# species_name = species_name[i]
-# base_dir_cont = base_dir
-
 brt_function_cont <- function(biomass, 
                               covariates, 
                               species_name, 
@@ -62,11 +57,7 @@ brt_function_cont <- function(biomass,
   sp <- dplyr::inner_join(sp, covariates_sp, by = "survey_id")
   
   ### FITTING BOOSTED REGRESSION TREES
-  
-  # boosted regression tree modelling in 'gbm'
-  # fit models with gbm packages
-  # fit boosted regression tree with stochastic gradient boosting (i.e., bag.fraction != 1)
-  
+
   model_fit <- gbm::gbm(formula = brt_formula,
                         data = sp, 
                         distribution = "gaussian", 

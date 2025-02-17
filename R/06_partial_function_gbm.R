@@ -1,7 +1,4 @@
-# biomass = realm_j
-# covariates = rls_covariates
-# species_name = new_species_name[j]
-# base_dir = eco_base_dir
+# function to fit gbm and assess covariates partial dependence
 
 partial_function_gbm <- function(biomass, 
                                  covariates, 
