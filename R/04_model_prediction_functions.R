@@ -164,9 +164,9 @@ observed_predicted_best_plot <- function(input_data,
   plot_levels_plot <- base_plot +
     labs(x = "Observed", y = "Predicted", title = "B.") +
     theme(legend.position = "none",
-          title = element_text(size = 15),
-          axis.text=element_text(size = 15),
-          axis.title=element_text(size = 20),
+          title = element_text(size = 13),
+          axis.text=element_text(size = 10),
+          axis.title=element_text(size = 14),
           legend.text=element_text(size = 10),
           legend.title=element_text(size = 15),
           strip.text.x = element_text(size = 10),

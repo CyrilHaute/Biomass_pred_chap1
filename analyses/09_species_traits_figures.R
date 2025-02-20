@@ -108,7 +108,7 @@ trophic_group <- trophic_group |>
   dplyr::filter(Dropout_loss < mean(Dropout_loss) * 10)
 
 plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = Dropout_loss, fill = VAR)) +
-  geom_boxplot(outlier.shape = NA) +
+  geom_boxplot(outlier.shape = NA, size = 0.1) +
   theme_bw() +
   scale_fill_manual(values = c("ENV" = pal_contribution[2],
                                "HUM" = pal_contribution[1],
@@ -119,15 +119,12 @@ plot_trophic_group <- ggplot(trophic_group, aes(x = Trophic_guild_name, y = Drop
     legend.direction = "vertical",
     legend.background = element_rect(fill = "white"),
     legend.key = element_rect(fill = "white", color = NA),
-    title = element_text(size = 15),
-    axis.text = element_text(size = 15),
-    axis.text.x = element_text(size = 15),
-    axis.text.y = element_text(size = 15),
-    axis.title = element_text(size = 20),
-    legend.text = element_text(size = 10),
-    legend.title = element_text(size = 15),
-    strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    axis.title = element_text(size = 10),
+    legend.text = element_text(size = 8),
+    strip.text.x = element_text(size = 5),
+    strip.text.y = element_text(size = 5),
     strip.background = element_blank(),
     panel.background = element_rect(fill = "white", colour = "grey50",
                                     size = 1, linetype = "solid"),
@@ -151,7 +148,7 @@ significance_letters <- multcompView::multcompLetters(diff,
 
 y <- trophic_group |>
   dplyr::group_by(Trophic_guild_name, VAR) |>
-  dplyr::summarise(y = quantile(Dropout_loss, probs = 0.75) + 0.05 * quantile(Dropout_loss, probs = 0.75)) |>
+  dplyr::summarise(y = quantile(Dropout_loss, probs = 0.75) + 0.1 * quantile(Dropout_loss, probs = 0.75)) |>
   dplyr::ungroup() |>
   dplyr::mutate(interaction = paste0(Trophic_guild_name, ".", VAR))
 
@@ -170,14 +167,14 @@ label_data$x <- as.numeric(as.factor(label_data$x))
 
 label_data <- label_data |> 
   dplyr::mutate(x = ifelse(VAR == "ENV", x - 0.35,
-                           ifelse(VAR == "HUM", x + 0.35, x + 0.08)))
+                           ifelse(VAR == "HUM", x + 0.31, x + 0.08)))
 
 plot_trophic_group_letter <- plot_trophic_group + geom_text(data = label_data,
                                                             aes(x = x, y = y, label = Letter),
                                                             inherit.aes = FALSE,
-                                                            size = 5)
+                                                            size = 2)
 
-ggsave("figures/plot_trophic_group_letter.pdf", plot_trophic_group_letter, height = 8, width = 18)
+ggsave("figures/plot_trophic_group_letter2.pdf", plot_trophic_group_letter, height = 8, width = 18, units = "cm")
 
 
 

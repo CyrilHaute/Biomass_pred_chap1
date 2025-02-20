@@ -85,13 +85,13 @@ pearson_imp_var <- ggplot(var_imp |>
   theme_classic() +
   coord_flip() +
   tidytext::scale_x_reordered() +
-  theme(axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 14),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10),
+  theme(axis.text.x = element_text(size = 5),
+        axis.text.y = element_text(size = 5),
+        axis.title = element_text(size = 6),
+        strip.text.x = element_text(size = 5),
+        strip.text.y = element_text(size = 5),
         legend.position = "none",
-        title = element_text(size = 15)) + 
+        title = element_text(size = 6)) + 
   labs(x = "", y = "Importance", title = "A.     Pearson r² = 0.33", fill = "")
 spearman_imp_var <- ggplot(var_imp |> 
                             dplyr::filter(peformance == "Spearman")) +
@@ -102,13 +102,13 @@ spearman_imp_var <- ggplot(var_imp |>
   theme_classic() +
   coord_flip() +
   tidytext::scale_x_reordered() +
-  theme(axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 14),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10),
-        legend.text = element_text(size = 12),
-        title = element_text(size = 15)) + 
+  theme(axis.text.x = element_text(size = 5),
+        axis.text.y = element_text(size = 5),
+        axis.title = element_text(size = 6),
+        strip.text.x = element_text(size = 5),
+        strip.text.y = element_text(size = 5),
+        legend.position = "none",
+        title = element_text(size = 6)) + 
   labs(x = "", y = "Importance", title = "B.     Spearman r² = 0.59", fill = "")
 
 # yhat <- function(X.model, newdata) as.numeric(predict(X.model, newdata)$predictions) 
@@ -123,25 +123,25 @@ patial_pear_ml <- pdp::partial(pearson_model, train = performance_bind, pred.var
 
 patial_pear_count_plot <- patial_pear_count |> 
   ggplot() +
-  geom_line(aes(x = count, y = pearson), size = 1.2, color = pal[1]) +
+  geom_line(aes(x = count, y = pearson), size = 0.8, color = pal[1]) +
   labs(y = "Pearson", x = "Number of occurrences") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 12),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10),
+  theme(axis.text.x = element_text(size = 4),
+        axis.text.y = element_text(size = 4),
+        axis.title = element_text(size = 4),
+        strip.text.x = element_text(size = 4),
+        strip.text.y = element_text(size = 4),
         legend.position = "none")
 patial_pear_ml_plot <- patial_pear_ml |> 
   ggplot() +
-  geom_line(aes(x = MaxLength, y = pearson), size = 1.2, color = pal[1]) +
+  geom_line(aes(x = MaxLength, y = pearson), size = 0.8, color = pal[1]) +
   labs(y = "Pearson", x = "Maximum body length") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 12),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10),
+  theme(axis.text.x = element_text(size = 4),
+        axis.text.y = element_text(size = 4),
+        axis.title = element_text(size = 4),
+        strip.text.x = element_text(size = 4),
+        strip.text.y = element_text(size = 4),
         legend.position = "none")
 patial_pear_plot <- patchwork::wrap_plots(patial_pear_count_plot / patial_pear_ml_plot)
 
@@ -156,25 +156,25 @@ patial_spear_ml <- pdp::partial(spearman_model, train = performance_bind, pred.v
 
 patial_spear_count_plot <- patial_spear_count |> 
   ggplot() +
-  geom_line(aes(x = count, y = spearman), size = 1.2, color = pal[1]) +
+  geom_line(aes(x = count, y = spearman), size = 0.8, color = pal[1]) +
   labs(y = "Spearman", x = "Number of occurrences") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 12),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10),
+  theme(axis.text.x = element_text(size = 4),
+        axis.text.y = element_text(size = 4),
+        axis.title = element_text(size = 4),
+        strip.text.x = element_text(size = 4),
+        strip.text.y = element_text(size = 4),
         legend.position = "none")
 patial_spear_ml_plot <- patial_spear_ml |> 
   ggplot() +
-  geom_line(aes(x = MaxLength, y = spearman), size = 1.2, color = pal[1]) +
+  geom_line(aes(x = MaxLength, y = spearman), size = 0.8, color = pal[1]) +
   labs(y = "Spearman", x = "Maximum body length") +
   theme_minimal() +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title = element_text(size = 12),
-        strip.text.x = element_text(size = 10),
-        strip.text.y = element_text(size = 10),
+  theme(axis.text.x = element_text(size = 4),
+        axis.text.y = element_text(size = 4),
+        axis.title = element_text(size = 4),
+        strip.text.x = element_text(size = 4),
+        strip.text.y = element_text(size = 4),
         legend.position = "none")
 patial_spear_plot <- patchwork::wrap_plots(patial_spear_count_plot / patial_spear_ml_plot)
 
@@ -183,4 +183,4 @@ spearman_plot <- spearman_imp_var +
 
 pearson_spearman <- patchwork::wrap_plots(pearson_plot + spearman_plot)
 
-ggsave("figures/imp_patial_plot.png", pearson_spearman, width = 15, height = 11)
+ggsave("figures/imp_patial_plot.pdf", pearson_spearman, width = 15, height = 11, units = "cm")

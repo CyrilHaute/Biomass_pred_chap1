@@ -68,7 +68,7 @@ covariates_importance_all_function <- function(plot_data,
 
   importance_plot <- ggplot(cont) +
     geom_col(aes(x = reorder(variable, value), y = value, fill = VAR)) +
-    geom_errorbar(aes(x = variable, y = value, ymin = value - sd, ymax = value + sd), width = .2,
+    geom_errorbar(aes(x = variable, y = value, ymin = value - sd, ymax = value + sd), width = .3,
                   position = position_dodge(.9)) +
     scale_fill_manual(values = c("ENV" = pal_contribution[2],
                                  "HUM" = pal_contribution[1],
@@ -217,8 +217,8 @@ merged_covariates_importance_all_function <- function(plot_data,
   
   merged_importance_plot <- ggplot(cont_merge) +
     geom_col(aes(x = reorder(VAR, value), y = value, fill = VAR)) +
-    geom_errorbar(aes(x = VAR, y = value, ymin=value-sd, ymax=value+sd), width=.1,
-                  position=position_dodge(.9)) +
+    geom_errorbar(aes(x = VAR, y = value, ymin=value-sd, ymax=value+sd), width= 0.2,
+                  position=position_dodge(.9), size = 0.2) +
     geom_text(aes(x = VAR, y = value+3*sd, label = n), size = geom.text.size) +
     scale_fill_manual(values = c("ENV" = pal_contribution[2],
                                  "HUM" = pal_contribution[1],

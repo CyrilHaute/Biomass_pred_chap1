@@ -56,19 +56,16 @@ best_model <- best_models_pr |>
                                "SPRF" = pal_best[5],
                                "RF" = pal_best[6])) +
   labs(x = "Statistical model", y = "Best model (%)", fill = "Method", title = "A.") +
-  theme_minimal() + 
-  theme(title = element_text(size = 15),
-        axis.text = element_text(size = 15),
-        axis.title = element_text(size = 20),
+  theme_bw() + 
+  theme(title = element_text(size = 13),
+        axis.text.y=element_text(size = 10),
+        axis.text.x=element_text(size = 8),
+        axis.title = element_text(size = 14),
         legend.text = element_text(size = 10),
         legend.title = element_text(size = 15),
         strip.text.x = element_text(size = 10),
         strip.text.y = element_text(size = 10),
-        legend.position = "none",
-        panel.background = element_rect(fill = "white", colour = "grey50",
-                                        size = 1, linetype = "solid"),
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank())
+        legend.position = "none")
 
 # Pearon and Spearman plot
 # Select only the best model for each species
@@ -159,13 +156,13 @@ plot_perf <- performance_all_best |>
   geom_segment(
     aes(x = 0, xend = 6.5, y = mean_pearson, yend = mean_pearson),
     color = "red",
-    size = 2,
+    size = 1,
     linetype = "dashed"
   ) +
   geom_segment(
     aes(x = 7.5, xend = 13.5, y = mean_spearman, yend = mean_spearman),
     color = "red",
-    size = 2,
+    size = 1,
     linetype = "dashed"
   ) +
   scale_x_discrete(drop = FALSE,
@@ -187,20 +184,17 @@ plot_perf <- performance_all_best |>
                                "All models" = pal_perf[2])) +
   coord_cartesian(ylim = c(-0.3, 1)) + 
   labs(y = "Performance values", x = "", title = "C.", fill = "") +
-  theme_minimal() + 
+  theme_bw() + 
   theme(
-    legend.position = c(0.8, 0.1),
+    legend.position = c(0.7, 0.1),
     legend.direction = "horizontal",
-    title = element_text(size = 15),
-    axis.text = element_text(size = 15),
-    axis.title = element_text(size = 20),
-    legend.text = element_text(size = 15),
+    title = element_text(size = 13),
+    axis.text.y = element_text(size = 10),
+    axis.text.x = element_text(size = 8),
+    axis.title = element_text(size = 14),
+    legend.text = element_text(size = 10),
     strip.text.x = element_text(size = 10),
-    strip.text.y = element_text(size = 10),
-    panel.background = element_rect(fill = "white", colour = "grey50",
-                                    size = 1, linetype = "solid"),
-    panel.grid.major = element_blank(), 
-    panel.grid.minor = element_blank())
+    strip.text.y = element_text(size = 10))
 
 
 # Load data to plot model predictions
@@ -264,7 +258,7 @@ ggsave("figures/all_predictions_pres.png", observed_predicted_all_plot, width = 
 
 plot_perf_best <- (best_model + observed_predicted_best_plot) / (plot_perf)
 
-ggplot2::ggsave("figures/plot_perf_best.png", plot_perf_best, height = 13, width = 12)
+ggplot2::ggsave("figures/plot_perf_best.pdf", plot_perf_best, height = 18, width = 17, unit = "cm")
 
 
 ################ Performance correlation figure ################
